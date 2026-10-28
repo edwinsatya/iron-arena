@@ -1,0 +1,48 @@
+{
+  "name": "iron-arena",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NEON FIST \u2014 a Tekken-style 1v1 3D fighting game for the browser with rollback netcode",
+  "packageManager": "pnpm@10.34.9",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @neonfist/web --filter @neonfist/lobby dev",
+    "dev:web": "pnpm --filter @neonfist/web dev",
+    "dev:lobby": "pnpm --filter @neonfist/lobby dev",
+    "dev:lobby:cf": "pnpm --filter @neonfist/lobby dev:cf",
+    "build": "pnpm --filter @neonfist/web build",
+    "start": "pnpm --parallel --filter @neonfist/web --filter @neonfist/lobby start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "pnpm -r typecheck && tsc --noEmit -p tools",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "synctest": "tsx tools/synctest.ts",
+    "soak": "tsx tools/soak.ts",
+    "replay": "tsx tools/replay.ts",
+    "e2e": "playwright test",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm synctest && pnpm soak",
+    "lobby:smoke": "tsx tools/lobby-smoke.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@neonfist/netcode": "workspace:*",
+    "@neonfist/shared": "workspace:*",
+    "@neonfist/sim": "workspace:*",
+    "@playwright/test": "1.64.1",
+    "@types/node": "22.20.5",
+    "@types/ws": "8.18.2",
+    "eslint": "10.13.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.13.0",
+    "prettier": "3.9.10",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.1",
+    "vitest": "5.0.5",
+    "ws": "8.22.0"
+  }
+}

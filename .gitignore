@@ -1,0 +1,16 @@
+node_modules/
+.next/
+out/
+dist/
+.wrangler/
+.dev.vars
+coverage/
+test-results/
+playwright-report/
+blob-report/
+*.log
+*.tsbuildinfo
+.env*.local
+.DS_Store
+next-env.d.ts
+desync-*.json

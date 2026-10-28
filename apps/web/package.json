@@ -1,0 +1,31 @@
+{
+  "name": "@neonfist/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start --port 3000",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@fontsource/anton": "5.3.0",
+    "@fontsource/barlow-semi-condensed": "5.3.0",
+    "@neonfist/netcode": "workspace:*",
+    "@neonfist/shared": "workspace:*",
+    "@neonfist/sim": "workspace:*",
+    "@pixiv/three-vrm": "3.5.5",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/three": "0.186.0",
+    "tailwindcss": "4.3.3"
+  }
+}

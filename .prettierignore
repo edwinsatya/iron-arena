@@ -1,0 +1,7 @@
+node_modules
+.next
+.wrangler
+pnpm-lock.yaml
+test-results
+playwright-report
+docs/PLAN.md

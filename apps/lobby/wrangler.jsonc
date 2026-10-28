@@ -1,0 +1,19 @@
+{
+  // NEON FIST lobby — Cloudflare Worker + one Durable Object per room (PLAN §4.7, §12)
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "neon-fist-lobby",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-01",
+  "durable_objects": {
+    "bindings": [{ "name": "ROOMS", "class_name": "RoomDO" }]
+  },
+  // Free plan: SQLite-backed Durable Objects
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["RoomDO"] }],
+  "vars": {
+    // Comma-separated list of web origins allowed to create rooms, or "*"
+    "ALLOWED_ORIGINS": "*"
+  },
+  "dev": { "port": 8787 },
+  // Secrets (not in this file): wrangler secret put TURN_KEY_ID / TURN_KEY_API_TOKEN
+  "observability": { "enabled": true }
+}

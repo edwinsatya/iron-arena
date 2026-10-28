@@ -1,0 +1,23 @@
+{
+  "name": "@neonfist/lobby",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Lobby: rooms, character select, WebRTC signaling, TURN credentials, relay fallback",
+  "scripts": {
+    "dev": "tsx watch src/node-server.ts",
+    "start": "tsx src/node-server.ts",
+    "dev:cf": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p tsconfig.worker.json"
+  },
+  "dependencies": {
+    "@neonfist/shared": "workspace:*",
+    "ws": "8.22.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261028.1",
+    "@types/ws": "8.18.2",
+    "wrangler": "4.154.0"
+  }
+}

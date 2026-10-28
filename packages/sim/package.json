@@ -1,0 +1,18 @@
+{
+  "name": "@neonfist/sim",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Deterministic fighting-game simulation: integer math, plain-data state, zero runtime dependencies",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@neonfist/shared": "workspace:*"
+  }
+}
