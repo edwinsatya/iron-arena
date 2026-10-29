@@ -3,9 +3,12 @@ import { dummy } from '../data/heroes/dummy';
 import { homura } from '../data/heroes/homura';
 import { hyoga } from '../data/heroes/hyoga';
 import { hyoshin } from '../data/heroes/hyoshin';
+import { gokai } from '../data/heroes/gokai';
 import { kage } from '../data/heroes/kage';
+import { kuma } from '../data/heroes/kuma';
 import { lysa } from '../data/heroes/lysa';
 import { reo } from '../data/heroes/reo';
+import { yomi } from '../data/heroes/yomi';
 import type { CompiledHero, HeroData } from './types';
 
 function compileHero(h: HeroData, index: number): CompiledHero {
@@ -43,7 +46,7 @@ function compileHero(h: HeroData, index: number): CompiledHero {
  * The roster, compiled once at load. A fighter's `char` is an index into this array, so both
  * peers must run the same build (the lobby enforces this with simVersion).
  */
-export const ROSTER: readonly CompiledHero[] = [benika, lysa, hyoga, hyoshin, reo, kage, homura, dummy].map((h, i) =>
+export const ROSTER: readonly CompiledHero[] = [benika, lysa, hyoga, hyoshin, reo, kage, homura, gokai, yomi, kuma, dummy].map((h, i) =>
   compileHero(h, i),
 );
 

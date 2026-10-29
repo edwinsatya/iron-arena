@@ -28,7 +28,7 @@ export interface Look {
   /** Second colour for gradients and effects. */
   glow: string;
   /** Sound family for hits and swings. */
-  weapon: 'axe' | 'bow' | 'hammer' | 'sword' | 'dagger' | 'fire' | 'ice' | 'none';
+  weapon: 'axe' | 'bow' | 'hammer' | 'sword' | 'dagger' | 'fire' | 'ice' | 'anchor' | 'scythe' | 'claw' | 'none';
   /** Sprite animation per action id. */
   actions: Record<string, AnimRef>;
   /** Victory pose. */
@@ -144,9 +144,9 @@ export const LOOKS: Record<string, Look> = {
       kg_b2: 'attack',
       kg_b3: { anim: 'attack', puppet: 'lunge' },
       kg_dash: { anim: 'attack', puppet: 'lunge' },
-      kg_air: 'attack',
+      kg_air: 'throw',
       kg_charge: { anim: 'attack', puppet: 'lunge' },
-      kg_s1: 'attack',
+      kg_s1: 'throw',
       kg_s2: { anim: 'attack', puppet: 'vanish' },
       kg_s3: { anim: 'idle', puppet: 'guard' },
       kg_s3_strike: { anim: 'attack', puppet: 'lunge' },
@@ -170,6 +170,63 @@ export const LOOKS: Record<string, Look> = {
       hm_s2: { anim: 'idle', puppet: 'cast' },
       hm_s3: { anim: 'turn', puppet: 'spin' },
       hm_ult: { anim: 'front', puppet: 'raise' },
+    },
+  },
+  gokai: {
+    color: '#3fe0c0',
+    glow: '#b8fff0',
+    weapon: 'anchor',
+    altHue: 160,
+    win: 'front',
+    actions: {
+      gk_b1: 'attack',
+      gk_b2: 'attack',
+      gk_b3: { anim: 'attack', puppet: 'lunge' },
+      gk_dash: { anim: 'walk', puppet: 'lunge' },
+      gk_air: 'attack',
+      gk_charge: { anim: 'attack', puppet: 'lunge' },
+      gk_s1: { anim: 'cast', puppet: 'cast' },
+      gk_s2: { anim: 'cast', puppet: 'cast' },
+      gk_s3: { anim: 'cast', puppet: 'raise' },
+      gk_ult: { anim: 'cast', puppet: 'raise' },
+    },
+  },
+  yomi: {
+    color: '#c04cff',
+    glow: '#ff9cf0',
+    weapon: 'scythe',
+    altHue: 100,
+    win: 'front',
+    actions: {
+      ym_b1: 'attack',
+      ym_b2: 'attack',
+      ym_b3: { anim: 'attack', puppet: 'lunge' },
+      ym_dash: { anim: 'attack', puppet: 'lunge' },
+      ym_air: 'attack',
+      ym_charge: { anim: 'attack', puppet: 'lunge' },
+      ym_s1: 'attack',
+      ym_s2: { anim: 'attack', puppet: 'lunge' },
+      ym_s3: { anim: 'front', puppet: 'raise' },
+      ym_ult: { anim: 'front', puppet: 'raise' },
+    },
+  },
+  kuma: {
+    color: '#ff8a3a',
+    glow: '#ffd9a8',
+    weapon: 'claw',
+    altHue: 180,
+    win: 'front',
+    actions: {
+      km_b1: 'attack',
+      km_b2: 'attack',
+      km_b3: { anim: 'attack', puppet: 'lunge' },
+      km_dash: { anim: 'walk', puppet: 'lunge' },
+      km_air: 'attack',
+      km_charge: { anim: 'attack', puppet: 'lunge' },
+      km_s1: { anim: 'front', puppet: 'raise' },
+      km_s2: { anim: 'attack', cycle: [8, 6] },
+      km_s3: { anim: 'idle', puppet: 'guard' },
+      km_ult: { anim: 'attack', cycle: [10, 8] },
     },
   },
   dummy: {

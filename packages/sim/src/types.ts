@@ -79,7 +79,9 @@ export type AreaKind =
   | 'holy'
   | 'shout'
   | 'meteor'
-  | 'smoke';
+  | 'smoke'
+  | 'tide'
+  | 'void';
 
 /** A ground circle that hits everyone inside after a telegraph. */
 export interface AreaSpec {
@@ -148,7 +150,7 @@ export interface ActionData {
   air?: boolean;
 }
 
-export type Weapon = 'axe' | 'bow' | 'hammer' | 'sword' | 'dagger' | 'fire' | 'ice' | 'none';
+export type Weapon = 'axe' | 'bow' | 'hammer' | 'sword' | 'dagger' | 'fire' | 'ice' | 'anchor' | 'scythe' | 'claw' | 'none';
 /** Melee roles close in; Archer keeps its distance (the CPU plays them differently). */
 export type Role = 'Berserker' | 'Archer' | 'Guardian' | 'Knight' | 'Assassin' | 'Mage' | 'Dummy';
 

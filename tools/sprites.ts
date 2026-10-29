@@ -45,6 +45,8 @@ interface HeroCfg {
   pack: string;
   /** Hero height in metres (the idle frame's height maps to this). */
   height: number;
+  /** Folder holding the animations (default Animations). */
+  animDir?: string;
   anims: Record<string, AnimCfg>;
   /** Art board file prefix (complete packs only). */
   art?: string;
@@ -133,15 +135,61 @@ const HEROES: HeroCfg[] = [
   },
   {
     id: 'kage',
-    pack: 'hooded-rogue-assassin-FREE',
-    height: 1.7,
+    pack: 'Black-Assassin-FREE',
+    animDir: 'animations',
+    height: 1.75,
+    face: { src: 'idle', dir: 'south-east', frame: 0 },
+    anims: {
+      idle: { src: 'idle', fps: 10, loop: true },
+      walk: { src: 'walk', fps: 12, loop: true },
+      run: { src: 'run', fps: 14, loop: true },
+      jump: { src: 'jump', hit: 5 },
+      attack: { src: 'dagger-slash', hit: 3 },
+      throw: { src: 'throw', hit: 2 },
+      turn: { src: 'idle', spin: true, fps: 24 },
+      front: { src: 'idle', dir: 'south', fps: 10, loop: true },
+    },
+  },
+  {
+    id: 'gokai',
+    pack: 'tentaclebeard-admiral-FREE',
+    animDir: 'animations',
+    height: 1.85,
+    face: { src: 'idle', dir: 'south-east', frame: 0 },
+    anims: {
+      idle: { src: 'idle', fps: 6, loop: true },
+      walk: { src: 'walk', fps: 12, loop: true },
+      attack: { src: 'anchor-attack', hit: 2, fps: 10 },
+      cast: { src: 'magic-cast', hit: 2, fps: 10 },
+      death: { src: 'death', fps: 8 },
+      turn: { src: 'idle', spin: true, fps: 24 },
+      front: { src: 'idle', dir: 'south', fps: 6, loop: true },
+    },
+  },
+  {
+    id: 'yomi',
+    pack: 'faceless-void-reaper-FREE',
+    height: 1.8,
     face: { src: 'Idle', dir: 'south-east', frame: 0 },
     anims: {
       idle: { src: 'Idle', fps: 10, loop: true },
-      walk: { src: 'Walk', fps: 14, loop: true },
-      attack: { src: 'Attack_1' },
+      walk: { src: 'Walk', fps: 12, loop: true },
+      attack: { src: 'Void_Strike', hit: 11 },
       turn: { src: 'Idle', spin: true, fps: 24 },
       front: { src: 'Idle', dir: 'south', fps: 10, loop: true },
+    },
+  },
+  {
+    id: 'kuma',
+    pack: 'black-bear-bandit-FREE',
+    height: 1.95,
+    face: { src: 'Idle_Breathing', dir: 'south-east', frame: 0 },
+    anims: {
+      idle: { src: 'Idle_Breathing', fps: 8, loop: true },
+      walk: { src: 'Walk', fps: 12, loop: true },
+      attack: { src: 'Claw_Attack', hit: 4 },
+      turn: { src: 'Idle_Breathing', spin: true, fps: 24 },
+      front: { src: 'Idle_Breathing', dir: 'south', fps: 8, loop: true },
     },
   },
   {
@@ -248,7 +296,7 @@ async function hero(cfg: HeroCfg) {
   mkdirSync(out, { recursive: true });
 
   // Feet anchor and scale from the first idle frame
-  const idleDir = join(dir, 'Animations', cfg.anims.idle!.src, 'east');
+  const idleDir = join(dir, cfg.animDir ?? 'Animations', cfg.anims.idle!.src, 'east');
   const idle0 = await load(join(idleDir, readdirSync(idleDir).sort()[0]!));
   const ib = bbox(idle0)!;
   const footX = Math.round((ib[0] + ib[2]) / 2);
@@ -266,9 +314,9 @@ async function hero(cfg: HeroCfg) {
   for (const [name, a] of Object.entries(cfg.anims)) {
     let files: string[];
     if (a.spin) {
-      files = SPIN.map((d) => list(join(dir, 'Animations', a.src, d))[a.pick?.[0] ?? 0]!);
+      files = SPIN.map((d) => list(join(dir, cfg.animDir ?? 'Animations', a.src, d))[a.pick?.[0] ?? 0]!);
     } else {
-      files = list(join(dir, 'Animations', a.src, a.dir ?? 'east'));
+      files = list(join(dir, cfg.animDir ?? 'Animations', a.src, a.dir ?? 'east'));
       if (a.range) files = files.slice(a.range[0], a.range[1] + 1);
       if (a.pick) files = a.pick.map((i) => files[i]!).filter(Boolean);
     }
@@ -378,7 +426,7 @@ async function hero(cfg: HeroCfg) {
     // Head-and-shoulders from a sprite frame, scaled up crisply
     let src = idle0;
     if (cfg.face) {
-      const fdir = join(dir, 'Animations', cfg.face.src, cfg.face.dir);
+      const fdir = join(dir, cfg.animDir ?? 'Animations', cfg.face.src, cfg.face.dir);
       src = await load(join(fdir, readdirSync(fdir).sort()[cfg.face.frame]!));
     }
     const fb = bbox(src)!;

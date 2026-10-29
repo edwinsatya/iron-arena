@@ -729,6 +729,78 @@ export class Effects2D {
         }
         break;
       }
+      case 'tide': {
+        // A whirlpool with water spouts and tentacles curling up
+        g.fillStyle = hexA('#1d6f8f', 0.55);
+        g.beginPath();
+        g.ellipse(x, y0, rx, rx * 0.2, 0, 0, TAU);
+        g.fill();
+        g.strokeStyle = hexA('#b8fff0', 0.8);
+        g.lineWidth = 3;
+        for (let n = 0; n < 3; n++) {
+          g.beginPath();
+          g.ellipse(x, y0, rx * (0.3 + n * 0.25), rx * 0.2 * (0.3 + n * 0.25), 0, a.age * 0.15 + n, a.age * 0.15 + n + 4);
+          g.stroke();
+        }
+        const rise = Math.sin(Math.min(1, k * 2.5) * Math.PI * 0.5);
+        for (let n = -2; n <= 2; n++) {
+          const tx = x + (n / 2) * rx * 0.7;
+          const h = v.px(900 + (2 - Math.abs(n)) * 500) * rise;
+          const sway = Math.sin(a.age * 0.2 + n) * v.px(160);
+          g.strokeStyle = n % 2 ? '#2fb39a' : '#46d6b6';
+          g.lineCap = 'round';
+          g.lineWidth = v.px(150) * (1 - Math.abs(n) * 0.12);
+          g.beginPath();
+          g.moveTo(tx, y0);
+          g.quadraticCurveTo(tx + sway, y0 - h * 0.6, tx - sway * 0.6, y0 - h);
+          g.stroke();
+        }
+        g.fillStyle = hexA('#e6fffb', 0.8);
+        for (let n = 0; n < 10; n++) {
+          const px = x + (((n * 37 + a.age * 7) % 100) / 100 - 0.5) * rx * 1.6;
+          const py = y0 - ((a.age * 9 + n * 41) % Math.max(1, v.px(1600)));
+          g.beginPath();
+          g.arc(px, py, 3, 0, TAU);
+          g.fill();
+        }
+        break;
+      }
+      case 'void': {
+        // Grave hands reaching out of a dark rift
+        g.fillStyle = hexA('#1a0b26', 0.75);
+        g.beginPath();
+        g.ellipse(x, y0, rx, rx * 0.2, 0, 0, TAU);
+        g.fill();
+        g.strokeStyle = hexA('#c04cff', 0.9);
+        g.lineWidth = 3;
+        g.stroke();
+        const rise = Math.sin(Math.min(1, k * 2.5) * Math.PI * 0.5);
+        for (let n = -3; n <= 3; n++) {
+          const hx = x + (n / 3) * rx * 0.8;
+          const h = v.px(500 + ((n * 53 + 300) % 5) * 160) * rise;
+          g.strokeStyle = '#2b1838';
+          g.lineCap = 'round';
+          g.lineWidth = v.px(110);
+          g.beginPath();
+          g.moveTo(hx, y0);
+          g.lineTo(hx + Math.sin(n) * v.px(80), y0 - h);
+          g.stroke();
+          // Fingers
+          g.lineWidth = v.px(40);
+          for (let q = -1; q <= 1; q++) {
+            g.beginPath();
+            g.moveTo(hx + Math.sin(n) * v.px(80), y0 - h);
+            g.lineTo(hx + Math.sin(n) * v.px(80) + q * v.px(90), y0 - h - v.px(140));
+            g.stroke();
+          }
+        }
+        const glow = g.createRadialGradient(x, y0, 0, x, y0, rx);
+        glow.addColorStop(0, hexA('#ff9cf0', 0.35));
+        glow.addColorStop(1, hexA('#c04cff', 0));
+        g.fillStyle = glow;
+        g.fillRect(x - rx, y0 - rx, rx * 2, rx * 1.2);
+        break;
+      }
       case 'smoke': {
         g.fillStyle = hexA('#2b2340', 0.6);
         for (let n = 0; n < 7; n++) {

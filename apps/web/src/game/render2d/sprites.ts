@@ -117,18 +117,21 @@ export function chooseSprite(atlas: Atlas, s: GameState, i: number, time: number
   const at = (anim: AtlasAnim, k: number, extra: Partial<SpritePick> = {}) =>
     pick(anim, k * (anim.frames.length - 1), extra);
   const walk = A.walk ?? idle;
+  const run = A.run ?? walk;
+  const jump = A.jump;
   const t = f.stateFrame;
 
   switch (f.state) {
     case FS.IDLE:
       return loop(idle, time + i * 0.37);
     case FS.RUN:
-      return loop(walk, time + i * 0.21, Math.max(0.8, hero.speed / 62));
+      return A.run ? loop(run, time + i * 0.21) : loop(walk, time + i * 0.21, Math.max(0.8, hero.speed / 62));
     case FS.DASH:
-      return loop(walk, time, 2.2, { sx: 1.04, sy: 0.97 });
+      return A.run ? loop(run, time, 1.5) : loop(walk, time, 2.2, { sx: 1.04, sy: 0.97 });
     case FS.JUMP_SQUAT:
-      return pick(idle, 0, { sx: 1.08, sy: 0.88 });
+      return jump ? at(jump, 0.1) : pick(idle, 0, { sx: 1.08, sy: 0.88 });
     case FS.AIR:
+      if (jump) return at(jump, f.vy > 0 ? 0.3 : 0.7);
       return f.vy > 0
         ? at(walk, 0.25, { sx: 0.94, sy: 1.08 })
         : at(walk, 0.75, { sx: 0.97, sy: 1.04, rot: -0.05 });
@@ -276,7 +279,8 @@ export class SpriteHero {
     facing: number,
     opts: { flash?: number; alt?: boolean; alpha?: number } = {},
   ) {
-    const fr = p.anim.frames[p.frame]!;
+    const fr = p.anim.frames[Math.max(0, Math.min(p.anim.frames.length - 1, p.frame | 0))];
+    if (!fr) return;
     const [sheet, sx, sy, w, h, ax, ay] = fr;
     const img: CanvasImageSource = opts.alt ? this.altSheets()[sheet]! : this.sheets[sheet]!;
     const dir = facing * this.atlas.facing;

@@ -11,7 +11,13 @@ All heroes are drawn with free character packs by **elie automata** ([itch.io](h
 | Benika | Battle Axemaiden (free complete pack) |
 | Lysa | Elven Bow Scout (free complete pack) |
 | Hyōga | Glacierbreaker Knight (free complete pack) |
+| Hyōshin | Glacial Heart (free complete pack) |
 | Reo | Shield Knight (free pack) |
+| Kage | Black Assassin (free pack) |
+| Homura | Fire Witch (free pack) |
+| Gōkai | Tentaclebeard Admiral (free pack) |
+| Yomi | Faceless Void Reaper (free pack) |
+| Kuma | Black Bear Bandit (free pack) |
 | Training dummy | Wasteland Juggernaut (free pack) |
 
 Licence (from the packs): *Commercial and non-commercial use and modifications allowed. Credit "elie automata". Distribution within finished projects allowed. No standalone resale, sharing or redistribution of original or modified assets.*

@@ -37,7 +37,18 @@ export function inputDelayForPing(pingMs: number): number {
 }
 
 /** Fighters on the select screen (must match the sim roster — a sim test checks it). */
-export const SELECTABLE_FIGHTERS = ['benika', 'lysa', 'hyoga', 'hyoshin', 'reo', 'kage', 'homura'] as const;
+export const SELECTABLE_FIGHTERS = [
+  'benika',
+  'lysa',
+  'hyoga',
+  'hyoshin',
+  'reo',
+  'kage',
+  'homura',
+  'gokai',
+  'yomi',
+  'kuma',
+] as const;
 export type FighterId = (typeof SELECTABLE_FIGHTERS)[number];
 
 /** Arenas (the simulation is identical on both; only the look changes). */

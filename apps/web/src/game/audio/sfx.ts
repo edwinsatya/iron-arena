@@ -109,11 +109,11 @@ export class Sfx {
     switch (e.type) {
       case EV.HIT: {
         const heavy = Math.min(1, e.value / 90);
-        if (weapon === 'sword' || weapon === 'axe') this.burst({ freq: 4200, q: 2, dur: 0.09, gain: 0.35, sweepTo: 1800 });
+        if (weapon === 'sword' || weapon === 'axe' || weapon === 'scythe' || weapon === 'claw') this.burst({ freq: 4200, q: 2, dur: 0.09, gain: 0.35, sweepTo: 1800 });
         if (weapon === 'dagger') this.burst({ freq: 6000, q: 3, dur: 0.06, gain: 0.3, sweepTo: 3000 });
         if (weapon === 'fire') this.burst({ freq: 900, q: 0.7, dur: 0.3, gain: 0.35, type: 'lowpass', sweepTo: 300 });
         if (weapon === 'ice') this.burst({ freq: 5200, q: 5, dur: 0.18, gain: 0.3, sweepTo: 7000 });
-        if (weapon === 'hammer') this.thump(70, 0.25, 0.7);
+        if (weapon === 'hammer' || weapon === 'anchor') this.thump(70, 0.25, 0.7);
         this.burst({
           freq: 1800 - heavy * 900,
           q: 0.9,
@@ -146,7 +146,7 @@ export class Sfx {
           q: 1.2,
           dur: weapon === 'dagger' ? 0.08 : 0.15,
           gain: 0.22,
-          sweepTo: weapon === 'sword' || weapon === 'dagger' ? 3800 : 1600,
+          sweepTo: weapon === 'sword' || weapon === 'dagger' || weapon === 'scythe' ? 3800 : 1600,
         });
         break;
       case EV.FIRE:
