@@ -22,7 +22,7 @@ export default function NetSim() {
   useEffect(() => {
     const cfg = {
       seed: 3,
-      fighters: ['kaito', 'magnus'] as [string, string],
+      fighters: ['benika', 'hyoga'] as [string, string],
       roundsToWin: 2,
       roundFrames: 3600,
       viewMirrored: [false, false] as [boolean, boolean],

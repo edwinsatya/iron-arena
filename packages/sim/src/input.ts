@@ -25,27 +25,16 @@ export interface Intent {
 
 const CAP = 99;
 
-/** Screen-space bits → direction index (0 = up, clockwise), or −1. */
+/**
+ * Side view: only left/right move. Returns the DIR8 index (2 = right/+x, 6 = left/−x) or −1.
+ * (Up jumps — see readInput; down does nothing yet.) `mirrored` swaps left and right.
+ */
 export function dirIndex(bits: number, mirrored: boolean): number {
-  let up = (bits & BTN.UP) !== 0;
-  let down = (bits & BTN.DOWN) !== 0;
   let left = (bits & BTN.LEFT) !== 0;
   let right = (bits & BTN.RIGHT) !== 0;
-  if (mirrored) {
-    // The mirrored viewer's camera is turned 180°: screen-up is world +z.
-    [up, down] = [down, up];
-    [left, right] = [right, left];
-  }
-  const v = up && !down ? -1 : down && !up ? 1 : 0;
-  const h = left && !right ? -1 : right && !left ? 1 : 0;
-  if (v === -1 && h === 0) return 0;
-  if (v === -1 && h === 1) return 1;
-  if (v === 0 && h === 1) return 2;
-  if (v === 1 && h === 1) return 3;
-  if (v === 1 && h === 0) return 4;
-  if (v === 1 && h === -1) return 5;
-  if (v === 0 && h === -1) return 6;
-  if (v === -1 && h === -1) return 7;
+  if (mirrored) [left, right] = [right, left];
+  if (right && !left) return 2;
+  if (left && !right) return 6;
   return -1;
 }
 
@@ -91,7 +80,7 @@ export function readInput(s: GameState, i: number, raw: number): Intent {
   else if (pressed & BTN.SKILL2 || (fresh && a && j)) req = REQ.SKILL2;
   else if (pressed & BTN.SKILL3 || (fresh && g && j)) req = REQ.SKILL3;
   else if (pressed & BTN.ATTACK) req = REQ.ATTACK;
-  else if (pressed & BTN.JUMP) req = REQ.JUMP;
+  else if (pressed & (BTN.JUMP | BTN.UP)) req = REQ.JUMP;
 
   // A chord upgrades into a skill: once used, its buttons don't fire again.
   if (req >= REQ.SKILL1) {

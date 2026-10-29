@@ -1,14 +1,14 @@
 'use client';
 
 import { checksum, EV, ROSTER, type GameState } from '@neonfist/sim';
-import { WEAPON_OF } from './render/looks';
-import { portraitsReady, setPortraitFocus, setPortraitsEnabled } from './render/portraits';
+import { WEAPON_OF } from './looks';
+import { portraitsReady } from './portraits';
 import { useEffect, useRef } from 'react';
 import { Sfx } from './audio/sfx';
 import type { MatchDriver } from './driver';
 import { Hud, type HudOptions } from './hud/hud';
 import { FixedStepLoop } from './loop';
-import { GameRenderer, type Quality } from './render/renderer';
+import { GameRenderer, type Quality } from './render2d/renderer2d';
 import { loadSettings } from '../ui/settings';
 import { TouchControls } from '../ui/TouchControls';
 
@@ -69,9 +69,8 @@ export function GameView({
     const hud = new Hud(host, hudRef0.current);
     hudRef.current = hud;
     hud.onAnnounce = (t) => sfx.say(t);
-    // ?render=0 skips 3D rendering (automated tests on machines without a GPU)
+    // ?render=0 skips drawing the stage (automated tests on slow machines)
     const noRender = new URLSearchParams(window.location.search).get('render') === '0';
-    if (noRender) setPortraitsEnabled(false);
     const renderer = noRender
       ? null
       : new GameRenderer(host, {
@@ -85,7 +84,7 @@ export function GameView({
                   ? 1 - e.fighter
                   : e.fighter
               ];
-            sfx.play(e, f ? (WEAPON_OF[ROSTER[f.char]!.id] ?? 'katana') : 'katana');
+            sfx.play(e, f ? (WEAPON_OF[ROSTER[f.char]!.id] ?? 'sword') : 'sword');
           },
         });
     hud.root.parentElement?.appendChild(hud.root); // HUD above the canvas
@@ -93,7 +92,6 @@ export function GameView({
     // Hold the first tick until the heroes and their portraits are loaded (max 6 s), so the
     // round intro never stutters. Online play is unaffected: the session waits for both sides.
     const ids = driver.state.fighters.map((f) => ROSTER[f.char]!.id);
-    setPortraitFocus(ids);
     let ready = noRender || !holdForAssets;
     if (!ready) {
       const timeout = new Promise<void>((r) => setTimeout(r, 6000));
@@ -132,7 +130,6 @@ export function GameView({
       renderer?.dispose();
       hud.dispose();
       sfx.dispose();
-      setPortraitFocus(null);
       hudRef.current = null;
       if (window.__neonfist?.driver === driver) delete window.__neonfist;
     };

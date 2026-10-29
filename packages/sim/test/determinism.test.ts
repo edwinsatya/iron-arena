@@ -7,7 +7,7 @@ import { step } from '../src/step';
 import type { GameState } from '../src/types';
 import { newMatch } from './helpers';
 
-const HEROES = ['kaito', 'magnus', 'riko', 'seren'];
+const HEROES = ['benika', 'hyoga', 'lysa', 'reo'];
 
 /**
  * Synctest (PLAN §10.2): every frame, roll back `depth` frames, re-simulate, compare checksums.
@@ -61,7 +61,7 @@ describe('determinism', () => {
 
   it('the same inputs give the same result', () => {
     const run = () => {
-      const s = newMatch('riko', 'seren');
+      const s = newMatch('lysa', 'reo');
       const bots = [randomBot(1), randomBot(2)];
       for (let i = 0; i < 5000; i++) step(s, [bots[0]!(), bots[1]!()]);
       return checksum(s);
@@ -81,7 +81,7 @@ describe('determinism', () => {
   });
 
   it('CPU matches finish with a winner', () => {
-    const s = newMatch('kaito', 'riko', 9);
+    const s = newMatch('benika', 'lysa', 9);
     const bots = [cpuBot(3, { level: 2 }), cpuBot(4, { level: 2 })];
     for (let i = 0; i < 60 * 60 * 8 && s.phase !== PHASE.MATCH_END; i++)
       step(s, [bots[0]!(s, 0), bots[1]!(s, 1)]);

@@ -22,7 +22,7 @@ import {
 import { spawnFor } from './entities';
 import { pushEvent } from './events';
 import { REQ, type Intent } from './input';
-import { DIR8, dist2, isqrt, localToWorld, normalize, pct, rotate } from './math';
+import { DIR8, dist2, isqrt, localToWorld, normalize, pct } from './math';
 import { ROSTER } from './roster';
 import type { ActionData, CompiledHero, FighterState, GameState } from './types';
 
@@ -582,7 +582,8 @@ export function pushApart(s: GameState): void {
   const d2 = dist2(a.x, a.z, b.x, b.z);
   if (d2 >= min * min) return;
   const d = isqrt(d2);
-  const [nx, nz] = normalize(b.x - a.x, b.z - a.z, rotate(a.fx, a.fz, 90));
+  // Exactly on top of each other: whoever faces right moves left (side view has no sideways)
+  const [nx, nz] = normalize(b.x - a.x, b.z - a.z, [a.fx >= 0 ? 1024 : -1024, 0]);
   const push = Math.trunc((min - d + 1) / 2);
   a.x -= (nx * push) >> 10;
   a.z -= (nz * push) >> 10;

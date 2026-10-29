@@ -1,17 +1,16 @@
 # NEON FIST
 
-A 3D arena brawler that runs in the browser. Pick a hero, send your friend a link, and fight on a
-rooftop with no railing — empty their health or knock them off the edge. Online play uses
+A 2D side-view brawler that runs in the browser. Pick a hero, send your friend a link, and fight
+on a stage with no railing at either end: empty their health or knock them off. Online play uses
 GGPO-style **rollback netcode**, so it feels like you're in the same room.
 
-- **Heroes:** Kaito Arashi (katana), Magnus Thorne (gauntlets), Riko Kanzaki (twin pistols),
-  Seren Mikazuki (moon staff) — each with a combo, dash, air and charged attacks, **3 skills and
-  an ultimate** with a cut-in
+- **Heroes:** Benika (war axe), Lysa (bow), Hyōga (ice hammer), Reo (sword and shield), each
+  with a combo, dash, air and charged attacks, **3 skills and an ultimate** with a cut-in
 - **Modes:** online room, versus CPU (3 levels), local versus (one keyboard or two gamepads),
   training with a sparring partner
-- **Arena:** Skyline Rooftop at golden hour or midnight
-- **Look:** cel-shaded anime heroes (VRM, make your own in VRoid Studio — see
-  [docs/CHARACTERS.md](docs/CHARACTERS.md)); portraits and skill cards are rendered from the models
+- **Stages:** Lantern Harbor (sunset) and Neon Rooftop (midnight), painted parallax backdrops
+- **Look:** pixel-art heroes and painted portraits from free packs by elie automata (see
+  [docs/CHARACTERS.md](docs/CHARACTERS.md) and [CREDITS.md](CREDITS.md))
 - **Phones:** on-screen stick and buttons on touch screens
 - **Cost:** everything is free (open-source libraries, free hosting tiers)
 
@@ -33,7 +32,7 @@ second browser window (or another device on your Wi-Fi — use your computer's I
 
 | | Solo / online | Local P1 | Local P2 |
 |---|---|---|---|
-| Move | `W` `A` `S` `D` or arrows | `W` `A` `S` `D` | arrows |
+| Move · jump | `A` `D` or arrows (`W` / `↑` jumps too) | `A` `D` (`W` jumps) | arrows (`↑` jumps) |
 | Attack · guard · jump | `J` · `K` · `L` (or Space) | `F` · `G` · `H` | `Num1` · `Num2` · `Num3` (or `,` `.` `/`) |
 | Skills 1 · 2 · 3 | `U` · `I` · `O` | `R` · `T` · `Y` | `Num4` · `Num5` · `Num6` (or `K` `L` `;`) |
 | Ultimate | `P` | `V` | `Num0` (or `'`) |

@@ -436,6 +436,12 @@ button {
   color: var(--faint);
   font-size: 0.85rem;
 }
+.home-foot a,
+.screen .muted a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 
 /* ———————————————————————————————————— screens (menus) */
 
@@ -573,6 +579,28 @@ button {
   display: block;
   width: 100%;
   height: 100%;
+  image-rendering: pixelated;
+}
+.showcase-art {
+  position: absolute;
+  inset: 2% 0 0;
+  width: 100%;
+  height: 98%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 18px 24px rgba(10, 6, 20, 0.45));
+  animation: showcase-in 360ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+@keyframes showcase-in {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .showcase-art {
+    animation: none;
+  }
 }
 .kana-mark {
   position: absolute;

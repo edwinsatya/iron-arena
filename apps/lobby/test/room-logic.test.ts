@@ -77,8 +77,8 @@ describe('room logic', () => {
   function toLoading() {
     join('A', 'client-aaaa');
     join('B', 'client-bbbb');
-    room.message(0, { t: 'select', fighter: 'kaito' });
-    room.message(1, { t: 'select', fighter: 'magnus' });
+    room.message(0, { t: 'select', fighter: 'benika' });
+    room.message(1, { t: 'select', fighter: 'hyoga' });
     room.message(0, { t: 'ready', ready: true, viewMirrored: false });
     room.message(1, { t: 'ready', ready: true, viewMirrored: true });
   }
@@ -88,7 +88,7 @@ describe('room logic', () => {
     expect(room.state.phase).toBe('loading');
     const cfg = io.last(0, 'config') as Extract<ServerMsg, { t: 'config' }>;
     expect(cfg.config).toMatchObject({
-      fighters: ['kaito', 'magnus'],
+      fighters: ['benika', 'hyoga'],
       viewMirrored: [false, true],
       simVersion: 'v1',
       roundsToWin: 2,

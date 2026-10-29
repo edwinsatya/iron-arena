@@ -8,7 +8,7 @@ const sim: SimAdapter<GameState> = { step, clone: cloneState, checksum };
 const initial = () =>
   createInitialState({
     seed: 99,
-    fighters: ['kaito', 'magnus'],
+    fighters: ['benika', 'hyoga'],
     roundsToWin: 3,
     roundFrames: 3600,
     viewMirrored: [false, true],

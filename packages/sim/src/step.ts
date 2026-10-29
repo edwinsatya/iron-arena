@@ -44,5 +44,23 @@ export function step(s: GameState, inputs: readonly [number, number]): void {
     for (const f of s.fighters) if (f.state === FS.HELD && f.heldBy < 0) setState(f, FS.HITSTUN, 8);
   }
   roundLogic(s);
+  flatten(s);
   pruneEvents(s);
+}
+
+/** Side view: everything stays on the z = 0 plane and faces straight left or right. */
+function flatten(s: GameState): void {
+  for (const f of s.fighters) {
+    f.z = 0;
+    f.vz = 0;
+    if (f.fz !== 0 || (f.fx !== 1024 && f.fx !== -1024)) {
+      f.fx = f.fx >= 0 ? 1024 : -1024;
+      f.fz = 0;
+    }
+  }
+  for (const p of s.projectiles) {
+    p.z = 0;
+    p.vz = 0;
+  }
+  for (const a of s.areas) a.z = 0;
 }

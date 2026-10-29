@@ -49,17 +49,20 @@ export function dist2(ax: number, az: number, bx: number, bz: number): number {
   return dx * dx + dz * dz;
 }
 
-/** Fighter-local (forward, up, right) in mm → world mm. "Right" matches three.js (Y up). */
+/**
+ * Fighter-local (forward, up, right) in mm → world mm. Side view: everything lives on the z = 0
+ * plane, so the sideways ("right") offset is ignored.
+ */
 export function localToWorld(
   f: { x: number; y: number; z: number; fx: number; fz: number },
   fwd: number,
   up: number,
-  right: number,
+  _right = 0,
 ): { x: number; y: number; z: number } {
   return {
-    x: f.x + Math.trunc((fwd * f.fx - right * f.fz) / 1024),
+    x: f.x + Math.trunc((fwd * f.fx) / 1024),
     y: f.y + up,
-    z: f.z + Math.trunc((fwd * f.fz + right * f.fx) / 1024),
+    z: f.z,
   };
 }
 

@@ -3,9 +3,9 @@
 import { cpuBot, createInitialState, PHASE, selectableCharacters, step, type GameState } from '@neonfist/sim';
 import { useEffect, useRef } from 'react';
 import { FixedStepLoop } from '../game/loop';
-import { GameRenderer } from '../game/render/renderer';
+import { GameRenderer } from '../game/render2d/renderer2d';
 
-/** Background exhibition match: two CPU heroes fighting on the rooftop (landing page). */
+/** Background exhibition match: two CPU heroes fighting on the stage (landing page). */
 export function AttractMode({ className }: { className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {

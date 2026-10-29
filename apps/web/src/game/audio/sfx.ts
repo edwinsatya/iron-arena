@@ -104,12 +104,16 @@ export class Sfx {
     o.stop(t + dur + 0.02);
   }
 
-  /** `weapon` of the hero who caused the event (katana, gauntlets, pistols, staff). */
-  play(e: SimEvent, weapon = 'katana'): void {
+  /** `weapon` of the hero who caused the event (axe, bow, hammer, sword, dagger, fire). */
+  play(e: SimEvent, weapon = 'sword'): void {
     switch (e.type) {
       case EV.HIT: {
         const heavy = Math.min(1, e.value / 90);
-        if (weapon === 'katana') this.burst({ freq: 4200, q: 2, dur: 0.09, gain: 0.35, sweepTo: 1800 });
+        if (weapon === 'sword' || weapon === 'axe') this.burst({ freq: 4200, q: 2, dur: 0.09, gain: 0.35, sweepTo: 1800 });
+        if (weapon === 'dagger') this.burst({ freq: 6000, q: 3, dur: 0.06, gain: 0.3, sweepTo: 3000 });
+        if (weapon === 'fire') this.burst({ freq: 900, q: 0.7, dur: 0.3, gain: 0.35, type: 'lowpass', sweepTo: 300 });
+        if (weapon === 'ice') this.burst({ freq: 5200, q: 5, dur: 0.18, gain: 0.3, sweepTo: 7000 });
+        if (weapon === 'hammer') this.thump(70, 0.25, 0.7);
         this.burst({
           freq: 1800 - heavy * 900,
           q: 0.9,
@@ -136,13 +140,29 @@ export class Sfx {
         this.burst({ freq: 900, q: 6, dur: 0.2, gain: 0.5 });
         break;
       case EV.SWING:
-        if (weapon === 'pistols' || weapon === 'staff') break;
-        this.burst({ freq: 700, q: 1.2, dur: 0.15, gain: 0.22, sweepTo: weapon === 'katana' ? 3800 : 1800 });
+        if (weapon === 'bow' || weapon === 'fire' || weapon === 'ice') break;
+        this.burst({
+          freq: weapon === 'dagger' ? 1400 : 700,
+          q: 1.2,
+          dur: weapon === 'dagger' ? 0.08 : 0.15,
+          gain: 0.22,
+          sweepTo: weapon === 'sword' || weapon === 'dagger' ? 3800 : 1600,
+        });
         break;
       case EV.FIRE:
-        if (weapon === 'pistols') {
-          this.burst({ freq: 2600, q: 0.8, dur: 0.08, gain: 0.55, type: 'highpass' });
-          this.thump(220, 0.08, 0.5);
+        if (weapon === 'bow') {
+          // Bowstring twang and a whistle
+          this.tone(180, 120, 0.12, 0.35, 'triangle');
+          this.burst({ freq: 3000, q: 3, dur: 0.18, gain: 0.25, sweepTo: 1200 });
+        } else if (weapon === 'fire') {
+          // Whoosh of a fireball
+          this.burst({ freq: 600, q: 0.8, dur: 0.35, gain: 0.4, type: 'lowpass', sweepTo: 1600 });
+          this.thump(110, 0.2, 0.4);
+        } else if (weapon === 'ice') {
+          this.tone(1800, 2600, 0.18, 0.2, 'triangle');
+          this.burst({ freq: 4200, q: 3, dur: 0.2, gain: 0.25, sweepTo: 2000 });
+        } else if (weapon === 'dagger') {
+          this.burst({ freq: 5200, q: 4, dur: 0.1, gain: 0.25, sweepTo: 2600 });
         } else {
           this.tone(380, 980, 0.22, 0.25, 'triangle');
         }

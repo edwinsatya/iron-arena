@@ -9,7 +9,7 @@ describe('roster', () => {
 
   it('every hero has a full kit with sane frame data', () => {
     for (const h of selectableCharacters()) {
-      expect(h.basicIdx.length).toBeGreaterThanOrEqual(3);
+      expect(h.basicIdx.length).toBeGreaterThanOrEqual(2);
       for (const a of h.actions) {
         expect(a.total, a.id).toBeGreaterThan(0);
         for (const st of a.strikes ?? []) expect(st.frames[1], a.id).toBeLessThanOrEqual(a.total);

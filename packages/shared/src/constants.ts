@@ -37,13 +37,13 @@ export function inputDelayForPing(pingMs: number): number {
 }
 
 /** Fighters on the select screen (must match the sim roster — a sim test checks it). */
-export const SELECTABLE_FIGHTERS = ['kaito', 'magnus', 'riko', 'seren'] as const;
+export const SELECTABLE_FIGHTERS = ['benika', 'lysa', 'hyoga', 'hyoshin', 'reo', 'kage', 'homura'] as const;
 export type FighterId = (typeof SELECTABLE_FIGHTERS)[number];
 
 /** Arenas (the simulation is identical on both; only the look changes). */
 export const STAGES = [
-  { id: 'rooftop-dusk', name: 'Skyline Rooftop', time: 'Golden hour' },
-  { id: 'rooftop-night', name: 'Skyline Rooftop', time: 'Midnight' },
+  { id: 'rooftop-dusk', name: 'Lantern Harbor', time: 'Sunset' },
+  { id: 'rooftop-night', name: 'Neon Rooftop', time: 'Midnight' },
 ] as const;
 export type StageId = (typeof STAGES)[number]['id'];
 export const DEFAULT_STAGE: StageId = 'rooftop-dusk';

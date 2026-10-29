@@ -51,8 +51,8 @@ async function main() {
   step(
     `both joined; ICE: ${JSON.stringify((ice as Extract<ServerMsg, { t: 'ice' }>).iceServers.map((s) => s.urls))}`,
   );
-  a.send({ t: 'select', fighter: 'kaito' });
-  b.send({ t: 'select', fighter: 'magnus' });
+  a.send({ t: 'select', fighter: 'benika' });
+  b.send({ t: 'select', fighter: 'hyoga' });
   a.send({ t: 'ready', ready: true, viewMirrored: false });
   b.send({ t: 'ready', ready: true, viewMirrored: true });
   const cfg = await b.waitFor('config', (m) => m.t === 'config');

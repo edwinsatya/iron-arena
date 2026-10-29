@@ -69,7 +69,7 @@ export function randomBot(seed: number): () => number {
   };
 }
 
-/** World direction → screen bits (screen-up is world −z, as the default camera sees it). */
+/** World direction → stick bits (side view: only left/right matter; up also jumps). */
 function bitsToward(dx: number, dz: number, dead = 250): number {
   let b = 0;
   const ax = Math.abs(dx);
@@ -101,7 +101,7 @@ export function cpuBot(seed: number, opts: CpuOptions = { level: 1 }) {
     const f = s.fighters[me]!;
     const o = s.fighters[1 - me]!;
     const hero = ROSTER[f.char]!;
-    const ranged = hero.role === 'Gunner' || hero.role === 'Mage';
+    const ranged = hero.role === 'Archer' || hero.role === 'Mage';
     const dx = o.x - f.x;
     const dz = o.z - f.z;
     const dist = isqrt(dx * dx + dz * dz);
@@ -132,7 +132,7 @@ export function cpuBot(seed: number, opts: CpuOptions = { level: 1 }) {
 
     const threatened =
       o.state === FS.ACTION &&
-      dist < (ROSTER[o.char]!.role === 'Brawler' || ROSTER[o.char]!.role === 'Swordsman' ? 2600 : 9000);
+      dist < (ROSTER[o.char]!.role === 'Archer' || ROSTER[o.char]!.role === 'Mage' ? 9000 : 2600);
     const projectileIncoming = s.projectiles.some(
       (p) => p.owner !== me && dist2(p.x, p.z, f.x, f.z) < 2200 * 2200,
     );
@@ -154,7 +154,7 @@ export function cpuBot(seed: number, opts: CpuOptions = { level: 1 }) {
 
     // Ranged heroes escape when someone is in their face
     if (ranged && dist < 2000 && free) {
-      const k = hero.role === 'Gunner' ? 1 : 2;
+      const k = 2; // the archer's vanish, the witch's fire ward
       if (f.cd[k] === 0 && r() < 0.08 + react * 0.1) {
         out = away | press([BTN.SKILL1, BTN.SKILL2, BTN.SKILL3][k]!);
         prev = out;
@@ -192,7 +192,7 @@ export function cpuBot(seed: number, opts: CpuOptions = { level: 1 }) {
       out |= away;
     } else if (r() < 0.02) {
       wander = 10 + Math.floor(r() * 25);
-      wanderBits = [BTN.UP, BTN.DOWN, BTN.LEFT, BTN.RIGHT][Math.floor(r() * 4)]!;
+      wanderBits = [BTN.LEFT, BTN.RIGHT][Math.floor(r() * 2)]!;
     }
 
     const inRange = dist < (ranged ? 9000 : 1700);

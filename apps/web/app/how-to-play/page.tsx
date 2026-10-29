@@ -1,6 +1,6 @@
 import { selectableCharacters } from '@neonfist/sim';
 import { KEY_HINTS } from '../../src/game/input/bindings';
-import { LOOKS } from '../../src/game/render/looks';
+import { LOOKS } from '../../src/game/looks';
 import { Topbar } from '../../src/ui/Topbar';
 import { Portrait } from '../../src/ui/usePortrait';
 
@@ -34,8 +34,8 @@ export default function HowToPlay() {
       <section className="controls-board" aria-label="Controls">
         <div className="ctrl">
           <h3>Move</h3>
-          <Keys keys={['W', 'A', 'S', 'D']} />
-          <p>Or the arrow keys. Tap a direction twice to dash.</p>
+          <Keys keys={['A', 'D']} />
+          <p>Or the arrow keys. Tap a direction twice to dash. W or ↑ also jumps.</p>
         </div>
         <div className="ctrl">
           <h3>Attack, guard, jump</h3>
@@ -63,7 +63,7 @@ export default function HowToPlay() {
         <div className="ctrl">
           <h3>Win</h3>
           <p style={{ marginTop: 0 }}>
-            Empty their health, or knock them off the edge of the roof for a ring-out. First to two rounds
+            Empty their health, or knock them off either end of the stage for a ring-out. First to two rounds
             takes the match.
           </p>
         </div>
@@ -144,6 +144,13 @@ export default function HowToPlay() {
           );
         })}
       </div>
+      <p className="muted" style={{ textAlign: 'center', margin: '28px 0 8px' }}>
+        Hero sprites, portraits and skill art by{' '}
+        <a href="https://elie-automata.itch.io/" target="_blank" rel="noreferrer">
+          elie automata
+        </a>
+        .
+      </p>
     </main>
   );
 }

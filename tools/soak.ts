@@ -13,7 +13,7 @@ const sim = { step, clone: cloneState, checksum };
 const initial = () =>
   createInitialState({
     seed: 99,
-    fighters: ['seren', 'magnus'],
+    fighters: ['reo', 'hyoga'],
     roundsToWin: 3,
     roundFrames: 3600,
     viewMirrored: [false, true],

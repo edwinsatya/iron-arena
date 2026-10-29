@@ -1,6 +1,6 @@
 import type { HeroData } from '../../src/types';
 
-/** Training dummy: Kaito's body, no personality. Hidden from the select screen. */
+/** Training dummy: a wasteland juggernaut who stands there and takes it. Hidden from the select screen. */
 export const dummy: HeroData = {
   id: 'dummy',
   name: 'Training Dummy',

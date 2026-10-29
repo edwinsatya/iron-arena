@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { portrait, type PortraitKind } from '../game/render/portraits';
+import { portrait, type PortraitKind } from '../game/portraits';
 
-/** Image URL of a hero portrait rendered from the 3D model (null while rendering). */
+/** Image URL of a hero picture (pack art, or drawn from the sprite; null while loading). */
 export function usePortrait(heroId: string | null, kind: PortraitKind): string | null {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {

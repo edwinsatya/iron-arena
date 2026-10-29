@@ -1,9 +1,9 @@
 import { describeInput, STAGES } from '@neonfist/shared';
 import { actionOf, END, FS, PHASE, ROSTER, ULT_FREEZE, ULT_MAX, type GameState } from '@neonfist/sim';
 import type { KeyHintSet } from '../input/bindings';
-import { PLAYER_COLORS } from '../render/stages';
-import { LOOKS } from '../render/looks';
-import { portrait } from '../render/portraits';
+import { PLAYER_COLORS } from '../render2d/renderer2d';
+import { LOOKS } from '../looks';
+import { portrait } from '../portraits';
 
 export interface HudNames {
   p1: string;
@@ -80,7 +80,7 @@ interface TrayEls {
 
 /**
  * The fight HUD: plain DOM over the canvas, updated imperatively every frame (never through React
- * state — PLAN §5.5). Portraits and skill art are rendered from the 3D heroes (render/portraits).
+ * state — PLAN §5.5). Portraits and skill art come from the sprite packs (portraits.ts).
  */
 export class Hud {
   readonly root: HTMLElement;

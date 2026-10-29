@@ -57,12 +57,12 @@ describe('Node lobby server', () => {
     await b.waitFor((m) => m.t === 'room' && m.phase === 'select');
     await a.waitFor((m) => m.t === 'ice');
 
-    a.send({ t: 'select', fighter: 'kaito' });
-    b.send({ t: 'select', fighter: 'magnus' });
+    a.send({ t: 'select', fighter: 'benika' });
+    b.send({ t: 'select', fighter: 'hyoga' });
     a.send({ t: 'ready', ready: true, viewMirrored: false });
     b.send({ t: 'ready', ready: true, viewMirrored: false });
     const cfg = await b.waitFor((m) => m.t === 'config');
-    expect(cfg).toMatchObject({ t: 'config', config: { fighters: ['kaito', 'magnus'] } });
+    expect(cfg).toMatchObject({ t: 'config', config: { fighters: ['benika', 'hyoga'] } });
 
     a.send({ t: 'signal', data: { kind: 'candidate', candidate: { candidate: 'x' } } });
     await b.waitFor((m) => m.t === 'signal');

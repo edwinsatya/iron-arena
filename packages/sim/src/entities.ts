@@ -24,7 +24,9 @@ export function spawnFor(s: GameState, i: number, a: ActionData, t: number): voi
     if (p.frame !== t) return;
     const at = localToWorld(f, p.at[0], p.at[1], p.at[2]);
     for (const ang of p.angles ?? [0]) {
-      const [dx, dz] = ang ? rotate(f.fx, f.fz, ang) : [f.fx, f.fz];
+      // Side view: a fan of shots spreads up and down instead of sideways
+      const [c, sn] = ang ? rotate(1024, 0, ang) : [1024, 0];
+      const dir = f.fx >= 0 ? 1 : -1;
       s.projectiles.push({
         owner: i,
         char: f.char,
@@ -32,10 +34,10 @@ export function spawnFor(s: GameState, i: number, a: ActionData, t: number): voi
         spec: k,
         x: at.x,
         y: Math.max(0, at.y),
-        z: at.z,
-        vx: (dx * p.speed) >> 10,
-        vy: p.vy ?? 0,
-        vz: (dz * p.speed) >> 10,
+        z: 0,
+        vx: (dir * c * p.speed) >> 10,
+        vy: (p.vy ?? 0) + ((sn * p.speed) >> 10),
+        vz: 0,
         age: 0,
         hit: 0,
       });
@@ -94,19 +96,28 @@ export function updateEntities(s: GameState): void {
     if (spec.homing && p.hit === 0) {
       const o = s.fighters[1 - p.owner]!;
       const speed = spec.speed;
-      const [tx, tz] = normalize(o.x - p.x, o.z - p.z, [p.vx, p.vz]);
-      const [cx, cz] = normalize(p.vx, p.vz);
-      const [nx, nz] = normalize(cx * 1024 + tx * spec.homing, cz * 1024 + tz * spec.homing, [cx, cz]);
+      // Steer toward the target's chest in the x/y plane
+      const [tx, ty] = normalize(o.x - p.x, o.y + 900 - p.y, [p.vx, p.vy]);
+      const [cx, cy] = normalize(p.vx, p.vy);
+      const [nx, ny] = normalize(cx * 1024 + tx * spec.homing, cy * 1024 + ty * spec.homing, [cx, cy]);
       p.vx = (nx * speed) >> 10;
-      p.vz = (nz * speed) >> 10;
+      p.vy = (ny * speed) >> 10;
     }
     if (spec.stopAfter !== undefined && p.age >= spec.stopAfter) {
       p.vx = 0;
       p.vz = 0;
+      if (spec.vy === undefined) p.vy = 0;
     }
     p.x += p.vx;
     p.z += p.vz;
-    if (spec.vy !== undefined) {
+    if (spec.vy === undefined && p.vy !== 0) {
+      // Angled or homing shot without gravity
+      p.y += p.vy;
+      if (p.y <= 0) {
+        p.y = 0;
+        p.age = spec.life;
+      }
+    } else if (spec.vy !== undefined) {
       p.vy = Math.max(-MAX_FALL, p.vy - GRAVITY);
       p.y += p.vy;
       if (p.y <= 0) {

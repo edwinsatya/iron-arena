@@ -5,7 +5,7 @@ import { selectableCharacters } from '@neonfist/sim';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { LOOKS } from '../src/game/render/looks';
+import { LOOKS } from '../src/game/looks';
 import { createRoom } from '../src/net/lobby';
 import { AttractMode } from '../src/ui/AttractMode';
 import { cleanName, loadSettings, saveSettings } from '../src/ui/settings';
@@ -74,7 +74,7 @@ export default function Home() {
           </span>
         </h1>
         <p className="tagline">
-          Four heroes. Three skills and an ultimate each. One rooftop with no railing — knock your friend off
+          Four heroes. Three skills and an ultimate each. A stage with no railing at either end — knock your friend off
           it.
         </p>
 
@@ -129,7 +129,12 @@ export default function Home() {
           </ul>
         </nav>
         <p className="home-foot">
-          Free, in the browser, no install. Rollback netcode keeps online fights smooth.
+          Free, in the browser, no install. Rollback netcode keeps online fights smooth. Hero sprites and
+          art by{' '}
+          <a href="https://elie-automata.itch.io/" target="_blank" rel="noreferrer">
+            elie automata
+          </a>
+          .
         </p>
       </div>
       <nav className="home-roster" aria-label="Heroes">

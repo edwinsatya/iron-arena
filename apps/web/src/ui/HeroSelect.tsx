@@ -3,7 +3,7 @@
 import { getCharacter, selectableCharacters, type CompiledHero } from '@neonfist/sim';
 import { useState, type ReactNode } from 'react';
 import { KEY_HINTS, type KeyHintSet } from '../game/input/bindings';
-import { LOOKS } from '../game/render/looks';
+import { LOOKS } from '../game/looks';
 import { HeroShowcase } from './HeroShowcase';
 import { Portrait } from './usePortrait';
 

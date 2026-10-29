@@ -1,6 +1,6 @@
 import { ROSTER, type GameState } from '@neonfist/sim';
 import type { ReactNode } from 'react';
-import { LOOKS } from '../game/render/looks';
+import { LOOKS } from '../game/looks';
 import { Portrait } from './usePortrait';
 
 /** End-of-match card: the winner's art, who won, and the numbers. */
@@ -23,7 +23,7 @@ export function ResultCard({
         <div className="result-art">{hero && <Portrait heroId={hero.id} kind="full" />}</div>
         <div>
           <h2>{w < 0 ? 'Draw' : `${names[w]!.toUpperCase()} WINS`}</h2>
-          <p className="sub">{hero ? `${hero.name}, ${hero.title}` : 'Nobody takes the roof today'}</p>
+          <p className="sub">{hero ? `${hero.name}, ${hero.title}` : 'Nobody takes the stage today'}</p>
           <dl className="result-stats">
             <div>
               <dt>Rounds</dt>

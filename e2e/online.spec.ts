@@ -53,8 +53,8 @@ async function playOnline(browser: Browser, query: string) {
   await expect(guest.getByText('Choose your fighter')).toBeVisible();
   await expect(host.getByText('Choose your fighter')).toBeVisible();
 
-  await host.getByRole('button', { name: 'Kaito Arashi' }).click();
-  await guest.getByRole('button', { name: 'Seren Mikazuki' }).click();
+  await host.getByRole('button', { name: 'Benika' }).click();
+  await guest.getByRole('button', { name: 'Reo' }).click();
   await host.getByRole('button', { name: 'Ready' }).click();
   await guest.getByRole('button', { name: 'Ready' }).click();
 

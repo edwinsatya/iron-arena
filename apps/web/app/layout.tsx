@@ -6,9 +6,9 @@ import '@fontsource/zen-kaku-gothic-new/900.css';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'NEON FIST — rooftop arena brawler',
+  title: 'NEON FIST — 2D anime brawler',
   description:
-    'A 3D arena brawler in your browser. Pick a hero with three skills and an ultimate, then knock your friend off the roof — online with rollback netcode.',
+    'A 2D pixel-art brawler in your browser. Pick a hero with three skills and an ultimate, then knock your friend off the stage — online with rollback netcode.',
 };
 
 export const viewport: Viewport = {

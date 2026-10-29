@@ -1,129 +1,72 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import * as THREE from 'three';
-import { makeModel, renderDisabled, type Posable } from '../game/render/portraits';
-import { lookFor } from '../game/render/looks';
-import { stancePose, withPose } from '../game/render/poses';
+import { useEffect, useRef, useState } from 'react';
+import { lookFor } from '../game/looks';
+import { chooseSpriteForAction, heroArt, loadSpriteHero } from '../game/render2d/sprites';
 
 /**
- * A live 3D hero on the select screen: idle stance with breathing and a slow turn, lit in the
- * hero's colour. One small WebGL canvas per side.
+ * The hero on the select screen: the pack's full-length painting when there is one, otherwise
+ * the sprite itself, scaled up crisply and breathing through its idle animation.
  */
 export function HeroShowcase({ heroId, side, alt = false }: { heroId: string; side: 0 | 1; alt?: boolean }) {
-  const hostRef = useRef<HTMLDivElement>(null);
-  const stateRef = useRef<{
-    renderer: THREE.WebGLRenderer;
-    scene: THREE.Scene;
-    camera: THREE.PerspectiveCamera;
-    rim: THREE.DirectionalLight;
-    model: Posable | null;
-    want: string;
-  } | null>(null);
-
-  useEffect(() => {
-    const host = hostRef.current;
-    if (!host || renderDisabled) return;
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.setClearColor(0x000000, 0);
-    host.appendChild(renderer.domElement);
-    const scene = new THREE.Scene();
-    scene.add(new THREE.HemisphereLight('#fff3e6', '#2b2140', 1.5));
-    const key = new THREE.DirectionalLight('#ffffff', 2.2);
-    key.position.set(side === 0 ? 2 : -2, 3, 3);
-    scene.add(key);
-    const rim = new THREE.DirectionalLight('#ffffff', 3);
-    rim.position.set(side === 0 ? -3 : 3, 2, -2.5);
-    scene.add(rim);
-    const floor = new THREE.Mesh(
-      new THREE.CircleGeometry(0.9, 48),
-      new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.35 }),
+  const art = heroArt(heroId, 'full');
+  const filter = alt ? `hue-rotate(${lookFor(heroId).altHue}deg)` : undefined;
+  if (art)
+    return (
+      <img
+        src={art}
+        alt=""
+        draggable={false}
+        className="showcase-art"
+        style={{ filter, transform: side === 1 ? 'scaleX(-1)' : undefined }}
+        aria-hidden="true"
+      />
     );
-    floor.rotation.x = -Math.PI / 2;
-    scene.add(floor);
-    const camera = new THREE.PerspectiveCamera(28, 1, 0.05, 40);
-    camera.position.set(0, 1.05, 5.0);
-    camera.lookAt(0, 0.92, 0);
-    stateRef.current = { renderer, scene, camera, rim, model: null, want: '' };
+  return <SpriteShowcase heroId={heroId} side={side} filter={filter} />;
+}
 
-    const resize = () => {
-      const w = Math.max(1, host.clientWidth);
-      const h = Math.max(1, host.clientHeight);
-      renderer.setSize(w, h, false);
-      camera.aspect = w / h;
-      camera.position.z = w / h < 0.75 ? 5.6 : 5.0;
-      camera.updateProjectionMatrix();
-    };
-    const ro = new ResizeObserver(resize);
-    ro.observe(host);
-    resize();
-
-    let raf = 0;
-    let last = performance.now();
-    let t = 0;
-    const loop = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
-      t += dt;
-      const st = stateRef.current;
-      if (st?.model) {
-        const base = stancePose(st.want, 'idle');
-        const pose = withPose(base, {
-          lean: base.lean + Math.sin(t * 2) * 0.03,
-          head: -Math.sin(t * 2) * 0.03,
-        });
-        const turn = (side === 0 ? 0.55 : -0.55) + Math.sin(t * 0.6) * 0.12;
-        st.model.update(
-          0,
-          0,
-          0,
-          Math.round(Math.sin(turn) * 1024),
-          Math.round(Math.cos(turn) * 1024),
-          pose,
-          dt,
-        );
-      }
-      renderer.render(scene, camera);
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      ro.disconnect();
-      stateRef.current?.model?.dispose();
-      renderer.dispose();
-      renderer.domElement.remove();
-      stateRef.current = null;
-    };
-  }, [side]);
-
+function SpriteShowcase({ heroId, side, filter }: { heroId: string; side: 0 | 1; filter?: string }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const [ready, setReady] = useState(false);
   useEffect(() => {
-    const st = stateRef.current;
-    if (!st) return;
-    st.want = heroId;
-    st.rim.color.set(lookFor(heroId, alt).color);
+    const c = ref.current;
+    if (!c) return;
+    let raf = 0;
     let live = true;
-    void makeModel(heroId, alt).then((m) => {
-      const cur = stateRef.current;
-      if (!live || !cur || cur.want !== heroId) {
-        m.dispose();
-        return;
-      }
-      if (cur.model) {
-        cur.scene.remove(cur.model.root);
-        cur.model.dispose();
-      }
-      cur.model = m;
-      cur.scene.add(m.root);
+    void loadSpriteHero(heroId).then((sprite) => {
+      if (!live || !sprite) return;
+      setReady(true);
+      const g = c.getContext('2d')!;
+      const start = performance.now();
+      const idle = sprite.atlas.anims.idle!;
+      const frame = (now: number) => {
+        const w = c.clientWidth;
+        const h = c.clientHeight;
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        if (c.width !== Math.round(w * dpr)) c.width = Math.round(w * dpr);
+        if (c.height !== Math.round(h * dpr)) c.height = Math.round(h * dpr);
+        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        g.clearRect(0, 0, w, h);
+        const t = (now - start) / 1000;
+        const pick = chooseSpriteForAction(sprite.atlas, heroId, null);
+        pick.frame = Math.floor((t * idle.fps) % idle.frames.length);
+        const zoom = (h * 0.8) / (sprite.atlas.pxPerM * 1.9);
+        sprite.drawPick(g, pick, w / 2, h * 0.92, zoom, side === 1 ? -1 : 1);
+        raf = requestAnimationFrame(frame);
+      };
+      raf = requestAnimationFrame(frame);
     });
     return () => {
       live = false;
+      cancelAnimationFrame(raf);
     };
-  }, [heroId, alt]);
-
-  return <div ref={hostRef} style={{ position: 'absolute', inset: 0 }} aria-hidden="true" />;
+  }, [heroId, side]);
+  return (
+    <canvas
+      ref={ref}
+      className="showcase-sprite"
+      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', filter, opacity: ready ? 1 : 0 }}
+      aria-hidden="true"
+    />
+  );
 }

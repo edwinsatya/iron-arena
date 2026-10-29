@@ -9,8 +9,8 @@ test('landing page shows the title, the online box and the live exhibition fight
 
 test('local versus: a fight starts and inputs move the fighters', async ({ page }) => {
   await page.goto('/local?render=0');
-  await page.getByRole('button', { name: 'Kaito Arashi' }).click();
-  await page.getByRole('button', { name: 'Magnus Thorne' }).click();
+  await page.getByRole('button', { name: 'Benika' }).click();
+  await page.getByRole('button', { name: 'Hyōga' }).click();
   await page.getByRole('button', { name: 'Fight' }).click();
   await page.waitForFunction(() => window.__neonfist?.state().phase === 1, null, { timeout: 60_000 });
   const x0 = await page.evaluate(() => window.__neonfist!.state().fighters[0].x);
@@ -23,17 +23,17 @@ test('local versus: a fight starts and inputs move the fighters', async ({ page 
 
 test('heroes page lists every hero with their skills', async ({ page }) => {
   await page.goto('/how-to-play?render=0');
-  for (const name of ['Kaito Arashi', 'Magnus Thorne', 'Riko Kanzaki', 'Seren Mikazuki']) {
+  for (const name of ['Benika', 'Hyōga', 'Lysa', 'Reo']) {
     await expect(page.getByRole('heading', { name })).toBeVisible();
   }
-  await expect(page.getByText('Shiden Rush')).toBeVisible();
-  await expect(page.getByText('Mangetsu Fall')).toBeVisible();
+  await expect(page.getByText('Chiwari Shatter')).toBeVisible();
+  await expect(page.getByText('Akatsuki Daybreak')).toBeVisible();
 });
 
 test('versus CPU: pick heroes and an arena, the CPU fights back', async ({ page }) => {
   await page.goto('/versus?render=0');
-  await page.getByRole('button', { name: 'Riko Kanzaki' }).click();
-  await page.getByRole('button', { name: 'Seren Mikazuki' }).click();
+  await page.getByRole('button', { name: 'Lysa' }).click();
+  await page.getByRole('button', { name: 'Reo' }).click();
   await page.getByRole('button', { name: 'Midnight' }).click();
   await page.getByRole('button', { name: 'Fight' }).click();
   await page.waitForFunction(() => window.__neonfist?.state().phase === 1, null, { timeout: 60_000 });

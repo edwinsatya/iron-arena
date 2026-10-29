@@ -6,7 +6,7 @@ import type { GameState } from '../src/types';
 
 export { BTN };
 
-export function newMatch(p1 = 'kaito', p2 = 'magnus', seed = 7): GameState {
+export function newMatch(p1 = 'benika', p2 = 'hyoga', seed = 7): GameState {
   return createInitialState({
     seed,
     fighters: [p1, p2],
@@ -23,7 +23,7 @@ export function toFight(s: GameState): GameState {
 }
 
 /** Fight-ready match with fighters at x positions (mm), facing each other. */
-export function setup(p1 = 'kaito', p2 = 'magnus', ax = -1000, bx = 1000): GameState {
+export function setup(p1 = 'benika', p2 = 'hyoga', ax = -1000, bx = 1000): GameState {
   const s = toFight(newMatch(p1, p2));
   const [a, b] = s.fighters;
   a.x = ax;
