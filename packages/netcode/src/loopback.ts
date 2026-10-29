@@ -36,7 +36,10 @@ class LoopbackLink implements PeerLink {
     const at = Math.max(performance.now() + this.opts.latencyMs, this.controlClock);
     this.controlClock = at;
     const json = JSON.stringify(msg);
-    setTimeout(() => this.peer.open && this.peer.onControl?.(JSON.parse(json) as ControlMsg), at - performance.now());
+    setTimeout(
+      () => this.peer.open && this.peer.onControl?.(JSON.parse(json) as ControlMsg),
+      at - performance.now(),
+    );
   }
 
   close(): void {

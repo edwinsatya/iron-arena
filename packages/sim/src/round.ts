@@ -1,114 +1,92 @@
-import {
-  END,
-  EV,
-  FS,
-  INTRO_FRAMES,
-  KO_FRAMES,
-  KO_HITSTOP,
-  PHASE,
-  ROUND_END_FRAMES,
-} from './constants';
+import { END, EV, FS, INTRO_FRAMES, KO_FRAMES, PHASE, RING_OUT_Y, ROUND_END_FRAMES } from './constants';
 import { pushEvent } from './events';
 import { setState } from './fighter';
-import { along } from './math';
-import { startRound } from './state';
-import type { FighterState, GameState } from './types';
+import { ROSTER } from './roster';
+import { resetForRound } from './state';
+import type { GameState } from './types';
 
-function setPhase(s: GameState, phase: number): void {
-  s.phase = phase;
+function endRound(s: GameState, reason: number, winner: number): void {
+  s.phase = PHASE.KO;
   s.phaseFrame = 0;
+  s.endReason = reason;
+  s.endWinner = winner;
+  s.projectiles.length = 0;
 }
 
-function knockOut(s: GameState, p: number): void {
-  const f = s.fighters[p]!;
-  const o = s.fighters[1 - p]!;
-  f.moveId = -1;
-  f.moveFrame = 0;
-  f.stun = 0;
-  f.thrownBy = -1;
-  if (f.state === FS.AIR) {
-    f.juggleLeft = 0; // keeps falling; becomes KO on landing
-    return;
-  }
-  if (f.state !== FS.KO) setState(f, FS.KO);
-  if (f.y === 0) {
-    f.vy = 26;
-    f.vx = along(o.dirX, 18);
-    f.vz = along(o.dirZ, 18);
-  }
-  pushEvent(s, p, EV.KO, 0, f.x, 1000, f.z);
-}
-
-function decideWinner(s: GameState): number | null {
-  const [a, b] = s.fighters;
-  const aWon = a.roundsWon >= s.roundsToWin;
-  const bWon = b.roundsWon >= s.roundsToWin;
-  if (aWon && bWon) return a.roundsWon > b.roundsWon ? 0 : b.roundsWon > a.roundsWon ? 1 : null;
-  if (aWon) return 0;
-  if (bWon) return 1;
-  return null;
-}
-
-function awardRound(s: GameState): void {
-  if (s.endWinner === -1) {
-    s.fighters[0].roundsWon++;
-    s.fighters[1].roundsWon++;
-  } else {
-    s.fighters[s.endWinner]!.roundsWon++;
-  }
-}
-
-function alive(f: FighterState): boolean {
-  return f.hp > 0;
-}
-
-/** Round flow (PLAN §2.2): intro → fight → KO / time → round end → next round or match end. */
+/** Phases, timer, KOs, ring-outs and match end. */
 export function roundLogic(s: GameState): void {
+  const [a, b] = s.fighters;
   switch (s.phase) {
     case PHASE.INTRO:
-      if (s.phaseFrame >= INTRO_FRAMES) setPhase(s, PHASE.FIGHT);
-      break;
-
+      if (s.phaseFrame === 1) pushEvent(s, 0, EV.ROUND, s.round, 0, 0, 0);
+      if (s.phaseFrame >= INTRO_FRAMES) {
+        s.phase = PHASE.FIGHT;
+        s.phaseFrame = 0;
+      }
+      return;
     case PHASE.FIGHT: {
-      const [a, b] = s.fighters;
-      if (!alive(a) || !alive(b)) {
-        const both = !alive(a) && !alive(b);
-        s.endReason = both ? END.DOUBLE_KO : END.KO;
-        s.endWinner = both ? -1 : alive(a) ? 0 : 1;
-        if (!alive(a)) knockOut(s, 0);
-        if (!alive(b)) knockOut(s, 1);
-        if (s.hitstop < KO_HITSTOP) s.hitstop = KO_HITSTOP;
-        setPhase(s, PHASE.KO);
-        break;
-      }
-      if (s.hitstop === 0 && s.timer > 0) {
-        s.timer--;
-        if (s.timer === 0) {
-          s.endReason = END.TIME;
-          s.endWinner = a.hp > b.hp ? 0 : b.hp > a.hp ? 1 : -1;
-          setPhase(s, PHASE.KO);
+      if (s.timer > 0) s.timer--;
+      const outA = a.y < RING_OUT_Y;
+      const outB = b.y < RING_OUT_Y;
+      if (outA || outB) {
+        for (const [f, out, i] of [
+          [a, outA, 0],
+          [b, outB, 1],
+        ] as const) {
+          if (!out) continue;
+          f.hp = 0;
+          setState(f, FS.KO);
+          pushEvent(s, i, EV.RING_OUT, 0, f.x, f.y, f.z);
         }
+        endRound(s, outA && outB ? END.DOUBLE_KO : END.RING_OUT, outA && outB ? -1 : outA ? 1 : 0);
+        return;
       }
-      break;
+      const koA = a.hp <= 0;
+      const koB = b.hp <= 0;
+      if (koA || koB) {
+        endRound(s, koA && koB ? END.DOUBLE_KO : END.KO, koA && koB ? -1 : koA ? 1 : 0);
+        return;
+      }
+      if (s.timer === 0) {
+        // Higher remaining health (as a share of max) wins
+        const pa = a.hp * ROSTER[b.char]!.hp;
+        const pb = b.hp * ROSTER[a.char]!.hp;
+        endRound(s, END.TIME, pa === pb ? -1 : pa > pb ? 0 : 1);
+      }
+      return;
     }
-
     case PHASE.KO:
       if (s.phaseFrame >= KO_FRAMES) {
-        awardRound(s);
-        setPhase(s, PHASE.ROUND_END);
-      }
-      break;
-
-    case PHASE.ROUND_END:
-      if (s.phaseFrame >= ROUND_END_FRAMES) {
-        const winner = decideWinner(s);
-        if (winner !== null) {
-          s.matchWinner = winner;
-          setPhase(s, PHASE.MATCH_END);
-        } else {
-          startRound(s, s.round + 1);
+        if (s.endWinner >= 0) s.fighters[s.endWinner].roundsWon++;
+        else {
+          a.roundsWon++;
+          b.roundsWon++;
+        }
+        s.phase = PHASE.ROUND_END;
+        s.phaseFrame = 0;
+        if (s.endWinner >= 0) {
+          const w = s.fighters[s.endWinner];
+          if (w.state !== FS.KO && w.state !== FS.FALLING) setState(w, FS.WIN);
         }
       }
-      break;
+      return;
+    case PHASE.ROUND_END:
+      if (s.phaseFrame >= ROUND_END_FRAMES) {
+        const doneA = a.roundsWon >= s.roundsToWin;
+        const doneB = b.roundsWon >= s.roundsToWin;
+        if (doneA || doneB) {
+          s.phase = PHASE.MATCH_END;
+          s.phaseFrame = 0;
+          s.matchWinner = doneA && doneB ? -1 : doneA ? 0 : 1;
+          return;
+        }
+        s.round++;
+        resetForRound(s);
+        s.phase = PHASE.INTRO;
+        s.phaseFrame = 0;
+        s.endReason = END.NONE;
+        s.endWinner = -1;
+      }
+      return;
   }
 }

@@ -1,18 +1,21 @@
 # NEON FIST
 
-A Tekken-style 1v1 3D fighting game that runs in the browser. Send your friend a link, pick a
-fighter, and fight in real time — each of you in your own browser — with GGPO-style **rollback
-netcode**.
+A 3D arena brawler that runs in the browser. Pick a hero, send your friend a link, and fight on a
+rooftop with no railing — empty their health or knock them off the edge. Online play uses
+GGPO-style **rollback netcode**, so it feels like you're in the same room.
 
-- **Fighters:** Kaito Arashi "The Storm Prodigy" and Magnus Thorne "The Iron Mountain" — full move
-  lists with frame data, strings, launchers and juggles, throws and breaks, armor, crush moves
-- **Online:** peer-to-peer WebRTC, Cloudflare TURN, and a WebSocket relay as the last resort
-- **Look:** anime / cel-shaded VRM characters on the Skyline Rooftop (make your own in VRoid Studio —
-  see [docs/CHARACTERS.md](docs/CHARACTERS.md))
-- **Modes:** online room, local versus (one keyboard or two gamepads), training with frame advantage
-- **Cost:** everything here is free (open-source libraries, free hosting tiers)
+- **Heroes:** Kaito Arashi (katana), Magnus Thorne (gauntlets), Riko Kanzaki (twin pistols),
+  Seren Mikazuki (moon staff) — each with a combo, dash, air and charged attacks, **3 skills and
+  an ultimate** with a cut-in
+- **Modes:** online room, versus CPU (3 levels), local versus (one keyboard or two gamepads),
+  training with a sparring partner
+- **Arena:** Skyline Rooftop at golden hour or midnight
+- **Look:** cel-shaded anime heroes (VRM, make your own in VRoid Studio — see
+  [docs/CHARACTERS.md](docs/CHARACTERS.md)); portraits and skill cards are rendered from the models
+- **Phones:** on-screen stick and buttons on touch screens
+- **Cost:** everything is free (open-source libraries, free hosting tiers)
 
-The full design is in [docs/PLAN.md](docs/PLAN.md).
+Game design: [docs/GAME.md](docs/GAME.md). Architecture and netcode: [docs/PLAN.md](docs/PLAN.md).
 
 ## Run it
 
@@ -28,28 +31,31 @@ second browser window (or another device on your Wi-Fi — use your computer's I
 
 ### Controls
 
-| | Player 1 / online | Player 2 (local) |
-|---|---|---|
-| Move · crouch · jump | `W` `A` `S` `D` (online: arrows too) | arrows |
-| 1 left punch · 2 right punch | `U` · `I` | `Num 4` · `Num 5` (or `[` `]`) |
-| 3 left kick · 4 right kick | `J` · `K` | `Num 1` · `Num 2` (or `;` `'`) |
-| 1+2 · 3+4 shortcuts | `O` · `L` | `Num 6` · `Num 3` |
+| | Solo / online | Local P1 | Local P2 |
+|---|---|---|---|
+| Move | `W` `A` `S` `D` or arrows | `W` `A` `S` `D` | arrows |
+| Attack · guard · jump | `J` · `K` · `L` (or Space) | `F` · `G` · `H` | `Num1` · `Num2` · `Num3` (or `,` `.` `/`) |
+| Skills 1 · 2 · 3 | `U` · `I` · `O` | `R` · `T` · `Y` | `Num4` · `Num5` · `Num6` (or `K` `L` `;`) |
+| Ultimate | `P` | `V` | `Num0` (or `'`) |
 
-Gamepads work (standard mapping). In a fight: **F1** hitboxes · **F2** frame data · **F3** network
-stats · **F4** input display.
+Skills also come out as chords: Attack+Guard, Attack+Jump, Guard+Jump; all three for the ultimate.
+Double-tap to dash, hold Attack to charge. Gamepads: X attack, B guard, A jump, LB/RB/Y skills,
+RT ultimate. In a fight: **Esc** pause · **F1** hitboxes · **F2** frame data · **F3** network ·
+**F4** input display.
 
 ## Checks
 
 ```bash
 pnpm typecheck && pnpm lint
-pnpm test        # 128 unit tests: frame data, guard rules, throws, rounds, combos, lobby
-pnpm synctest    # every fighter pair, 10,000 frames, 8-frame rollback on every frame
+pnpm test        # 72 tests: controls, skills, guard, rounds, determinism, netcode, lobby
+pnpm synctest    # every hero pair, 10,000 frames, 8-frame rollback on every frame
+pnpm balance     # CPU vs CPU win rates for every pair
 pnpm soak        # 300 simulated bad networks (lag, jitter, loss, reordering) — must be 0 desyncs
 pnpm build && pnpm e2e   # two real browsers fight online (WebRTC and relay)
 ```
 
 Current results: synctest passes for all pairs; soak compares 1,718,067 frames with 0 mismatches;
-e2e fights match frame-for-frame over both WebRTC and the relay.
+e2e (6 tests) fights match frame-for-frame over both WebRTC and the relay.
 
 ## Deploy (free)
 
@@ -74,13 +80,12 @@ refresh.
 ```
 apps/web        Next.js app — UI, three.js renderer, HUD, audio, online room flow
 apps/lobby      room logic + Cloudflare Worker/Durable Object + Node dev server
-packages/sim    deterministic simulation (integer math, plain data, zero dependencies)
+packages/sim    deterministic simulation + hero data (integer math, plain data, zero dependencies)
 packages/netcode rollback session, binary packets, WebRTC / relay / loopback links
 packages/shared input bits, lobby + control protocol (zod), constants
-tools           synctest, soak, replay, lobby-smoke
+tools           synctest, soak, balance, replay, lobby-smoke
 e2e             Playwright tests
-docs            PLAN.md (design), CHARACTERS.md (make your own fighters)
+docs            GAME.md (game design), PLAN.md (architecture), CHARACTERS.md (make your own heroes)
 ```
 
-Dev pages: `/dev/netsim` (feel rollback with simulated lag in one browser), `/dev/poses` (model vs.
-mannequin poses), `/dev/sandbox` (input test).
+Dev pages: `/dev/netsim` (feel rollback with simulated lag in one browser), `/dev/sandbox` (input test).

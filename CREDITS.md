@@ -1,13 +1,13 @@
 # Credits
 
-NEON FIST is an original game. All characters, names, moves and designs are original.
+NEON FIST is an original game. All heroes, names, skills and designs are original. The arena-brawler genre and its conventions (three action buttons, skill chords, ring-outs) are shared genre mechanics, not anyone's assets.
 
 ## 3D models (stand-ins until you make your own in VRoid Studio)
 
 | File | Model | Author | License |
 |---|---|---|---|
-| `apps/web/public/models/stand-in-a.vrm` | **Seed-san** | VirtualCast, Inc. | [VRM Public License 1.0](https://vrm.dev/en/licenses/1.0/) — redistribution, modification and commercial use allowed; **credit required** |
-| `apps/web/public/models/stand-in-b.vrm` | VRM1_Constraint_Twist_Sample | pixiv Inc. | [VRM Public License 1.0](https://vrm.dev/en/licenses/1.0/) — redistribution, modification and commercial use allowed; credit not required |
+| `apps/web/public/models/stand-in-a.vrm` (Kaito, Magnus) | **Seed-san** | VirtualCast, Inc. | [VRM Public License 1.0](https://vrm.dev/en/licenses/1.0/) — redistribution, modification and commercial use allowed; **credit required** |
+| `apps/web/public/models/stand-in-b.vrm` (Riko, Seren) | VRM1_Constraint_Twist_Sample | pixiv Inc. | [VRM Public License 1.0](https://vrm.dev/en/licenses/1.0/) — redistribution, modification and commercial use allowed; credit not required |
 
 Both come from the [VRM specification samples](https://github.com/vrm-c/vrm-specification/tree/master/samples).
 
@@ -20,7 +20,7 @@ Both come from the [VRM specification samples](https://github.com/vrm-c/vrm-spec
 
 ## Fonts
 
-- [Anton](https://fonts.google.com/specimen/Anton) and [Barlow Semi Condensed](https://fonts.google.com/specimen/Barlow+Semi+Condensed) — SIL Open Font License, self-hosted via Fontsource
+- [Dela Gothic One](https://fonts.google.com/specimen/Dela+Gothic+One) and [Zen Kaku Gothic New](https://fonts.google.com/specimen/Zen+Kaku+Gothic+New) — SIL Open Font License, self-hosted via Fontsource
 
 ## Sound
 

@@ -93,7 +93,8 @@ export class RoomController {
       steps: [],
     };
     this.lobby = new LobbyClient(code);
-    this.lobby.onOpen = () => this.lobby.send({ t: 'hello', name, simVersion: SIM_VERSION, clientId: clientId() });
+    this.lobby.onOpen = () =>
+      this.lobby.send({ t: 'hello', name, simVersion: SIM_VERSION, clientId: clientId() });
     this.lobby.onMessage = (m) => this.onLobby(m);
     this.lobby.onClose = (code) => {
       if (this.disposed) return;
@@ -322,7 +323,7 @@ export class RoomController {
       inputDelay: inputDelay ?? 2,
       epoch: config.seed & 0xff,
       link,
-      input: createPlayerInput(SOLO_KEYS, 'any'),
+      input: createPlayerInput(SOLO_KEYS, 'any', true),
       pingMs: this.view.pingMs,
       onDesync: (bundle) => this.set({ desync: bundle }),
       onPeerPause: (paused) => this.set({ peerPaused: paused }),

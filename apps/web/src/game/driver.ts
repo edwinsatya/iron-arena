@@ -47,8 +47,8 @@ export class LocalDriver implements MatchDriver {
   }
 
   tick(): void {
-    const i1 = this.p1.sample();
-    const i2 = this.p2.sample();
+    const i1 = this.p1.sample(this.state);
+    const i2 = this.p2.sample(this.state);
     if (this.paused && this.advance === 0) return;
     if (this.advance > 0) this.advance--;
     this.beforeTick?.(this.state);
@@ -58,7 +58,8 @@ export class LocalDriver implements MatchDriver {
       const s = this.state;
       s.timer = s.roundFrames;
       for (const f of s.fighters) {
-        if (s.phase === PHASE.FIGHT && f.comboHits === 0 && f.stun === 0 && f.hp < ROSTER[f.char]!.hp) f.hp = ROSTER[f.char]!.hp;
+        if (s.phase === PHASE.FIGHT && f.comboHits === 0 && f.stun === 0 && f.hp < ROSTER[f.char]!.hp)
+          f.hp = ROSTER[f.char]!.hp;
       }
     }
   }

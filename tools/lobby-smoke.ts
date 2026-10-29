@@ -48,7 +48,9 @@ async function main() {
   b.send({ t: 'hello', name: 'Smoke B', clientId: 'smoke-bbbb', simVersion: 'smoke' });
   await b.waitFor('select phase', (m) => m.t === 'room' && m.phase === 'select');
   const ice = await a.waitFor('ICE servers', (m) => m.t === 'ice');
-  step(`both joined; ICE: ${JSON.stringify((ice as Extract<ServerMsg, { t: 'ice' }>).iceServers.map((s) => s.urls))}`);
+  step(
+    `both joined; ICE: ${JSON.stringify((ice as Extract<ServerMsg, { t: 'ice' }>).iceServers.map((s) => s.urls))}`,
+  );
   a.send({ t: 'select', fighter: 'kaito' });
   b.send({ t: 'select', fighter: 'magnus' });
   a.send({ t: 'ready', ready: true, viewMirrored: false });

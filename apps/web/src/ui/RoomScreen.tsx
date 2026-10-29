@@ -1,16 +1,18 @@
 'use client';
 
-import { isValidRoomCode, type MatchConfig } from '@neonfist/shared';
+import { isValidRoomCode } from '@neonfist/shared';
 import { checksum, getCharacter, PHASE, type GameState } from '@neonfist/sim';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { GameView } from '../game/GameView';
+import { KEY_HINTS } from '../game/input/bindings';
 import { RoomController } from '../net/room';
-import { Controls } from './Controls';
-import { FighterSelect } from './FighterSelect';
+import { HeroSelect } from './HeroSelect';
+import { ResultCard } from './ResultCard';
 import { cleanName, loadSettings, saveSettings } from './settings';
+import { Topbar } from './Topbar';
 
-/** Online room: name → lobby/character select → connect → fight → results (PLAN §2.9). */
+/** Online room: name → invite → hero select → connect → fight → results (PLAN §2.9). */
 export function RoomScreen({ code }: { code: string }) {
   const [name, setName] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
@@ -23,11 +25,13 @@ export function RoomScreen({ code }: { code: string }) {
   if (!isValidRoomCode(code)) {
     return (
       <main className="screen">
-        <h1 className="screen-title display">No such room</h1>
-        <p>Room codes are 6 letters and numbers, like K7Q2XM.</p>
-        <Link className="btn" href="/">
-          Back to the start
-        </Link>
+        <Topbar title="No such room" small="Online" />
+        <div className="card panel" style={{ margin: '0 auto' }}>
+          <p style={{ marginTop: 0 }}>Room codes are 6 letters and numbers, like K7Q2XM.</p>
+          <Link className="btn" href="/">
+            Back to the start
+          </Link>
+        </div>
       </main>
     );
   }
@@ -35,26 +39,33 @@ export function RoomScreen({ code }: { code: string }) {
   if (!name) {
     return (
       <main className="screen">
-        <div className="overlay-card slab" style={{ margin: '12vh auto 0' }}>
-          <h1 className="screen-title display">Room {code}</h1>
-          <form
-            className="home-form"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const n = cleanName(draft) || 'Player';
-              saveSettings({ name: n });
-              setName(n);
-            }}
-          >
-            <label className="home-label" htmlFor="room-name">
-              Your fighter name
-            </label>
-            <input id="room-name" className="field" autoFocus maxLength={16} value={draft} onChange={(e) => setDraft(e.target.value)} />
-            <button className="btn" type="submit">
-              Enter the room
-            </button>
-          </form>
-        </div>
+        <Topbar title={`Room ${code}`} small="You've been challenged" />
+        <form
+          className="card panel"
+          style={{ margin: '6vh auto 0', display: 'grid', gap: 12 }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const n = cleanName(draft) || 'Player';
+            saveSettings({ name: n });
+            setName(n);
+          }}
+        >
+          <h2>Pick a fighter name</h2>
+          <label htmlFor="room-name" className="muted">
+            Your opponent sees this above your health bar.
+          </label>
+          <input
+            id="room-name"
+            className="field"
+            autoFocus
+            maxLength={16}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+          />
+          <button className="btn" type="submit">
+            Enter the room
+          </button>
+        </form>
       </main>
     );
   }
@@ -73,7 +84,9 @@ function Room({ code, name }: { code: string; name: string }) {
   return <RoomView controller={controller} />;
 }
 
-function playerName(v: ReturnType<RoomController['getSnapshot']>, i: 0 | 1) {
+type View = ReturnType<RoomController['getSnapshot']>;
+
+function playerName(v: View, i: 0 | 1) {
   return v.players[i]?.name ?? (i === 0 ? 'Player 1' : 'Player 2');
 }
 
@@ -92,7 +105,7 @@ function RoomView({ controller }: { controller: RoomController }) {
 
   const onFrame = useCallback(
     (s: GameState) => {
-      if (s.phase === PHASE.MATCH_END && s.phaseFrame > 150 && !reported.current) {
+      if (s.phase === PHASE.MATCH_END && s.phaseFrame > 120 && !reported.current) {
         reported.current = true;
         setMatchOver(true);
         controller.reportResult(s.matchWinner as 0 | 1 | -1, checksum(s));
@@ -101,32 +114,53 @@ function RoomView({ controller }: { controller: RoomController }) {
     [controller],
   );
 
-  const names = useMemo(() => ({ p1: playerName(v, 0).toUpperCase(), p2: playerName(v, 1).toUpperCase() }), [v]);
+  const you = v.you ?? 0;
+  const names = useMemo(() => ({ p1: playerName(v, 0), p2: playerName(v, 1) }), [v]);
+  const hud = useMemo(
+    () => ({
+      names,
+      trays: (you === 0 ? [KEY_HINTS.solo, null] : [null, KEY_HINTS.solo]) as [
+        typeof KEY_HINTS.solo | null,
+        typeof KEY_HINTS.solo | null,
+      ],
+      stats: false,
+      stage: v.config?.stage,
+      badges: (you === 0 ? ['YOU', 'P2'] : ['P1', 'YOU']) as [string, string],
+    }),
+    [names, you, v.config?.stage],
+  );
 
   if (v.status === 'error') {
     return (
       <main className="screen">
-        <h1 className="screen-title display">Can&apos;t join</h1>
-        <p className="notice">{v.error}</p>
-        <Link className="btn" href="/">
-          Back to the start
-        </Link>
+        <Topbar title="Can't join" small="Online" />
+        <div className="card panel" style={{ margin: '0 auto' }}>
+          <p className="notice" style={{ marginTop: 0 }}>
+            {v.error}
+          </p>
+          <Link className="btn" href="/">
+            Back to the start
+          </Link>
+        </div>
       </main>
     );
   }
 
   if ((v.status === 'fighting' || v.status === 'results') && v.driver) {
-    const winner = v.driver.state.matchWinner;
+    const state = v.driver.state;
     return (
-      <GameView driver={v.driver} names={names} mirrored={!!v.config?.viewMirrored[v.you ?? 0]} onFrame={onFrame}>
+      <GameView driver={v.driver} hud={hud} mirrored={!!v.config?.viewMirrored[you]} onFrame={onFrame} touch>
         {v.peerPaused && (
-          <div className="corner-menu left">
-            <span className="notice">Your opponent switched away from the game window. The fight waits for them.</span>
+          <div className="corner-menu left" style={{ top: 'auto', bottom: 140 }}>
+            <span className="notice">
+              Your opponent switched away from the game. The fight waits for them.
+            </span>
           </div>
         )}
         {v.notice && !matchOver && (
           <div className="overlay">
-            <div className="overlay-card slab">
+            <div className="card panel">
+              <h2>Connection</h2>
               <p>{v.notice}</p>
               <div className="actions">
                 <button className="btn" onClick={() => controller.reselect()}>
@@ -141,81 +175,81 @@ function RoomView({ controller }: { controller: RoomController }) {
         )}
         {v.desync && <DesyncNotice bundle={v.desync} />}
         {(matchOver || v.status === 'results') && (
-          <div className="overlay">
-            <div className="overlay-card slab">
-              <h2 className="results-title display">
-                {winner < 0 ? 'Draw' : winner === v.you ? 'You win' : `${playerName(v, winner as 0 | 1)} wins`}
-              </h2>
-              <p className="muted">
-                Rounds {v.driver.state.fighters[0].roundsWon}–{v.driver.state.fighters[1].roundsWon}
-              </p>
-              {v.players.map((p, i) =>
-                p?.rematch ? (
-                  <p key={i} className="muted">
-                    {p.name} wants a rematch
-                  </p>
-                ) : null,
-              )}
-              <div className="actions">
-                <button className="btn" onClick={() => controller.rematch()} disabled={!!v.players[v.you ?? 0]?.rematch}>
-                  {v.players[v.you ?? 0]?.rematch ? 'Waiting for your opponent…' : 'Rematch'}
-                </button>
-                <button className="btn ghost" onClick={() => controller.reselect()}>
-                  Change fighter
-                </button>
-              </div>
-            </div>
-          </div>
+          <ResultCard state={state} names={[names.p1, names.p2]}>
+            {v.players.map((p, i) =>
+              p?.rematch && i !== you ? (
+                <p key={i} className="notice" style={{ width: '100%', margin: '0 0 6px' }}>
+                  {p.name} wants a rematch
+                </p>
+              ) : null,
+            )}
+            <button className="btn" onClick={() => controller.rematch()} disabled={!!v.players[you]?.rematch}>
+              {v.players[you]?.rematch ? 'Waiting for your opponent…' : 'Rematch'}
+            </button>
+            <button className="btn ghost" onClick={() => controller.reselect()}>
+              Change hero
+            </button>
+          </ResultCard>
         )}
       </GameView>
     );
   }
 
   if (v.status === 'linking' || v.status === 'syncing' || v.status === 'fighting') {
+    const c = v.config;
     return (
       <main className="screen">
-        <h1 className="screen-title display">Get ready</h1>
-        <ConfigSummary config={v.config} v={v} />
-        <ul className="status-list" aria-live="polite">
-          {v.steps.map((s, i) => (
-            <li key={i}>{s}</li>
-          ))}
-          <li>{v.status === 'syncing' ? 'Waiting for both players…' : 'Connecting…'}</li>
-        </ul>
-        {v.notice && <p className="notice">{v.notice}</p>}
+        <div className="status-steps panel">
+          <h1>Get ready</h1>
+          {c && (
+            <p className="vs-line">
+              <span style={{ color: 'var(--p1)' }}>{getCharacter(c.fighters[0]).name.split(' ')[0]}</span>
+              <span className="vs">VS</span>
+              <span style={{ color: 'var(--p2)' }}>{getCharacter(c.fighters[1]).name.split(' ')[0]}</span>
+            </p>
+          )}
+          <ol aria-live="polite">
+            {v.steps.map((s, i) => (
+              <li key={i}>{s}</li>
+            ))}
+            <li className="now">{v.status === 'syncing' ? 'Waiting for both players…' : 'Connecting…'}</li>
+          </ol>
+          {v.notice && <p className="notice">{v.notice}</p>}
+        </div>
       </main>
     );
   }
 
-  // Lobby: waiting for a friend, then character select
-  const you = v.you ?? 0;
+  // Lobby: waiting for a friend, then hero select
   const me = v.players[you];
   const other = v.players[1 - you];
   const link = typeof window !== 'undefined' ? `${window.location.origin}/room/${v.code}` : '';
-  const picks: [string | null, string | null] = [v.players[0]?.fighter ?? null, v.players[1]?.fighter ?? null];
+  const picks: [string | null, string | null] = [
+    v.players[0]?.fighter ?? null,
+    v.players[1]?.fighter ?? null,
+  ];
+  const ready: [boolean, boolean] = [!!v.players[0]?.ready, !!v.players[1]?.ready];
 
   return (
     <main className="screen">
-      <div className="screen-head">
-        <h1 className="screen-title display">{other ? 'Choose your fighter' : 'Invite your friend'}</h1>
-        <button
-          className="back"
-          onClick={() => {
-            controller.leave();
-            window.location.href = '/';
-          }}
-        >
-          Leave room
-        </button>
-      </div>
-
-      {v.notice && <p className="notice">{v.notice}</p>}
-
+      <Topbar
+        title={other ? 'Choose your fighter' : 'Invite your friend'}
+        small={`Online room ${v.code}`}
+        onBack={() => {
+          controller.leave();
+          window.location.href = '/';
+        }}
+      />
+      {v.notice && (
+        <p className="notice" style={{ maxWidth: 980, margin: '0 auto 20px' }}>
+          {v.notice}
+        </p>
+      )}
       {!other && (
-        <div className="slab" style={{ marginBottom: 26 }}>
-          <p style={{ marginTop: 0 }}>Send this link to your friend. The fight starts once you both pick a fighter.</p>
-          <div className="share">
-            <span className="share-code display">{v.code}</span>
+        <section className="invite panel" aria-label="Invite">
+          <span className="invite-code">{v.code}</span>
+          <div>
+            <p>Send this link to your friend. Hero select opens as soon as they join.</p>
             <button
               className="btn p2"
               onClick={() => {
@@ -226,67 +260,34 @@ function RoomView({ controller }: { controller: RoomController }) {
             >
               {copied ? 'Link copied' : 'Copy invite link'}
             </button>
+            <p className="link">{link}</p>
           </div>
-          <p className="muted" style={{ marginBottom: 0, wordBreak: 'break-all' }}>
-            {link}
-          </p>
-        </div>
+        </section>
       )}
-
-      {v.phase !== 'waiting' && (
-        <FighterSelect
-          picks={picks}
-          active={you}
-          locked={[!!v.players[0]?.ready, !!v.players[1]?.ready]}
-          onPick={(_p, id) => controller.select(id)}
-        />
-      )}
-
-      <div className="panel-row">
-        <div>
-          {([0, 1] as const).map((i) => {
-            const p = v.players[i];
-            return (
-              <div key={i} className="player-chip" style={{ '--c': i === 0 ? 'var(--p1)' : 'var(--p2)' } as React.CSSProperties}>
-                <span>
-                  P{i + 1} {p ? p.name : '—'} {i === you && <span className="muted">(you)</span>}
-                </span>
-                <span className="muted">
-                  {!p ? 'Waiting to join' : p.ready ? `Ready — ${getCharacter(p.fighter!).short}` : p.fighter ? getCharacter(p.fighter).name : 'Choosing'}
-                </span>
-              </div>
-            );
-          })}
-          {other && (
-            <div className="actions">
-              <button className="btn amber" disabled={!me?.fighter} onClick={() => controller.ready(!me?.ready)}>
-                {me?.ready ? 'Cancel ready' : 'Ready'}
-              </button>
-            </div>
-          )}
-        </div>
-        <div className="slab">
-          <Controls />
-          <p className="muted" style={{ marginBottom: 0 }}>
-            Gamepads work too. F1 hitboxes · F2 frame data · F3 network.
-          </p>
-        </div>
-      </div>
+      <HeroSelect
+        picks={picks}
+        picking={v.phase === 'waiting' && !other ? you : me?.ready ? null : you}
+        onPick={(id) => controller.select(id)}
+        sideLabels={[
+          you === 0 ? 'P1, you' : 'P1, your opponent',
+          you === 1 ? 'P2, you' : 'P2, your opponent',
+        ]}
+        names={[v.players[0]?.name ?? null, v.players[1]?.name ?? null]}
+        ready={ready}
+      >
+        {other && (
+          <div className="picker-actions">
+            <button className="btn" disabled={!me?.fighter} onClick={() => controller.ready(!me?.ready)}>
+              {me?.ready ? 'Cancel ready' : 'Ready'}
+            </button>
+          </div>
+        )}
+      </HeroSelect>
     </main>
   );
 }
 
-function ConfigSummary({ config, v }: { config: MatchConfig | null; v: ReturnType<RoomController['getSnapshot']> }) {
-  if (!config) return null;
-  return (
-    <p className="muted">
-      {playerName(v, 0)} as {getCharacter(config.fighters[0]).name} vs {playerName(v, 1)} as{' '}
-      {getCharacter(config.fighters[1]).name} · first to {config.roundsToWin}
-    </p>
-  );
-}
-
-function DesyncNotice({ bundle }: { bundle: NonNullable<ReturnType<RoomController['getSnapshot']>['desync']> }) {
+function DesyncNotice({ bundle }: { bundle: NonNullable<View['desync']> }) {
   const download = () => {
     const blob = new Blob([JSON.stringify(bundle)], { type: 'application/json' });
     const a = document.createElement('a');
@@ -296,16 +297,14 @@ function DesyncNotice({ bundle }: { bundle: NonNullable<ReturnType<RoomControlle
   };
   return (
     <div className="overlay">
-      <div className="overlay-card slab">
-        <h2 className="display" style={{ fontSize: '2.4rem', margin: 0 }}>
-          Out of sync
-        </h2>
+      <div className="card panel">
+        <h2>Out of sync</h2>
         <p>
-          The two games stopped matching at frame {bundle.frame}. That&apos;s a bug in the game, not your connection. Download
-          the report and run <code>pnpm replay</code> on it to find the cause.
+          The two games stopped matching at frame {bundle.frame}. That&apos;s a bug in the game, not your
+          connection. Download the report and run <code>pnpm replay</code> on it to find the cause.
         </p>
         <div className="actions">
-          <button className="btn amber" onClick={download}>
+          <button className="btn" onClick={download}>
             Download desync report
           </button>
           <Link className="btn ghost" href="/">

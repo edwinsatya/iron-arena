@@ -10,7 +10,10 @@ async function player(browser: Browser, name: string): Promise<Page> {
   const page = await ctx.newPage();
   page.on('pageerror', (e) => console.log(`[${name}] page error:`, e.message));
   await page.addInitScript((n) => {
-    localStorage.setItem('neonfist.settings.v1', JSON.stringify({ name: n, announcer: false, volume: 0, quality: 'low' }));
+    localStorage.setItem(
+      'neonfist.settings.v1',
+      JSON.stringify({ name: n, announcer: false, volume: 0, quality: 'low' }),
+    );
   }, name);
   return page;
 }
@@ -19,7 +22,9 @@ async function player(browser: Browser, name: string): Promise<Page> {
 async function compare(a: Page, b: Page) {
   const read = (p: Page) =>
     p.evaluate(() => {
-      const d = window.__neonfist?.driver as unknown as { session?: { confirmedChecksums: Map<number, number> } };
+      const d = window.__neonfist?.driver as unknown as {
+        session?: { confirmedChecksums: Map<number, number> };
+      };
       return d?.session ? [...d.session.confirmedChecksums.entries()] : [];
     });
   const [ma, mb] = [new Map(await read(a)), new Map(await read(b))];
@@ -48,17 +53,18 @@ async function playOnline(browser: Browser, query: string) {
   await expect(guest.getByText('Choose your fighter')).toBeVisible();
   await expect(host.getByText('Choose your fighter')).toBeVisible();
 
-  await host.getByRole('button', { name: 'Pick' }).first().click(); // Kaito
-  await guest.getByRole('button', { name: 'Pick' }).nth(1).click(); // Magnus
+  await host.getByRole('button', { name: 'Kaito Arashi' }).click();
+  await guest.getByRole('button', { name: 'Seren Mikazuki' }).click();
   await host.getByRole('button', { name: 'Ready' }).click();
   await guest.getByRole('button', { name: 'Ready' }).click();
 
   // Both fight screens are up once the session exists
-  for (const p of [host, guest]) await p.waitForFunction(() => !!window.__neonfist, null, { timeout: 60_000 });
+  for (const p of [host, guest])
+    await p.waitForFunction(() => !!window.__neonfist, null, { timeout: 60_000 });
 
   // Fight: both mash and move for a while (keyboard → the real input path)
   const script = async (p: Page, seed: number) => {
-    const keys = ['KeyD', 'KeyA', 'KeyU', 'KeyI', 'KeyJ', 'KeyK', 'KeyS'];
+    const keys = ['KeyD', 'KeyA', 'KeyJ', 'KeyJ', 'KeyK', 'KeyL', 'KeyU', 'KeyI', 'KeyO', 'KeyW', 'KeyS'];
     for (let i = 0; i < 60; i++) {
       const k = keys[(i * 7 + seed) % keys.length]!;
       await p.keyboard.down(k);
@@ -68,7 +74,9 @@ async function playOnline(browser: Browser, query: string) {
   };
   await Promise.all([script(host, 1), script(guest, 4)]);
 
-  const frames = await Promise.all([host, guest].map((p) => p.evaluate(() => window.__neonfist!.state().frame)));
+  const frames = await Promise.all(
+    [host, guest].map((p) => p.evaluate(() => window.__neonfist!.state().frame)),
+  );
   console.log(`frames reached: host ${frames[0]}, guest ${frames[1]}`);
   const r = await compare(host, guest);
   console.log(`confirmed frames compared: ${r.common}, mismatches: ${r.mismatches}`);

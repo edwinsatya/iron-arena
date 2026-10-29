@@ -1,12 +1,23 @@
 'use client';
 
-import { GAME_TITLE, isValidRoomCode, normalizeRoomCode } from '@neonfist/shared';
+import { isValidRoomCode, normalizeRoomCode } from '@neonfist/shared';
+import { selectableCharacters } from '@neonfist/sim';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { LOOKS } from '../src/game/render/looks';
 import { createRoom } from '../src/net/lobby';
 import { AttractMode } from '../src/ui/AttractMode';
 import { cleanName, loadSettings, saveSettings } from '../src/ui/settings';
+import { Portrait } from '../src/ui/usePortrait';
+
+const MENU: { href: string; name: string; hint: string }[] = [
+  { href: '/versus', name: 'Versus CPU', hint: 'Warm up against the computer' },
+  { href: '/local', name: 'Local versus', hint: 'Two players, one keyboard' },
+  { href: '/training', name: 'Training', hint: 'Learn combos on a dummy' },
+  { href: '/how-to-play', name: 'Heroes & controls', hint: 'Every skill and key' },
+  { href: '/settings', name: 'Settings', hint: 'Name, sound, graphics' },
+];
 
 export default function Home() {
   const router = useRouter();
@@ -53,55 +64,87 @@ export default function Home() {
   return (
     <main className="home">
       <AttractMode className="home-bg" />
-      <div className="home-panel">
-        <h1 className="home-title display">{GAME_TITLE}</h1>
-        <p className="home-tagline">Rooftop fights with a friend. Send a link, pick a fighter, and go — no install.</p>
+      <div className="home-shade" />
+      <div className="home-left">
+        <h1 className="logo" aria-label="NEON FIST">
+          <span>NEON</span>
+          <span className="l2">FIST</span>
+          <span className="logo-kana" aria-hidden="true">
+            ネオンフィスト
+          </span>
+        </h1>
+        <p className="tagline">
+          Four heroes. Three skills and an ultimate each. One rooftop with no railing — knock your friend off
+          it.
+        </p>
 
-        <form className="home-form" onSubmit={onCreate}>
-          <label className="home-label" htmlFor="name">
-            Your fighter name
-          </label>
-          <input
-            id="name"
-            className="field"
-            value={name}
-            maxLength={16}
-            placeholder="Edwin"
-            autoComplete="nickname"
-            onChange={(e) => setName(e.target.value)}
-          />
-          <button className="btn" type="submit" disabled={busy}>
-            {busy ? 'Creating room…' : 'Create a room'}
-          </button>
-        </form>
+        <section className="online-box panel" aria-label="Play online">
+          <form onSubmit={onCreate} style={{ display: 'grid', gap: 10 }}>
+            <label htmlFor="name">Your fighter name</label>
+            <div className="row">
+              <input
+                id="name"
+                className="field"
+                value={name}
+                maxLength={16}
+                placeholder="Edwin"
+                autoComplete="nickname"
+                onChange={(e) => setName(e.target.value)}
+              />
+              <button className="btn" type="submit" disabled={busy}>
+                {busy ? 'Creating…' : 'Create a room'}
+              </button>
+            </div>
+          </form>
+          <form className="row" onSubmit={onJoin}>
+            <input
+              className="field code"
+              value={code}
+              placeholder="ROOM CODE"
+              aria-label="Room code"
+              maxLength={6}
+              onChange={(e) => setCode(normalizeRoomCode(e.target.value))}
+            />
+            <button className="btn p2" type="submit">
+              Join
+            </button>
+          </form>
+          {error && (
+            <p className="home-error" role="alert">
+              {error}
+            </p>
+          )}
+        </section>
 
-        <form className="home-join" onSubmit={onJoin}>
-          <input
-            className="field code"
-            value={code}
-            placeholder="ROOM CODE"
-            aria-label="Room code"
-            maxLength={6}
-            onChange={(e) => setCode(normalizeRoomCode(e.target.value))}
-          />
-          <button className="btn p2" type="submit">
-            Join
-          </button>
-        </form>
-
-        {error && (
-          <p className="home-error" role="alert">
-            {error}
-          </p>
-        )}
-
-        <nav className="home-links" aria-label="More ways to play">
-          <Link href="/local">Local versus</Link>
-          <Link href="/training">Training</Link>
-          <Link href="/how-to-play">How to play</Link>
-          <Link href="/settings">Settings</Link>
+        <nav aria-label="More ways to play">
+          <ul className="menu">
+            {MENU.map((m) => (
+              <li key={m.href}>
+                <Link className="menu-item" href={m.href}>
+                  <span className="name">{m.name}</span>
+                  <span className="hint">{m.hint}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </nav>
+        <p className="home-foot">
+          Free, in the browser, no install. Rollback netcode keeps online fights smooth.
+        </p>
       </div>
+      <nav className="home-roster" aria-label="Heroes">
+        {selectableCharacters().map((h) => (
+          <Link
+            key={h.id}
+            href={`/how-to-play#${h.id}`}
+            aria-label={h.name}
+            style={{ '--hero': LOOKS[h.id]!.color } as React.CSSProperties}
+          >
+            <Portrait heroId={h.id} kind="face" />
+            <span>{h.name.split(' ')[0]!.toUpperCase()}</span>
+          </Link>
+        ))}
+      </nav>
     </main>
   );
 }

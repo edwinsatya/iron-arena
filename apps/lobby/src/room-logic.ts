@@ -1,6 +1,7 @@
 import {
   DEFAULT_ROUND_FRAMES,
   DEFAULT_STAGE,
+  STAGES,
   SELECTABLE_FIGHTERS,
   type ClientMsg,
   type IceServer,
@@ -265,7 +266,7 @@ export class RoomLogic {
     st.config = {
       seed: this.io.randomUint32() | 0,
       fighters: [a.fighter, b.fighter],
-      stage: DEFAULT_STAGE,
+      stage: STAGES[Math.floor(Math.random() * STAGES.length)]?.id ?? DEFAULT_STAGE,
       roundsToWin: st.roundsToWin,
       roundFrames: DEFAULT_ROUND_FRAMES,
       viewMirrored: [a.viewMirrored, b.viewMirrored],
@@ -312,7 +313,14 @@ export class RoomLogic {
     ];
     for (const s of [0, 1] as const) {
       if (!st.players[s]?.connected) continue;
-      this.io.send(s, { t: 'room', code: st.code, you: s, players, phase: st.phase, roundsToWin: st.roundsToWin });
+      this.io.send(s, {
+        t: 'room',
+        code: st.code,
+        you: s,
+        players,
+        phase: st.phase,
+        roundsToWin: st.roundsToWin,
+      });
     }
   }
 }

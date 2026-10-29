@@ -4,99 +4,183 @@
  * GameState is plain data only — numbers and arrays/objects of numbers.
  */
 
-export type Height = 'high' | 'mid' | 'low' | 'throw';
-/** A frame advantage, or a special outcome. */
-export type Outcome = number | 'launch' | 'knockdown' | 'wallSplat';
-export type MoveProperty = 'homing' | 'groundHit' | 'extender';
-
-export interface Hitbox {
-  /** Inclusive move-frame range during which the sphere is active. */
-  frames: [number, number];
-  /** Fighter-local position: forward, up, right (mm). */
-  at: [number, number, number];
-  /** Radius (mm). */
-  r: number;
-}
-
-export interface Cylinder {
-  r: number;
-  /** Bottom and top, relative to the fighter's feet (mm). */
-  y0: number;
-  y1: number;
-  zone: 'high' | 'mid' | 'low';
-}
-
-export interface ThrowData {
-  /** Buttons that break this throw (raw button bits, e.g. B1 or B1|B2). */
-  breakButtons: number;
-  /** Frames the defender has to break after the grab connects. */
-  breakWindow: number;
-  /** Total frames of the throw animation once it can no longer be broken. */
-  duration: number;
-  /** Does the throw end with the fighters swapped? */
-  switchSides?: boolean;
-  /** Max centre distance at which the grab connects (mm). */
-  range: number;
-}
-
-export interface MoveData {
-  id: string;
-  name: string;
-  /** Command notation, e.g. 'df+2', 'f,f+3', '1+3'. Empty for string follow-ups. */
-  command: string;
-  height: Height;
-  /** First active frame (i15 → 15). */
-  startup: number;
-  active: number;
-  recovery: number;
+/** What happens to whoever gets hit. */
+export interface HitSpec {
   damage: number;
-  /** Authored frame advantage on block; blockstun is derived (PLAN Appendix B). */
-  onBlock: number;
-  onHit: Outcome;
-  onCounterHit?: Outcome;
-  hitboxes: Hitbox[];
-  pushback?: { hit: number; block: number };
+  /** Flinch frames (standing hit). */
+  hitstun?: number;
+  /** Horizontal knockback speed (mm/frame), away from the attacker. Negative pulls in. */
+  kb?: number;
+  /** Launch speed (mm/frame) — sends the victim into the air for a juggle. */
+  vy?: number;
+  /** Victim is knocked down (lands on the floor, then gets up). */
+  knockdown?: boolean;
+  /** Dizzy frames: the victim can't act but can still be hit. */
+  stun?: number;
+  guardBreak?: boolean;
+  unblockable?: boolean;
   hitstop?: number;
-  launch?: { vy: number; vx: number };
-  properties?: MoveProperty[];
-  /** Frames (of this move) during which the attacker avoids highs or lows. */
-  crush?: { frames: [number, number]; type: 'high' | 'low' };
-  armor?: { frames: [number, number]; hits: number };
-  /** Attacker movement: mm per frame forward during the frame range. */
-  movement?: { frames: [number, number]; forward: number }[];
-  /** String follow-ups: press `input` during `window` (move frames) to go `into` another move. */
-  cancels?: { input: string; window: [number, number]; into: string }[];
-  /** The attacker is crouching during this move (ducks highs). */
-  stance?: 'crouch';
-  /** The attacker ends the move crouching. */
-  endStance?: 'crouch';
-  throw?: ThrowData;
-  /** Render-only: map sim frames to animation clip seconds (PLAN §5.2). */
-  anim?: { clip: string; keys: [number, number][] };
+  /** The attacker switches into this action and holds the victim (grabs). */
+  grab?: string;
+  /** Knockback direction follows the attacker's facing instead of attacker→victim. */
+  kbAlongFacing?: boolean;
 }
 
-export interface CharacterData {
+/** A melee hit sphere, fighter-local: forward, up, right (mm). */
+export interface Strike {
+  frames: [number, number];
+  at: [number, number, number];
+  r: number;
+  hit: HitSpec;
+  /** Can hit again every N frames while active (multi-hit). */
+  rehit?: number;
+  /** Hits the held victim regardless of position, then releases them. */
+  release?: boolean;
+}
+
+export type ProjectileKind =
+  'bullet' | 'slug' | 'orb' | 'foxfire' | 'lance' | 'mine' | 'grenade' | 'wave' | 'shard';
+
+export interface ProjectileSpec {
+  frame: number;
+  kind: ProjectileKind;
+  /** Spawn point, fighter-local: forward, up, right. */
+  at: [number, number, number];
+  speed: number;
+  life: number;
+  r: number;
+  hit: HitSpec;
+  /** Fan of shots: one per angle (degrees, multiples of 5, relative to facing). */
+  angles?: number[];
+  pierce?: boolean;
+  /** Steering toward the opponent, 0..1024 per frame. */
+  homing?: number;
+  /** Frames until the projectile stops (mines, grenades). */
+  stopAfter?: number;
+  /** Upward speed at spawn; gravity applies when set. */
+  vy?: number;
+  /** Ignores guard (unless guarded) — explodes into this area instead of hitting directly. */
+  explode?: AreaSpec;
+  /** Can't hit until this many frames old (mines arm themselves). */
+  armAfter?: number;
+}
+
+export type AreaKind = 'quake' | 'frost' | 'blast' | 'moon' | 'storm' | 'barrage' | 'thunder' | 'burst';
+
+/** A ground circle that hits everyone inside after a telegraph. */
+export interface AreaSpec {
+  frame: number;
+  kind: AreaKind;
+  /** Where: `forward` mm in front of the user, or on the opponent if they're within `onTarget` mm. */
+  forward: number;
+  onTarget?: number;
+  r: number;
+  /** Telegraph frames before it becomes active. */
+  delay: number;
+  active: number;
+  /** Hits again every N frames while active. */
+  every?: number;
+  hit: HitSpec;
+}
+
+export interface Motion {
+  frames: [number, number];
+  /** Forward speed (mm/frame) during these frames. */
+  speed: number;
+}
+
+export interface ActionData {
   id: string;
   name: string;
-  /** Short display name, e.g. "KAITO". */
-  short: string;
+  /** Short line for menus and the ultimate cut-in. */
+  blurb?: string;
+  total: number;
+  strikes?: Strike[];
+  projectiles?: ProjectileSpec[];
+  areas?: AreaSpec[];
+  motion?: Motion[];
+  /** Hits taken during these frames don't interrupt (damage still applies). */
+  armor?: [number, number];
+  invuln?: [number, number];
+  /** Pressing Attack in this window continues the combo into `into`. */
+  chain?: { from: number; to: number; into: string };
+  /** From this frame on, skills, guard, jump and dash can cancel the action. */
+  cancelFrom?: number;
+  /** Turn toward the opponent at the start if they're within this distance (mm). */
+  lockOn?: number;
+  /** Jump at this frame with this upward speed (the action continues in the air). */
+  jump?: { frame: number; vy: number };
+  /** Ends as soon as the fighter lands (air attacks). */
+  endOnLand?: boolean;
+  /**
+   * Teleport at `frame`: `distance` along facing; or `behind` the opponent (behind their back);
+   * or `toTarget` (in front of the opponent, facing them) when they're within `distance`.
+   */
+  teleport?: { frame: number; distance: number; behind?: boolean; toTarget?: boolean };
+  /** If hit during these frames: ignore the hit and switch into `into` behind the attacker. */
+  counter?: { frames: [number, number]; into: string };
+  /** Grants a timed buff at `frame`. */
+  buff?: {
+    frame: number;
+    frames: number;
+    armor?: boolean;
+    damagePct?: number;
+    speedPct?: number;
+    heal?: number;
+  };
+  /** Skills: frames until it can be used again. */
+  cooldown?: number;
+  /** Usable in the air (otherwise ground only). */
+  air?: boolean;
+}
+
+export type Weapon = 'katana' | 'gauntlets' | 'pistols' | 'staff' | 'none';
+export type Role = 'Swordsman' | 'Brawler' | 'Gunner' | 'Mage' | 'Dummy';
+
+export interface HeroData {
+  id: string;
+  name: string;
+  /** Epithet, e.g. "Stormblade". */
   title: string;
-  style: string;
+  /** Japanese reading shown as decoration on the select screen. */
+  kana: string;
+  role: Role;
+  weapon: Weapon;
+  difficulty: 1 | 2 | 3;
+  blurb: string;
   hp: number;
-  walkF: number;
-  walkB: number;
-  bodyRadius: number;
-  /** Per-frame distances of a forward dash / backdash (mm). */
-  dash: number[];
-  backdash: number[];
-  hurt: { stand: Cylinder[]; crouch: Cylinder[]; air: Cylinder[] };
-  moves: MoveData[];
-  /** Hidden from character select (e.g. the training dummy). */
+  /** Run speed (mm/frame). */
+  speed: number;
+  jumpVy: number;
+  /** Damage taken (%) — heavy heroes take less. */
+  defensePct: number;
+  /** Basic attack combo, in order. */
+  basic: string[];
+  dashAttack: string;
+  airAttack: string;
+  charge: string;
+  /** Skill 1 (Attack+Guard), Skill 2 (Attack+Jump), Skill 3 (Guard+Jump). */
+  skills: [string, string, string];
+  ultimate: string;
+  actions: ActionData[];
   hidden?: boolean;
 }
 
+export interface CompiledHero extends HeroData {
+  index: number;
+  /** Index of every action id. */
+  ids: Record<string, number>;
+  basicIdx: number[];
+  dashIdx: number;
+  airIdx: number;
+  chargeIdx: number;
+  skillIdx: [number, number, number];
+  ultIdx: number;
+}
+
+// ——— State ———
+
 export interface FighterState {
-  /** Index into the roster. */
   char: number;
   x: number;
   y: number;
@@ -104,52 +188,89 @@ export interface FighterState {
   vx: number;
   vy: number;
   vz: number;
-  /** Facing toward the opponent, unit vector × 1024. */
-  dirX: number;
-  dirZ: number;
+  /** Facing as a unit vector × 1024. */
+  fx: number;
+  fz: number;
   hp: number;
   roundsWon: number;
   state: number;
   stateFrame: number;
-  /** Index into the character's move list, -1 = none. */
-  moveId: number;
-  moveFrame: number;
-  /** Remaining hitstun / blockstun frames. */
+  /** Current action index (−1 = none). */
+  action: number;
+  actionFrame: number;
+  /** Frames left in hitstun/blockstun/dizzy/down etc. */
   stun: number;
-  /** Current move connected: 0 no, 1 hit, 2 blocked. */
-  hitLanded: number;
-  crouching: number;
-  /** 0 none, 1 standing guard, 2 crouching guard (computed every frame). */
-  guard: number;
-  /** Knockback velocity (mm/frame), decays every frame. */
-  kbX: number;
-  kbZ: number;
-  /** As the victim of a combo: hits and damage so far. */
+  /** Strikes that already hit in this action (bit per strike). */
+  hitMask: number;
+  /** Frame of the last hit landed by this action (multi-hit spacing). */
+  lastHitFrame: number;
+  airHits: number;
   comboHits: number;
   comboDamage: number;
-  juggleLeft: number;
-  armorLeft: number;
-  /** Throw being suffered: move index of the attacker's throw, frames left to break. */
-  thrownBy: number;
-  breakLeft: number;
-  /** Ring buffer of the last INPUT_RING intents, newest at inputHead. */
-  inputRing: number[];
-  inputHead: number;
-  /** Buffered button press (intent button bits), direction at the press, age in frames. */
-  bufBtn: number;
-  bufDir: number;
+  /** Who is holding this fighter (−1 = nobody). */
+  heldBy: number;
+  /** Skill cooldowns (frames left). */
+  cd: number[];
+  ult: number;
+  /** Buffs: frames left and their strength. */
+  buffFrames: number;
+  buffArmor: number;
+  buffDamagePct: number;
+  buffSpeedPct: number;
+  invulnFrames: number;
+  /** Frames Attack has been held without a break (charge attacks). */
+  holdA: number;
+  // Input tracking (lives here so rollback restores it)
+  prevBits: number;
+  /** Frames since Attack / Guard / Jump were last pressed (capped). */
+  ageA: number;
+  ageG: number;
+  ageJ: number;
+  /** Last tapped direction (0–7) and frames since, for double-tap dashes. */
+  tapDir: number;
+  tapAge: number;
+  /** Buffered request (BUF.*) and its age. */
+  buf: number;
   bufAge: number;
-  /** For render blending (PLAN §5.2). */
-  prevMoveId: number;
-  prevMoveFrame: number;
+  /** Stats for the HUD. */
+  totalDamage: number;
+  bestCombo: number;
+}
+
+export interface ProjectileState {
+  owner: number;
+  /** Which spec: owner's hero, action index, projectile index. */
+  char: number;
+  action: number;
+  spec: number;
+  x: number;
+  y: number;
+  z: number;
+  vx: number;
+  vy: number;
+  vz: number;
+  age: number;
+  /** 1 once it has hit (non-piercing projectiles then vanish). */
+  hit: number;
+}
+
+export interface AreaState {
+  owner: number;
+  char: number;
+  action: number;
+  spec: number;
+  x: number;
+  z: number;
+  age: number;
+  lastHit: number;
+  /** Bit per fighter already hit (single-hit areas). */
+  hitMask: number;
 }
 
 export interface SimEvent {
   frame: number;
-  /** Fighter the event belongs to (the attacker for hits, the subject otherwise). */
   fighter: number;
   type: number;
-  /** Extra data, e.g. damage for hits. */
   value: number;
   x: number;
   y: number;
@@ -158,31 +279,27 @@ export interface SimEvent {
 
 export interface GameState {
   frame: number;
-  /** PRNG state (mulberry32). */
   rng: number;
   phase: number;
   phaseFrame: number;
   round: number;
-  /** Remaining round time in frames. */
   timer: number;
   roundFrames: number;
   roundsToWin: number;
   hitstop: number;
-  /** 1 or 0 — which side P1 is on, used for input mapping (PLAN §2.7). */
-  p1OnLeft: number;
-  /** "Always on the left" per player: 1 = that player's view is mirrored. */
+  /** Ultimate cut-in freeze: frames left and who is using it. */
+  freeze: number;
+  freezeOwner: number;
   viewMirrored: [number, number];
-  /** How the last round ended (END.*) and who won it (-1 draw, 0, 1). */
   endReason: number;
   endWinner: number;
-  /** Match winner once phase is MATCH_END (-1 draw). */
   matchWinner: number;
   fighters: [FighterState, FighterState];
-  /** Gameplay events from the last 16 frames (PLAN §5.6). */
+  projectiles: ProjectileState[];
+  areas: AreaState[];
   recentEvents: SimEvent[];
 }
 
-/** Everything needed to create the initial state. Both peers must use identical values. */
 export interface SimConfig {
   seed: number;
   fighters: [string, string];

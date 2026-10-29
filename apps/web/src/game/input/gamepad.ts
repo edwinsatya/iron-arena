@@ -1,13 +1,15 @@
 import { BTN } from '@neonfist/shared';
 
-/** W3C "standard" mapping (Appendix A). */
+/** W3C "standard" mapping: X attack, B guard, A jump, LB/RB/Y skills, RT ultimate. */
 const BUTTONS: [number, number][] = [
-  [2, BTN.B1], // X / Square
-  [3, BTN.B2], // Y / Triangle
-  [0, BTN.B3], // A / Cross
-  [1, BTN.B4], // B / Circle
-  [5, BTN.B1 | BTN.B2], // RB / R1
-  [7, BTN.B3 | BTN.B4], // RT / R2
+  [2, BTN.ATTACK], // X / Square
+  [1, BTN.GUARD], // B / Circle
+  [0, BTN.JUMP], // A / Cross
+  [4, BTN.SKILL1], // LB / L1
+  [5, BTN.SKILL2], // RB / R1
+  [3, BTN.SKILL3], // Y / Triangle
+  [7, BTN.ULT], // RT / R2
+  [6, BTN.GUARD], // LT / L2
   [12, BTN.UP],
   [13, BTN.DOWN],
   [14, BTN.LEFT],

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { Look } from './looks';
+import { buildWeapons, type WeaponSet } from './weapons';
 import { groundedHipHeight, LIMBS, type Pose } from './poses';
 
 let gradient: THREE.DataTexture | null = null;
@@ -55,19 +56,22 @@ export class Mannequin {
   private rh = new THREE.Group();
   private lk = new THREE.Group();
   private rk = new THREE.Group();
-  private ring: THREE.Mesh;
   private materials: THREE.Material[] = [];
   private geometries: THREE.BufferGeometry[] = [];
 
+  private weapons: WeaponSet;
+  private flashT = 0;
+  private visibleFlag = true;
+
   constructor(
     readonly look: Look,
-    playerColor: string,
+    weaponKind: string,
   ) {
     const heavy = look.build === 'heavy';
     const top = this.mat(toon(look.primary));
     const pants = this.mat(toon(look.secondary));
     const skin = this.mat(toon(look.skin));
-    const hair = this.mat(toon(look.hair));
+    const hair = this.mat(toon(look.hairColor));
     const accent = this.mat(toon(look.accent, 0.15));
     const shoe = this.mat(toon('#1a1726'));
 
@@ -78,7 +82,11 @@ export class Mannequin {
     const pelvis = part(this.geo(capsule(heavy ? 0.15 : 0.12, heavy ? 0.36 : 0.3)), pants);
     pelvis.rotation.z = Math.PI / 2;
     this.body.add(pelvis);
-    const belt = part(this.geo(new THREE.CylinderGeometry(heavy ? 0.175 : 0.135, heavy ? 0.175 : 0.135, 0.05, 16)), accent, 1.04);
+    const belt = part(
+      this.geo(new THREE.CylinderGeometry(heavy ? 0.175 : 0.135, heavy ? 0.175 : 0.135, 0.05, 16)),
+      accent,
+      1.04,
+    );
     belt.position.y = 0.07;
     this.body.add(belt);
 
@@ -109,7 +117,11 @@ export class Mannequin {
       band.position.y = 0.16;
       this.head.add(band);
     } else {
-      const cap = part(this.geo(new THREE.SphereGeometry(0.118, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.55)), hair, 1.04);
+      const cap = part(
+        this.geo(new THREE.SphereGeometry(0.118, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.55)),
+        hair,
+        1.04,
+      );
       cap.position.set(0, 0.125, -0.012);
       this.head.add(cap);
       for (let i = 0; i < 5; i++) {
@@ -174,14 +186,17 @@ export class Mannequin {
       knee.add(foot);
     }
 
-    // Player ring on the floor (magenta P1 / cyan P2)
-    const ringMat = this.mat(
-      new THREE.MeshBasicMaterial({ color: playerColor, transparent: true, opacity: 0.85, depthWrite: false }),
-    );
-    this.ring = new THREE.Mesh(this.geo(new THREE.RingGeometry(0.34, 0.4, 40)), ringMat);
-    this.ring.rotation.x = -Math.PI / 2;
-    this.ring.position.y = 0.012;
-    this.root.add(this.ring);
+    // Weapons in the fists: grip at the fist, blade forward (+Z) when the arm hangs down
+    this.weapons = buildWeapons(weaponKind, look.color, look.glow);
+    for (const [part, elbow] of [
+      [this.weapons.right, this.re],
+      [this.weapons.left, this.le],
+    ] as const) {
+      if (!part) continue;
+      part.group.position.y = -LIMBS.forearm - 0.02;
+      part.group.rotation.x = Math.PI / 2;
+      elbow.add(part.group);
+    }
   }
 
   private mat<T extends THREE.Material>(m: T): T {
@@ -195,12 +210,13 @@ export class Mannequin {
   }
 
   /** Place and pose the fighter. Position in mm (sim units), facing as a unit vector × 1024. */
-  update(x: number, y: number, z: number, dirX: number, dirZ: number, pose: Pose, _dt = 0): void {
+  update(x: number, y: number, z: number, fx: number, fz: number, pose: Pose, dt = 0): void {
     this.root.position.set(x / 1000, y / 1000, z / 1000);
-    this.body.rotation.set(-pose.pitch, Math.atan2(dirX, dirZ), 0, 'YXZ');
-    this.body.position.set(Math.sin(Math.atan2(dirX, dirZ)) * pose.forward, 0, Math.cos(Math.atan2(dirX, dirZ)) * pose.forward);
-    this.body.position.y = pose.ground ? groundedHipHeight(pose) + pose.lift : pose.lift;
-    this.torso.rotation.set(pose.lean, pose.twist, 0, 'YXZ');
+    const face = Math.atan2(fx, fz);
+    this.body.rotation.set(-pose.pitch, face + pose.yaw, 0, 'YXZ');
+    this.body.position.set(Math.sin(face) * pose.forward, 0, Math.cos(face) * pose.forward);
+    this.body.position.y = pose.ground ? groundedHipHeight(pose) + pose.lift : 0.95 + pose.lift;
+    this.torso.rotation.set(pose.lean, -pose.twist, 0, 'YXZ');
     this.head.rotation.x = pose.head;
     this.ls.rotation.set(-pose.la.raise, 0, pose.la.out);
     this.le.rotation.x = -pose.la.bend;
@@ -210,12 +226,42 @@ export class Mannequin {
     this.lk.rotation.x = pose.ll.bend;
     this.rh.rotation.set(-pose.rl.raise, 0, -pose.rl.out);
     this.rk.rotation.x = pose.rl.bend;
-    // Keep the ring on the floor even while airborne
-    this.ring.position.y = 0.012 - y / 1000 / this.look.scale;
-    (this.ring.material as THREE.MeshBasicMaterial).opacity = Math.max(0.15, 0.85 - y / 1500);
+    if (this.flashT > 0) this.flashT = Math.max(0, this.flashT - dt);
+    this.body.visible = this.visibleFlag;
+  }
+
+  flash(): void {
+    this.flashT = 0.12;
+  }
+
+  setAura(_opacity: number, _color?: string): void {}
+
+  setVisible(v: boolean): void {
+    this.visibleFlag = v;
+  }
+
+  trailPoints(out: { base: THREE.Vector3; tip: THREE.Vector3 }[]): number {
+    const part = this.weapons.right;
+    if (!part?.base || !part.tip) return 0;
+    const o = out[0] ?? (out[0] = { base: new THREE.Vector3(), tip: new THREE.Vector3() });
+    o.base.copy(part.base).applyMatrix4(part.group.matrixWorld);
+    o.tip.copy(part.tip).applyMatrix4(part.group.matrixWorld);
+    return 1;
+  }
+
+  tipWorld(hand: 'right' | 'left', out: THREE.Vector3): boolean {
+    const part = hand === 'right' ? this.weapons.right : this.weapons.left;
+    if (!part?.tip) return false;
+    out.copy(part.tip).applyMatrix4(part.group.matrixWorld);
+    return true;
+  }
+
+  headWorld(out: THREE.Vector3): THREE.Vector3 {
+    return this.head.getWorldPosition(out).add(new THREE.Vector3(0, 0.12, 0));
   }
 
   dispose(): void {
+    this.weapons.dispose();
     for (const g of this.geometries) g.dispose();
     for (const m of this.materials) m.dispose();
   }

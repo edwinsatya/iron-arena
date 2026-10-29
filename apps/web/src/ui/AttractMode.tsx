@@ -1,32 +1,40 @@
 'use client';
 
-import { createInitialState, PHASE, randomBot, step, type GameState } from '@neonfist/sim';
+import { cpuBot, createInitialState, PHASE, selectableCharacters, step, type GameState } from '@neonfist/sim';
 import { useEffect, useRef } from 'react';
 import { FixedStepLoop } from '../game/loop';
 import { GameRenderer } from '../game/render/renderer';
 
-/** Background exhibition fight: two random "CPU" players on the rooftop (landing page hero). */
+/** Background exhibition match: two CPU heroes fighting on the rooftop (landing page). */
 export function AttractMode({ className }: { className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const host = ref.current;
     if (!host) return;
-    let seed = 1;
-    const fresh = (): GameState =>
-      createInitialState({
-        seed: seed++,
-        fighters: seed % 2 ? ['kaito', 'magnus'] : ['magnus', 'kaito'],
-        roundsToWin: 2,
+    const ids = selectableCharacters().map((h) => h.id);
+    let seed = 1 + Math.floor(Math.random() * 1000);
+    const fresh = (): GameState => {
+      seed++;
+      const a = ids[seed % ids.length]!;
+      const b = ids[(seed * 7 + 1) % ids.length]!;
+      return createInitialState({
+        seed,
+        fighters: [a, b === a ? ids[(seed + 1) % ids.length]! : b],
+        roundsToWin: 1,
         roundFrames: 3600,
         viewMirrored: [false, false],
       });
+    };
     let state = fresh();
-    const bots = [randomBot(11), randomBot(23)];
-    const renderer = new GameRenderer(host, { showcase: true, quality: 'medium' });
+    let bots = [cpuBot(seed * 3, { level: 2 }), cpuBot(seed * 5, { level: 2 })];
+    const renderer = new GameRenderer(host, { showcase: true, quality: 'medium', stage: 'rooftop-dusk' });
     const loop = new FixedStepLoop(
       () => {
-        step(state, [bots[0]!(), bots[1]!()]);
-        if (state.phase === PHASE.MATCH_END && state.phaseFrame > 240) state = fresh();
+        step(state, [bots[0]!(state, 0), bots[1]!(state, 1)]);
+        if (state.phase === PHASE.MATCH_END && state.phaseFrame > 180) {
+          state = fresh();
+          bots = [cpuBot(seed * 3, { level: 2 }), cpuBot(seed * 5, { level: 2 })];
+        }
       },
       (dt) => renderer.render(state, dt),
     );

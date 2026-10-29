@@ -1,127 +1,118 @@
-import { END, FS, INPUT_RING, PHASE, START_GAP } from './constants';
+import { FS, PHASE, START_X, ULT_MAX } from './constants';
 import { characterIndex, ROSTER } from './roster';
 import type { FighterState, GameState, SimConfig } from './types';
 
-export function createFighter(char: number): FighterState {
+export function createFighter(charId: string, side: 0 | 1): FighterState {
+  const char = characterIndex(charId);
+  const hero = ROSTER[char]!;
   return {
     char,
-    x: 0,
+    x: side === 0 ? -START_X : START_X,
     y: 0,
     z: 0,
     vx: 0,
     vy: 0,
     vz: 0,
-    dirX: 1024,
-    dirZ: 0,
-    hp: ROSTER[char]!.hp,
+    fx: side === 0 ? 1024 : -1024,
+    fz: 0,
+    hp: hero.hp,
     roundsWon: 0,
     state: FS.IDLE,
     stateFrame: 0,
-    moveId: -1,
-    moveFrame: 0,
+    action: -1,
+    actionFrame: 0,
     stun: 0,
-    hitLanded: 0,
-    crouching: 0,
-    guard: 1,
-    kbX: 0,
-    kbZ: 0,
+    hitMask: 0,
+    lastHitFrame: -999,
+    airHits: 0,
     comboHits: 0,
     comboDamage: 0,
-    juggleLeft: 0,
-    armorLeft: 0,
-    thrownBy: -1,
-    breakLeft: 0,
-    inputRing: new Array<number>(INPUT_RING).fill(0),
-    inputHead: 0,
-    bufBtn: 0,
-    bufDir: 0,
-    bufAge: 0,
-    prevMoveId: -1,
-    prevMoveFrame: 0,
+    heldBy: -1,
+    cd: [0, 0, 0],
+    ult: 0,
+    buffFrames: 0,
+    buffArmor: 0,
+    buffDamagePct: 0,
+    buffSpeedPct: 0,
+    invulnFrames: 0,
+    holdA: 0,
+    prevBits: 0,
+    ageA: 99,
+    ageG: 99,
+    ageJ: 99,
+    tapDir: -1,
+    tapAge: 99,
+    buf: 0,
+    bufAge: 99,
+    totalDamage: 0,
+    bestCombo: 0,
   };
 }
 
-/** Put a fighter back at its round-start spot with full health (rounds won are kept). */
-export function resetFighterForRound(f: FighterState, side: -1 | 1): void {
-  f.x = (side * START_GAP) / 2;
-  f.y = 0;
-  f.z = 0;
-  f.vx = 0;
-  f.vy = 0;
-  f.vz = 0;
-  f.dirX = -side * 1024;
-  f.dirZ = 0;
-  f.hp = ROSTER[f.char]!.hp;
-  f.state = FS.IDLE;
-  f.stateFrame = 0;
-  f.moveId = -1;
-  f.moveFrame = 0;
-  f.stun = 0;
-  f.hitLanded = 0;
-  f.crouching = 0;
-  f.guard = 1;
-  f.kbX = 0;
-  f.kbZ = 0;
-  f.comboHits = 0;
-  f.comboDamage = 0;
-  f.juggleLeft = 0;
-  f.armorLeft = 0;
-  f.thrownBy = -1;
-  f.breakLeft = 0;
-  f.bufBtn = 0;
-  f.bufDir = 0;
-  f.bufAge = 0;
-  f.prevMoveId = -1;
-  f.prevMoveFrame = 0;
-}
-
-/** Start round `round`: positions, health, timer, intro phase. */
-export function startRound(s: GameState, round: number): void {
-  s.round = round;
-  s.phase = PHASE.INTRO;
-  s.phaseFrame = 0;
+/** Put both fighters back at their corners for a new round (HP refilled, meter kept). */
+export function resetForRound(s: GameState): void {
+  for (const side of [0, 1] as const) {
+    const old = s.fighters[side];
+    const f = createFighter(ROSTER[old.char]!.id, side);
+    f.roundsWon = old.roundsWon;
+    f.ult = Math.min(ULT_MAX, old.ult);
+    f.totalDamage = old.totalDamage;
+    f.bestCombo = old.bestCombo;
+    f.prevBits = old.prevBits;
+    s.fighters[side] = f;
+  }
+  s.projectiles.length = 0;
+  s.areas.length = 0;
   s.timer = s.roundFrames;
   s.hitstop = 0;
-  s.p1OnLeft = 1;
-  s.endReason = END.NONE;
-  s.endWinner = -1;
-  resetFighterForRound(s.fighters[0], -1);
-  resetFighterForRound(s.fighters[1], 1);
+  s.freeze = 0;
+  s.freezeOwner = -1;
 }
 
-export function createInitialState(cfg: SimConfig): GameState {
-  const s: GameState = {
+export function createInitialState(config: SimConfig): GameState {
+  return {
     frame: 0,
-    rng: cfg.seed | 0,
+    rng: config.seed | 0,
     phase: PHASE.INTRO,
     phaseFrame: 0,
     round: 1,
-    timer: cfg.roundFrames,
-    roundFrames: cfg.roundFrames,
-    roundsToWin: cfg.roundsToWin,
+    timer: config.roundFrames,
+    roundFrames: config.roundFrames,
+    roundsToWin: config.roundsToWin,
     hitstop: 0,
-    p1OnLeft: 1,
-    viewMirrored: [cfg.viewMirrored[0] ? 1 : 0, cfg.viewMirrored[1] ? 1 : 0],
-    endReason: END.NONE,
+    freeze: 0,
+    freezeOwner: -1,
+    viewMirrored: [config.viewMirrored[0] ? 1 : 0, config.viewMirrored[1] ? 1 : 0],
+    endReason: 0,
     endWinner: -1,
     matchWinner: -1,
-    fighters: [createFighter(characterIndex(cfg.fighters[0])), createFighter(characterIndex(cfg.fighters[1]))],
+    fighters: [createFighter(config.fighters[0], 0), createFighter(config.fighters[1], 1)],
+    projectiles: [],
+    areas: [],
     recentEvents: [],
   };
-  startRound(s, 1);
-  return s;
+}
+
+/**
+ * Deep copy of plain data. GameState holds only numbers, arrays and plain objects, so a generic
+ * copy can't forget a field (rollback snapshots depend on this).
+ */
+function copy<T>(v: T): T {
+  if (typeof v !== 'object' || v === null) return v;
+  if (Array.isArray(v)) {
+    const out = new Array(v.length);
+    for (let i = 0; i < v.length; i++) out[i] = copy(v[i]);
+    return out as T;
+  }
+  const out: Record<string, unknown> = {};
+  for (const k in v) out[k] = copy((v as Record<string, unknown>)[k]);
+  return out as T;
+}
+
+export function cloneState(s: GameState): GameState {
+  return copy(s);
 }
 
 export function cloneFighter(f: FighterState): FighterState {
-  return { ...f, inputRing: f.inputRing.slice() };
-}
-
-/** Deep copy. Every nested array/object in GameState must be copied here (synctest checks it). */
-export function cloneState(s: GameState): GameState {
-  return {
-    ...s,
-    viewMirrored: [s.viewMirrored[0], s.viewMirrored[1]],
-    fighters: [cloneFighter(s.fighters[0]), cloneFighter(s.fighters[1])],
-    recentEvents: s.recentEvents.map((e) => ({ ...e })),
-  };
+  return { ...f, cd: [...f.cd] };
 }

@@ -5,7 +5,15 @@
  *   pnpm synctest            # all pairs, 10,000 frames
  *   pnpm synctest 2000 4     # frames, rollback depth
  */
-import { checksum, cloneState, createInitialState, diffStates, randomBot, selectableCharacters, step } from '@neonfist/sim';
+import {
+  checksum,
+  cloneState,
+  createInitialState,
+  diffStates,
+  randomBot,
+  selectableCharacters,
+  step,
+} from '@neonfist/sim';
 import type { GameState } from '@neonfist/sim';
 
 const frames = Number(process.argv[2] ?? 10_000);
@@ -17,7 +25,13 @@ const t0 = performance.now();
 for (const p1 of ids) {
   for (const p2 of ids) {
     const seed = p1.length * 31 + p2.length * 7;
-    const s = createInitialState({ seed, fighters: [p1, p2], roundsToWin: 3, roundFrames: 3600, viewMirrored: [false, true] });
+    const s = createInitialState({
+      seed,
+      fighters: [p1, p2],
+      roundsToWin: 3,
+      roundFrames: 3600,
+      viewMirrored: [false, true],
+    });
     const bots = [randomBot(seed + 1), randomBot(seed + 2)];
     const inputs: [number, number][] = [];
     const history: (GameState | undefined)[] = [];
@@ -40,5 +54,7 @@ for (const p1 of ids) {
     else console.log(`✓ ${p1.padEnd(7)} vs ${p2.padEnd(7)} ${frames} frames, rollback ${depth} every frame`);
   }
 }
-console.log(`\n${failures === 0 ? 'SYNCTEST PASSED' : `SYNCTEST FAILED (${failures})`} in ${((performance.now() - t0) / 1000).toFixed(1)} s`);
+console.log(
+  `\n${failures === 0 ? 'SYNCTEST PASSED' : `SYNCTEST FAILED (${failures})`} in ${((performance.now() - t0) / 1000).toFixed(1)} s`,
+);
 process.exit(failures === 0 ? 0 : 1);

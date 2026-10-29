@@ -5,7 +5,7 @@ import { checksum, cloneState, createInitialState, step, type GameState } from '
 import { useEffect, useState } from 'react';
 import type { MatchDriver } from '../../../src/game/driver';
 import { GameView } from '../../../src/game/GameView';
-import { P1_KEYS, P2_KEYS } from '../../../src/game/input/bindings';
+import { KEY_HINTS, P1_KEYS, P2_KEYS } from '../../../src/game/input/bindings';
 import { createPlayerInput } from '../../../src/game/input/sampler';
 
 /**
@@ -20,11 +20,24 @@ export default function NetSim() {
   const [driver, setDriver] = useState<MatchDriver | null>(null);
 
   useEffect(() => {
-    const cfg = { seed: 3, fighters: ['kaito', 'magnus'] as [string, string], roundsToWin: 2, roundFrames: 3600, viewMirrored: [false, false] as [boolean, boolean] };
+    const cfg = {
+      seed: 3,
+      fighters: ['kaito', 'magnus'] as [string, string],
+      roundsToWin: 2,
+      roundFrames: 3600,
+      viewMirrored: [false, false] as [boolean, boolean],
+    };
     const [la, lb] = createLoopbackPair({ latencyMs: latency, jitterMs: latency / 3, loss });
     const sim = { step, clone: cloneState, checksum };
     const mk = (p: 0 | 1, link: typeof la) => {
-      const s = new RollbackSession<GameState>({ localPlayer: p, inputDelay: 2, maxRollback: 8, initialState: createInitialState(cfg), sim, send: (b) => link.sendInput(b) });
+      const s = new RollbackSession<GameState>({
+        localPlayer: p,
+        inputDelay: 2,
+        maxRollback: 8,
+        initialState: createInitialState(cfg),
+        sim,
+        send: (b) => link.sendInput(b),
+      });
       link.onInput = (b) => s.onPacket(b);
       return s;
     };
@@ -47,7 +60,16 @@ export default function NetSim() {
       },
       netStats() {
         const st = a.stats;
-        return { path: 'loopback', pingMs: latency * 2, inputDelay: 2, rollbacks: st.rollbacks, avgRollback: st.rollbacks ? st.resimFrames / st.rollbacks : 0, maxRollback: st.maxRollback, stalls: st.stalls, framesAhead: a.framesAhead };
+        return {
+          path: 'loopback',
+          pingMs: latency * 2,
+          inputDelay: 2,
+          rollbacks: st.rollbacks,
+          avgRollback: st.rollbacks ? st.resimFrames / st.rollbacks : 0,
+          maxRollback: st.maxRollback,
+          stalls: st.stalls,
+          framesAhead: a.framesAhead,
+        };
       },
       dispose() {
         in1.dispose();
@@ -62,16 +84,33 @@ export default function NetSim() {
   if (!driver) return <main className="screen" />;
 
   return (
-    <GameView driver={driver} names={{ p1: 'P1', p2: 'P2 (REMOTE)' }}>
+    <GameView
+      driver={driver}
+      hud={{ names: { p1: 'P1', p2: 'P2 (remote)' }, trays: [KEY_HINTS.p1, KEY_HINTS.p2] }}
+    >
       <div className="corner-menu left">
         <div className="slab" style={{ padding: '10px 18px' }}>
           <label>
             One-way latency {latency} ms{' '}
-            <input type="range" min={0} max={200} step={10} value={latency} onChange={(e) => setLatency(Number(e.target.value))} />
+            <input
+              type="range"
+              min={0}
+              max={200}
+              step={10}
+              value={latency}
+              onChange={(e) => setLatency(Number(e.target.value))}
+            />
           </label>{' '}
           <label>
             Loss {Math.round(loss * 100)}%{' '}
-            <input type="range" min={0} max={0.3} step={0.01} value={loss} onChange={(e) => setLoss(Number(e.target.value))} />
+            <input
+              type="range"
+              min={0}
+              max={0.3}
+              step={0.01}
+              value={loss}
+              onChange={(e) => setLoss(Number(e.target.value))}
+            />
           </label>{' '}
           <button className="chip-btn" onClick={() => setKey((k) => k + 1)}>
             Restart

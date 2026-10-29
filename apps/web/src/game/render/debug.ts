@@ -1,13 +1,40 @@
 import * as THREE from 'three';
-import { FS, hurtCylinders, localToWorld, moveOf, type GameState } from '@neonfist/sim';
+import {
+  actionOf,
+  areaSpec,
+  FS,
+  hurtCylinder,
+  localToWorld,
+  projectileSpec,
+  type GameState,
+} from '@neonfist/sim';
 
-/** F1 overlay: active hitboxes (red spheres) and hurt cylinders (cyan), straight from sim data. */
+/** F1 overlay: active hit spheres (red), projectiles (orange), areas and hurt cylinders (cyan), from sim data. */
 export class HitboxOverlay {
   readonly group = new THREE.Group();
   private sphereGeo = new THREE.SphereGeometry(1, 16, 10);
   private cylGeo = new THREE.CylinderGeometry(1, 1, 1, 20, 1, true);
-  private hitMat = new THREE.MeshBasicMaterial({ color: '#ff3355', wireframe: true, transparent: true, opacity: 0.9, depthTest: false });
-  private hurtMat = new THREE.MeshBasicMaterial({ color: '#2ee6ff', wireframe: true, transparent: true, opacity: 0.35, depthTest: false });
+  private hitMat = new THREE.MeshBasicMaterial({
+    color: '#ff3355',
+    wireframe: true,
+    transparent: true,
+    opacity: 0.9,
+    depthTest: false,
+  });
+  private projMat = new THREE.MeshBasicMaterial({
+    color: '#ffa033',
+    wireframe: true,
+    transparent: true,
+    opacity: 0.9,
+    depthTest: false,
+  });
+  private hurtMat = new THREE.MeshBasicMaterial({
+    color: '#2ee6ff',
+    wireframe: true,
+    transparent: true,
+    opacity: 0.35,
+    depthTest: false,
+  });
   private pool: THREE.Mesh[] = [];
 
   constructor() {
@@ -31,22 +58,34 @@ export class HitboxOverlay {
   update(s: GameState): void {
     let i = 0;
     for (const f of s.fighters) {
-      for (const c of hurtCylinders(f)) {
-        const m = this.mesh(i++, this.cylGeo, this.hurtMat);
-        const h = (c.y1 - c.y0) / 1000;
-        m.scale.set(c.r / 1000, h, c.r / 1000);
-        m.position.set(f.x / 1000, (f.y + c.y0) / 1000 + h / 2, f.z / 1000);
-      }
-      const mv = moveOf(f);
-      if (f.state === FS.ATTACK && mv) {
-        for (const hb of mv.hitboxes) {
-          if (f.moveFrame < hb.frames[0] || f.moveFrame > hb.frames[1]) continue;
-          const p = localToWorld(f, hb.at[0], hb.at[1], hb.at[2]);
-          const m = this.mesh(i++, this.sphereGeo, this.hitMat);
-          m.scale.setScalar(hb.r / 1000);
-          m.position.set(p.x / 1000, p.y / 1000, p.z / 1000);
+      const c = hurtCylinder(f);
+      const h = (c.y1 - c.y0) / 1000;
+      const m = this.mesh(i++, this.cylGeo, this.hurtMat);
+      m.scale.set(c.r / 1000, h, c.r / 1000);
+      m.position.set(f.x / 1000, c.y0 / 1000 + h / 2, f.z / 1000);
+      const a = actionOf(f);
+      if (f.state === FS.ACTION && a?.strikes) {
+        for (const st of a.strikes) {
+          if (f.actionFrame < st.frames[0] || f.actionFrame > st.frames[1] || st.release) continue;
+          const p = localToWorld(f, st.at[0], st.at[1], st.at[2]);
+          const sm = this.mesh(i++, this.sphereGeo, this.hitMat);
+          sm.scale.setScalar(st.r / 1000);
+          sm.position.set(p.x / 1000, p.y / 1000, p.z / 1000);
         }
       }
+    }
+    for (const p of s.projectiles) {
+      const spec = projectileSpec(p.char, p.action, p.spec);
+      const m = this.mesh(i++, this.sphereGeo, this.projMat);
+      m.scale.setScalar(spec.r / 1000);
+      m.position.set(p.x / 1000, p.y / 1000, p.z / 1000);
+    }
+    for (const a of s.areas) {
+      const spec = areaSpec(a.char, a.action, a.spec);
+      const active = a.age >= spec.delay;
+      const m = this.mesh(i++, this.cylGeo, active ? this.hitMat : this.projMat);
+      m.scale.set(spec.r / 1000, 0.3, spec.r / 1000);
+      m.position.set(a.x / 1000, 0.15, a.z / 1000);
     }
     for (; i < this.pool.length; i++) this.pool[i]!.visible = false;
   }
@@ -55,6 +94,7 @@ export class HitboxOverlay {
     this.sphereGeo.dispose();
     this.cylGeo.dispose();
     this.hitMat.dispose();
+    this.projMat.dispose();
     this.hurtMat.dispose();
   }
 }

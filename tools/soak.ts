@@ -11,15 +11,39 @@ import { randomConfig, runNet, type NetCfg } from '../packages/netcode/test/harn
 const count = Number(process.argv[2] ?? 300);
 const sim = { step, clone: cloneState, checksum };
 const initial = () =>
-  createInitialState({ seed: 99, fighters: ['kaito', 'magnus'], roundsToWin: 3, roundFrames: 3600, viewMirrored: [false, true] });
+  createInitialState({
+    seed: 99,
+    fighters: ['seren', 'magnus'],
+    roundsToWin: 3,
+    roundFrames: 3600,
+    viewMirrored: [false, true],
+  });
 
 const named: [string, NetCfg][] = [
-  ['LAN (0 ms)', { latency: 0, jitter: 0, loss: 0, delay: [2, 2], lateStart: 0, maxRollback: 8, ticks: 6000, seed: 1 }],
-  ['33 ms one-way, 0% loss', { latency: 2, jitter: 0, loss: 0, delay: [2, 2], lateStart: 0, maxRollback: 8, ticks: 6000, seed: 2 }],
-  ['50–83 ms one-way, 5% loss', { latency: 3, jitter: 2, loss: 0.05, delay: [2, 2], lateStart: 0, maxRollback: 8, ticks: 6000, seed: 3 }],
-  ['83–133 ms one-way, 10% loss', { latency: 5, jitter: 3, loss: 0.1, delay: [2, 2], lateStart: 0, maxRollback: 8, ticks: 6000, seed: 4 }],
-  ['133–200 ms one-way, 20% loss', { latency: 8, jitter: 4, loss: 0.2, delay: [3, 1], lateStart: 0, maxRollback: 8, ticks: 6000, seed: 5 }],
-  ['P2 starts 20 ticks late', { latency: 2, jitter: 1, loss: 0.02, delay: [2, 2], lateStart: 20, maxRollback: 8, ticks: 6000, seed: 6 }],
+  [
+    'LAN (0 ms)',
+    { latency: 0, jitter: 0, loss: 0, delay: [2, 2], lateStart: 0, maxRollback: 8, ticks: 6000, seed: 1 },
+  ],
+  [
+    '33 ms one-way, 0% loss',
+    { latency: 2, jitter: 0, loss: 0, delay: [2, 2], lateStart: 0, maxRollback: 8, ticks: 6000, seed: 2 },
+  ],
+  [
+    '50–83 ms one-way, 5% loss',
+    { latency: 3, jitter: 2, loss: 0.05, delay: [2, 2], lateStart: 0, maxRollback: 8, ticks: 6000, seed: 3 },
+  ],
+  [
+    '83–133 ms one-way, 10% loss',
+    { latency: 5, jitter: 3, loss: 0.1, delay: [2, 2], lateStart: 0, maxRollback: 8, ticks: 6000, seed: 4 },
+  ],
+  [
+    '133–200 ms one-way, 20% loss',
+    { latency: 8, jitter: 4, loss: 0.2, delay: [3, 1], lateStart: 0, maxRollback: 8, ticks: 6000, seed: 5 },
+  ],
+  [
+    'P2 starts 20 ticks late',
+    { latency: 2, jitter: 1, loss: 0.02, delay: [2, 2], lateStart: 20, maxRollback: 8, ticks: 6000, seed: 6 },
+  ],
 ];
 
 const t0 = performance.now();
@@ -41,7 +65,9 @@ for (let i = 0; i < count; i++) {
   compared += r.compared;
   mismatches += r.mismatches;
 }
-console.log(`\n${count} random networks: ${compared.toLocaleString()} confirmed frames compared, mismatches = ${mismatches}`);
+console.log(
+  `\n${count} random networks: ${compared.toLocaleString()} confirmed frames compared, mismatches = ${mismatches}`,
+);
 if (mismatches) ok = false;
 console.log(`${ok ? 'SOAK PASSED' : 'SOAK FAILED'} in ${((performance.now() - t0) / 1000).toFixed(1)} s`);
 process.exit(ok ? 0 : 1);

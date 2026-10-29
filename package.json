@@ -22,6 +22,7 @@
     "format:check": "prettier --check .",
     "synctest": "tsx tools/synctest.ts",
     "soak": "tsx tools/soak.ts",
+    "balance": "tsx tools/balance.ts",
     "replay": "tsx tools/replay.ts",
     "e2e": "playwright test",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm synctest && pnpm soak",

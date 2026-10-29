@@ -35,7 +35,8 @@ export function startLobbyServer(port: number): Promise<http.Server> {
     return {
       send(slot, msg) {
         const data = JSON.stringify(msg);
-        for (const c of room.conns) if (c.slot === slot && c.ws.readyState === WebSocket.OPEN) c.ws.send(data);
+        for (const c of room.conns)
+          if (c.slot === slot && c.ws.readyState === WebSocket.OPEN) c.ws.send(data);
       },
       sendBinary(slot, data) {
         for (const c of room.conns) {
@@ -75,13 +76,19 @@ export function startLobbyServer(port: number): Promise<http.Server> {
       return;
     }
     if (url.pathname === '/api/health') return json(res, 200, { ok: true, rooms: rooms.size }, origin);
-    if (url.pathname === '/api/rooms' && req.method === 'POST') return json(res, 201, { code: createRoom() }, origin);
+    if (url.pathname === '/api/rooms' && req.method === 'POST')
+      return json(res, 201, { code: createRoom() }, origin);
     const m = url.pathname.match(/^\/api\/rooms\/([A-Z0-9]{6})$/);
     if (m && req.method === 'GET') {
       const room = rooms.get(m[1]!);
       if (!room) return json(res, 404, { exists: false }, origin);
       const st = room.logic.state;
-      return json(res, 200, { exists: true, phase: st.phase, players: st.players.filter(Boolean).length }, origin);
+      return json(
+        res,
+        200,
+        { exists: true, phase: st.phase, players: st.players.filter(Boolean).length },
+        origin,
+      );
     }
     json(res, 404, { error: 'not found' }, origin);
   });
@@ -110,7 +117,11 @@ export function startLobbyServer(port: number): Promise<http.Server> {
   function onConnection(ws: WebSocket, code: string): void {
     const room = isValidRoomCode(code) ? rooms.get(code) : undefined;
     if (!room) {
-      send(ws, { t: 'error', code: 'NOT_FOUND', message: 'Room not found. Check the code or create a new room.' });
+      send(ws, {
+        t: 'error',
+        code: 'NOT_FOUND',
+        message: 'Room not found. Check the code or create a new room.',
+      });
       ws.close(4004, 'not found');
       return;
     }
@@ -143,7 +154,8 @@ export function startLobbyServer(port: number): Promise<http.Server> {
           void room.logic.sendIce(res.slot);
           return;
         }
-        if (conn.slot === null) return send(ws, { t: 'error', code: 'BAD_STATE', message: 'Say hello first' });
+        if (conn.slot === null)
+          return send(ws, { t: 'error', code: 'BAD_STATE', message: 'Say hello first' });
         room.logic.message(conn.slot, msg);
       } catch (err) {
         console.error('[lobby] message error', err);
@@ -152,7 +164,8 @@ export function startLobbyServer(port: number): Promise<http.Server> {
 
     ws.on('close', () => {
       room.conns.delete(conn);
-      if (conn.slot !== null && ![...room.conns].some((c) => c.slot === conn.slot)) room.logic.disconnect(conn.slot);
+      if (conn.slot !== null && ![...room.conns].some((c) => c.slot === conn.slot))
+        room.logic.disconnect(conn.slot);
     });
   }
 
@@ -171,5 +184,7 @@ export function startLobbyServer(port: number): Promise<http.Server> {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const port = Number(process.env.PORT ?? DEFAULT_LOBBY_PORT);
-  void startLobbyServer(port).then(() => console.log(`[lobby] NEON FIST lobby listening on http://localhost:${port}`));
+  void startLobbyServer(port).then(() =>
+    console.log(`[lobby] NEON FIST lobby listening on http://localhost:${port}`),
+  );
 }

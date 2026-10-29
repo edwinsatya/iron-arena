@@ -1,102 +1,149 @@
 import { selectableCharacters } from '@neonfist/sim';
-import Link from 'next/link';
-import { Controls } from '../../src/ui/Controls';
+import { KEY_HINTS } from '../../src/game/input/bindings';
+import { LOOKS } from '../../src/game/render/looks';
+import { Topbar } from '../../src/ui/Topbar';
+import { Portrait } from '../../src/ui/usePortrait';
 
-export const metadata = { title: 'How to play — NEON FIST' };
+export const metadata = { title: 'Heroes & controls — NEON FIST' };
 
-function fmt(v: number | string): string {
-  if (typeof v === 'string') return v === 'launch' ? 'Launch' : v === 'knockdown' ? 'Knockdown' : v === 'wallSplat' ? 'Knockdown' : v;
-  return v > 0 ? `+${v}` : String(v);
+const K = KEY_HINTS.solo;
+
+function Keys({ keys }: { keys: string[] }) {
+  return (
+    <span className="keys">
+      {keys.map((k) => (
+        <span key={k} className="kbd">
+          {k}
+        </span>
+      ))}
+    </span>
+  );
 }
 
-/** Move lists generated from the simulation data, so they can't go out of date. */
+/** Every hero's kit, generated from the simulation data so it can't go out of date. */
 export default function HowToPlay() {
+  const chord = [
+    [K.attack, K.guard],
+    [K.attack, K.jump],
+    [K.guard, K.jump],
+  ];
   return (
     <main className="screen">
-      <div className="screen-head">
-        <h1 className="screen-title display">How to play</h1>
-        <Link className="back" href="/">
-          Back
-        </Link>
-      </div>
-      <div className="prose">
-        <p>
-          Four buttons, one per limb: <span className="kbd">1</span> left punch, <span className="kbd">2</span> right punch,{' '}
-          <span className="kbd">3</span> left kick, <span className="kbd">4</span> right kick. Directions are relative to your
-          opponent: <b>f</b> is toward them, <b>b</b> away, <b>d</b> down.
-        </p>
-        <Controls />
-        <h2>The basics</h2>
-        <p>
-          Stand still or hold back to guard highs and mids. Hold down-back to guard lows — highs will miss you, but mids hit. Throws
-          (<span className="kbd">1+3</span>, <span className="kbd">2+4</span>) beat guarding; break them with the button shown in the
-          move list. Tap forward twice to dash, back twice to backdash.
-        </p>
-        <p>
-          Every move has frame data. A move that is −10 or worse on block can be punished by a jab. Launchers send your opponent into
-          the air for a juggle combo — try the starter combo for your fighter.
-        </p>
-      </div>
-      {selectableCharacters().map((c) => (
-        <section key={c.id}>
-          <h2 className="display" style={{ fontSize: '2.4rem', margin: '40px 0 0' }}>
-            {c.name}
-          </h2>
-          <p className="muted" style={{ marginTop: 4 }}>
-            {c.title} · {c.style}
+      <Topbar title="Heroes & controls" small="How to play" />
+
+      <section className="controls-board" aria-label="Controls">
+        <div className="ctrl">
+          <h3>Move</h3>
+          <Keys keys={['W', 'A', 'S', 'D']} />
+          <p>Or the arrow keys. Tap a direction twice to dash.</p>
+        </div>
+        <div className="ctrl">
+          <h3>Attack, guard, jump</h3>
+          <Keys keys={[K.attack, K.guard, K.jump]} />
+          <p>
+            Tap Attack for a combo; hold it through your first strike to charge a guard-breaking blow. Guard
+            blocks anything from the front.
           </p>
-          <div style={{ overflowX: 'auto' }}>
-            <table className="movelist">
-              <thead>
-                <tr>
-                  <th>Input</th>
-                  <th>Move</th>
-                  <th>Hits</th>
-                  <th>Startup</th>
-                  <th>Block</th>
-                  <th>Hit</th>
-                  <th>Damage</th>
-                </tr>
-              </thead>
-              <tbody>
-                {c.moves
-                  .filter((m) => m.command)
-                  .map((m) => {
-                    const follow = m.cancels?.[0];
-                    const followMove = follow ? c.moves.find((x) => x.id === follow.into) : null;
+        </div>
+        <div className="ctrl">
+          <h3>Skills</h3>
+          <Keys keys={[...K.skills]} />
+          <p>
+            Or chord the action keys: {chord.map((c) => c.join('+')).join(', ')}. Each skill has its own
+            cooldown.
+          </p>
+        </div>
+        <div className="ctrl">
+          <h3>Ultimate</h3>
+          <Keys keys={[K.ult]} />
+          <p>
+            Or {K.attack}+{K.guard}+{K.jump}. Deal and take damage to fill the meter under your health bar.
+          </p>
+        </div>
+        <div className="ctrl">
+          <h3>Win</h3>
+          <p style={{ marginTop: 0 }}>
+            Empty their health, or knock them off the edge of the roof for a ring-out. First to two rounds
+            takes the match.
+          </p>
+        </div>
+        <div className="ctrl">
+          <h3>Gamepad</h3>
+          <p style={{ marginTop: 0 }}>X attack, B guard, A jump, LB / RB / Y skills, RT ultimate.</p>
+        </div>
+      </section>
+
+      <div className="heroes">
+        {selectableCharacters().map((h) => {
+          const look = LOOKS[h.id]!;
+          const basic = h.basic.map((id) => h.actions[h.ids[id]!]!.name);
+          return (
+            <section
+              key={h.id}
+              id={h.id}
+              className="hero-row panel"
+              style={{ '--hero': look.color } as React.CSSProperties}
+            >
+              <div className="art">
+                <span className="kana-mark" aria-hidden="true">
+                  {h.kana}
+                </span>
+                <Portrait heroId={h.id} kind="full" />
+              </div>
+              <div>
+                <h2>{h.name}</h2>
+                <p className="epithet">
+                  {h.title}, {h.role.toLowerCase()}
+                </p>
+                <p className="blurb">{h.blurb}</p>
+                <div className="skill-grid">
+                  {h.skillIdx.map((idx, k) => {
+                    const a = h.actions[idx]!;
                     return (
-                      <tr key={m.id}>
-                        <td>
-                          {m.command}
-                          {followMove ? `,${follow!.input}` : ''}
-                        </td>
-                        <td>
-                          {m.name}
-                          {followMove ? ` → ${followMove.name}` : ''}
-                          {m.cmd?.motion === 2 ? <span className="muted"> (needs sidestep — coming soon)</span> : null}
-                        </td>
-                        <td>
-                          <span className={`tag ${m.height}`}>{m.height}</span>
-                        </td>
-                        <td>i{m.startup}</td>
-                        <td>{m.height === 'throw' ? '—' : fmt(m.onBlock)}</td>
-                        <td>{m.height === 'throw' ? `break with ${m.throw!.breakButtons === 48 ? '1+2' : m.throw!.breakButtons === 16 ? '1' : '2'}` : fmt(m.onHit)}</td>
-                        <td>
-                          {m.damage}
-                          {followMove ? `, ${followMove.damage}` : ''}
-                        </td>
-                      </tr>
+                      <div key={a.id} className="skill-card">
+                        <div className="pic">
+                          <Portrait heroId={h.id} kind={`skill:${a.id}`} />
+                        </div>
+                        <div>
+                          <b>{a.name}</b>
+                          <span>{a.blurb}</span>
+                          <span className="combo">
+                            <span className="kbd">{K.skills[k]}</span>
+                            <span className="kbd">{chord[k]!.join('+')}</span>
+                            <span className="muted" style={{ fontSize: '0.8rem' }}>
+                              {Math.round((a.cooldown ?? 0) / 60)} s cooldown
+                            </span>
+                          </span>
+                        </div>
+                      </div>
                     );
                   })}
-              </tbody>
-            </table>
-          </div>
-          <p>
-            <b>Starter combo:</b>{' '}
-            {c.id === 'kaito' ? 'df+2 → 1 → 1,2 → f,f+3 (42 damage)' : 'df+2 → 1 → 2 → f,f+2 (51 damage)'}
-          </p>
-        </section>
-      ))}
+                  <div className="skill-card ult">
+                    <div className="pic">
+                      <Portrait heroId={h.id} kind={`skill:${h.actions[h.ultIdx]!.id}`} />
+                    </div>
+                    <div>
+                      <b>{h.actions[h.ultIdx]!.name}</b>
+                      <span>{h.actions[h.ultIdx]!.blurb}</span>
+                      <span className="combo">
+                        <span className="kbd">{K.ult}</span>
+                        <span className="muted" style={{ fontSize: '0.8rem' }}>
+                          full meter
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <p className="basics">
+                  <b>Combo:</b> {basic.join(' → ')}. <b>Dash attack:</b> {h.actions[h.dashIdx]!.name}.{' '}
+                  <b>In the air:</b> {h.actions[h.airIdx]!.name}. <b>Charged:</b>{' '}
+                  {h.actions[h.chargeIdx]!.name}. {h.hp} health.
+                </p>
+              </div>
+            </section>
+          );
+        })}
+      </div>
     </main>
   );
 }

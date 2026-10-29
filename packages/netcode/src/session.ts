@@ -228,6 +228,7 @@ export class RollbackSession<S> {
     for (const k of this.remote.keys()) if (k < Math.min(keep, this.remoteConfirmed)) this.remote.delete(k);
     const keepLocal = Math.min(keep, this.remoteAcked + 1);
     for (const k of this.local.keys()) if (k < keepLocal) this.local.delete(k);
-    for (const k of this.confirmedChecksums.keys()) if (k < this.frame - 600) this.confirmedChecksums.delete(k);
+    for (const k of this.confirmedChecksums.keys())
+      if (k < this.frame - 600) this.confirmedChecksums.delete(k);
   }
 }

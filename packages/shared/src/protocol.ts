@@ -13,7 +13,11 @@ export const MatchConfigSchema = z.object({
   stage: z.string().max(32),
   roundsToWin: z.union([z.literal(2), z.literal(3)]),
   /** 3600 = 60 seconds. */
-  roundFrames: z.number().int().min(600).max(99 * 60),
+  roundFrames: z
+    .number()
+    .int()
+    .min(600)
+    .max(99 * 60),
   /** "Always on the left" per player (PLAN §2.7). */
   viewMirrored: z.tuple([z.boolean(), z.boolean()]),
   /** Build id; both clients must run the same simulation code. */
@@ -112,7 +116,12 @@ export const ControlMsgSchema = z.discriminatedUnion('t', [
   z.object({ t: z.literal('ping'), id: z.number().int(), sentAt: z.number() }),
   z.object({ t: z.literal('pong'), id: z.number().int(), sentAt: z.number() }),
   z.object({ t: z.literal('delay'), inputDelay: z.number().int().min(0).max(8) }),
-  z.object({ t: z.literal('checksum'), frame: z.number().int(), sum: z.number().int(), epoch: z.number().int() }),
+  z.object({
+    t: z.literal('checksum'),
+    frame: z.number().int(),
+    sum: z.number().int(),
+    epoch: z.number().int(),
+  }),
   z.object({ t: z.literal('pause'), reason: z.enum(['hidden', 'menu']) }),
   z.object({ t: z.literal('resume') }),
   z.object({ t: z.literal('quit') }),

@@ -1,19 +1,18 @@
 import type { Metadata, Viewport } from 'next';
-import '@fontsource/anton';
-import '@fontsource/barlow-semi-condensed/500.css';
-import '@fontsource/barlow-semi-condensed/600.css';
-import '@fontsource/barlow-semi-condensed/700.css';
-import '@fontsource/barlow-semi-condensed/600-italic.css';
+import '@fontsource/dela-gothic-one/400.css';
+import '@fontsource/zen-kaku-gothic-new/500.css';
+import '@fontsource/zen-kaku-gothic-new/700.css';
+import '@fontsource/zen-kaku-gothic-new/900.css';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'NEON FIST — rooftop fighting, online with a friend',
+  title: 'NEON FIST — rooftop arena brawler',
   description:
-    'A Tekken-style 3D fighting game in your browser. Send a link, pick Kaito or Magnus, and fight your friend in real time with rollback netcode.',
+    'A 3D arena brawler in your browser. Pick a hero with three skills and an ultimate, then knock your friend off the roof — online with rollback netcode.',
 };
 
 export const viewport: Viewport = {
-  themeColor: '#15122e',
+  themeColor: '#15111e',
   width: 'device-width',
   initialScale: 1,
 };

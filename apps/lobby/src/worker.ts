@@ -87,7 +87,8 @@ export class RoomDO extends DurableObject<Env> {
       return Response.json({ exists: true, phase: st.phase, players: st.players.filter(Boolean).length });
     }
     if (url.pathname === '/ws') {
-      if (request.headers.get('Upgrade') !== 'websocket') return new Response('expected websocket', { status: 426 });
+      if (request.headers.get('Upgrade') !== 'websocket')
+        return new Response('expected websocket', { status: 426 });
       const pair = new WebSocketPair();
       const client = pair[0];
       const server = pair[1];
@@ -120,7 +121,9 @@ export class RoomDO extends DurableObject<Env> {
     }
     const msg = parseJson(ClientMsgSchema, message);
     if (!msg) {
-      ws.send(JSON.stringify({ t: 'error', code: 'BAD_MESSAGE', message: 'Invalid message' } satisfies ServerMsg));
+      ws.send(
+        JSON.stringify({ t: 'error', code: 'BAD_MESSAGE', message: 'Invalid message' } satisfies ServerMsg),
+      );
       return;
     }
     if (msg.t === 'hello') {
@@ -144,7 +147,9 @@ export class RoomDO extends DurableObject<Env> {
       return;
     }
     if (slot === null) {
-      ws.send(JSON.stringify({ t: 'error', code: 'BAD_STATE', message: 'Say hello first' } satisfies ServerMsg));
+      ws.send(
+        JSON.stringify({ t: 'error', code: 'BAD_STATE', message: 'Say hello first' } satisfies ServerMsg),
+      );
       return;
     }
     logic.message(slot, msg);
@@ -207,7 +212,10 @@ export default {
       const stub = env.ROOMS.get(env.ROOMS.idFromName(m[1]!));
       if (m[2]) return stub.fetch(new Request('https://room/ws', request));
       const res = await stub.fetch('https://room/info');
-      return new Response(res.body, { status: res.status, headers: { ...cors, 'Content-Type': 'application/json' } });
+      return new Response(res.body, {
+        status: res.status,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
     }
     return Response.json({ error: 'not found' }, { status: 404, headers: cors });
   },

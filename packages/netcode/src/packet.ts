@@ -40,7 +40,8 @@ export function encodeInputPacket(p: InputPacket): ArrayBuffer {
 
 export function decodeInputPacket(buf: ArrayBuffer): InputPacket {
   const v = new DataView(buf);
-  if (buf.byteLength < INPUT_HEADER_BYTES || v.getUint8(0) !== PKT_INPUT) throw new Error('not an input packet');
+  if (buf.byteLength < INPUT_HEADER_BYTES || v.getUint8(0) !== PKT_INPUT)
+    throw new Error('not an input packet');
   const count = v.getUint8(15);
   if (buf.byteLength < INPUT_HEADER_BYTES + count * 2) throw new Error('truncated input packet');
   const inputs: number[] = [];

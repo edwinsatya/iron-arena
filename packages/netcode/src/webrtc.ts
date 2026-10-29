@@ -144,7 +144,10 @@ export class WebRtcLink implements PeerLink {
       });
       let localId: string | undefined;
       stats.forEach((r) => {
-        if (r.type === 'candidate-pair' && (r.id === pairId || (!pairId && r.nominated && r.state === 'succeeded'))) {
+        if (
+          r.type === 'candidate-pair' &&
+          (r.id === pairId || (!pairId && r.nominated && r.state === 'succeeded'))
+        ) {
           localId = r.localCandidateId as string;
         }
       });
@@ -160,7 +163,8 @@ export class WebRtcLink implements PeerLink {
   }
 
   sendInput(packet: ArrayBuffer): void {
-    if (this.inputs.readyState === 'open' && this.inputs.bufferedAmount < MAX_BUFFERED) this.inputs.send(packet);
+    if (this.inputs.readyState === 'open' && this.inputs.bufferedAmount < MAX_BUFFERED)
+      this.inputs.send(packet);
   }
 
   sendControl(msg: ControlMsg): void {

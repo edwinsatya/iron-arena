@@ -4,6 +4,8 @@
 >
 > **Status:** Plan v1.1 · 28 Oct 2026 · Owner: Edwin · Repo: `iron-arena` (game title NEON FIST)
 >
+> **Update (29 Oct 2026): the game is now a 3D arena brawler** — free movement on a round rooftop, attack/guard/jump with skill chords, four heroes with 3 skills + 1 ultimate each, ring-outs. See **docs/GAME.md**; §2 below describes the original fighter and is kept for reference. Sections 4–12 (architecture, rollback netcode, lobby, transport, tooling) still apply unchanged.
+>
 > **Build status (28 Oct 2026):** Phases 0–3 and most of Phase 5 are built — deterministic sim with both fighters, local versus, training, rollback netcode over WebRTC/TURN/relay, Cloudflare lobby, HUD, audio, anime VRM rendering with procedural poses. Verified: synctest all pairs, soak 0 mismatches over 300 networks, two-browser e2e over WebRTC and relay. Still to do: original VRoid models for Kaito and Magnus (docs/CHARACTERS.md), sidestep and walls (Phase 4), deploy.
 >
 > **How to use this file:** save it as `docs/PLAN.md` in the repo. Every phase in §9 ends with a prompt you paste into Claude Code; the prompts point back to sections of this file.

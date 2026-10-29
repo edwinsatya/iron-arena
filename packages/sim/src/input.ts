@@ -1,79 +1,102 @@
 import { BTN } from '@neonfist/shared';
-import { DOUBLE_TAP_WINDOW, IN, IN_BUTTONS, IN_DIRS, INPUT_RING, MULTI_PRESS_LENIENCY } from './constants';
+import { CHORD_WINDOW, DASH_TAP_WINDOW } from './constants';
 import type { FighterState, GameState } from './types';
 
-const RING_MASK = INPUT_RING - 1;
+/** Requests a fighter can make (also the input buffer's values). */
+export const REQ = {
+  NONE: 0,
+  ATTACK: 1,
+  JUMP: 2,
+  DASH: 3,
+  SKILL1: 4,
+  SKILL2: 5,
+  SKILL3: 6,
+  ULT: 7,
+} as const;
+
+export interface Intent {
+  /** Held direction, 0–7 clockwise from screen-up, or −1. */
+  dir: number;
+  guard: boolean;
+  attackHeld: boolean;
+  /** Request made this frame (REQ.*). */
+  req: number;
+}
+
+const CAP = 99;
+
+/** Screen-space bits → direction index (0 = up, clockwise), or −1. */
+export function dirIndex(bits: number, mirrored: boolean): number {
+  let up = (bits & BTN.UP) !== 0;
+  let down = (bits & BTN.DOWN) !== 0;
+  let left = (bits & BTN.LEFT) !== 0;
+  let right = (bits & BTN.RIGHT) !== 0;
+  if (mirrored) {
+    // The mirrored viewer's camera is turned 180°: screen-up is world +z.
+    [up, down] = [down, up];
+    [left, right] = [right, left];
+  }
+  const v = up && !down ? -1 : down && !up ? 1 : 0;
+  const h = left && !right ? -1 : right && !left ? 1 : 0;
+  if (v === -1 && h === 0) return 0;
+  if (v === -1 && h === 1) return 1;
+  if (v === 0 && h === 1) return 2;
+  if (v === 1 && h === 1) return 3;
+  if (v === 1 && h === 0) return 4;
+  if (v === 1 && h === -1) return 5;
+  if (v === 0 && h === -1) return 6;
+  if (v === -1 && h === -1) return 7;
+  return -1;
+}
 
 /**
- * Raw input → intent (PLAN §2.7):
- * SOCD cleaning, mirrored view, then forward/back from the simulation's own side state.
+ * Read one frame of raw input for fighter `i`: track press ages, double taps and chords.
+ * Chords (pressed within CHORD_WINDOW frames of each other): Attack+Guard = skill 1,
+ * Attack+Jump = skill 2, Guard+Jump = skill 3, all three = ultimate.
  */
-export function mapInput(s: GameState, p: number, raw: number): number {
-  let bits = raw & 0xff;
-  if (bits & BTN.LEFT && bits & BTN.RIGHT) bits &= ~(BTN.LEFT | BTN.RIGHT);
-  if (bits & BTN.UP && bits & BTN.DOWN) bits &= ~(BTN.UP | BTN.DOWN);
-  if (s.viewMirrored[p]) {
-    const l = bits & BTN.LEFT;
-    const r = bits & BTN.RIGHT;
-    bits = (bits & ~(BTN.LEFT | BTN.RIGHT)) | (l ? BTN.RIGHT : 0) | (r ? BTN.LEFT : 0);
+export function readInput(s: GameState, i: number, raw: number): Intent {
+  const f: FighterState = s.fighters[i]!;
+  const bits = raw & 0xffff;
+  const pressed = bits & ~f.prevBits;
+  const mirrored = s.viewMirrored[i] === 1;
+  const dir = dirIndex(bits, mirrored);
+  const prevDir = dirIndex(f.prevBits, mirrored);
+  f.prevBits = bits;
+
+  f.ageA = pressed & BTN.ATTACK ? 0 : Math.min(CAP, f.ageA + 1);
+  f.ageG = pressed & BTN.GUARD ? 0 : Math.min(CAP, f.ageG + 1);
+  f.ageJ = pressed & BTN.JUMP ? 0 : Math.min(CAP, f.ageJ + 1);
+  f.holdA = bits & BTN.ATTACK ? Math.min(CAP, f.holdA + 1) : 0;
+  f.tapAge = Math.min(CAP, f.tapAge + 1);
+
+  let req: number = REQ.NONE;
+  // Double-tap a direction to dash
+  if (dir >= 0 && dir !== prevDir) {
+    if (prevDir < 0 && f.tapDir === dir && f.tapAge <= DASH_TAP_WINDOW) {
+      req = REQ.DASH;
+      f.tapDir = -1;
+    } else {
+      f.tapDir = dir;
+    }
+    f.tapAge = 0;
   }
-  const isLeft = (p === 0) === (s.p1OnLeft === 1);
-  const fwd = isLeft ? BTN.RIGHT : BTN.LEFT;
-  const back = isLeft ? BTN.LEFT : BTN.RIGHT;
-  return (
-    (bits & (BTN.UP | BTN.DOWN)) | (bits & fwd ? IN.F : 0) | (bits & back ? IN.B : 0) | (bits & IN_BUTTONS)
-  );
-}
 
-/**
- * Record this frame's intent in the fighter's input ring and buffer new button presses.
- * Runs every frame (also during hitstop) so presses are never lost.
- */
-export function processInput(s: GameState, p: number, raw: number, ctrl: boolean): void {
-  const f = s.fighters[p]!;
-  const intent = ctrl ? mapInput(s, p, raw) : 0;
-  const prev = f.inputRing[f.inputHead]!;
-  f.inputHead = (f.inputHead + 1) & RING_MASK;
-  f.inputRing[f.inputHead] = intent;
-  const edge = intent & ~prev & IN_BUTTONS;
-  if (!edge) return;
-  if (f.bufBtn && f.bufAge <= MULTI_PRESS_LENIENCY) {
-    f.bufBtn |= edge; // e.g. 1 then 3 within 2 frames = 1+3
-  } else {
-    f.bufBtn = edge;
-    f.bufDir = intent & IN_DIRS;
-    f.bufAge = 0;
+  const w = CHORD_WINDOW;
+  const fresh = f.ageA === 0 || f.ageG === 0 || f.ageJ === 0;
+  const a = f.ageA <= w;
+  const g = f.ageG <= w;
+  const j = f.ageJ <= w;
+  if (pressed & BTN.ULT || (fresh && a && g && j)) req = REQ.ULT;
+  else if (pressed & BTN.SKILL1 || (fresh && a && g)) req = REQ.SKILL1;
+  else if (pressed & BTN.SKILL2 || (fresh && a && j)) req = REQ.SKILL2;
+  else if (pressed & BTN.SKILL3 || (fresh && g && j)) req = REQ.SKILL3;
+  else if (pressed & BTN.ATTACK) req = REQ.ATTACK;
+  else if (pressed & BTN.JUMP) req = REQ.JUMP;
+
+  // A chord upgrades into a skill: once used, its buttons don't fire again.
+  if (req >= REQ.SKILL1) {
+    f.ageA = f.ageG = f.ageJ = CAP;
   }
-}
 
-/** Intent `back` frames ago (0 = this frame). */
-export function intentAt(f: FighterState, back: number): number {
-  return f.inputRing[(f.inputHead - back) & RING_MASK]!;
-}
-
-export function clearBuffer(f: FighterState): void {
-  f.bufBtn = 0;
-  f.bufDir = 0;
-  f.bufAge = 0;
-}
-
-/** f,f or b,b completed `ago` frames back: a fresh tap of `bit` then, and another tap before it. */
-function doubleTapAt(f: FighterState, bit: number, ago: number): boolean {
-  if ((intentAt(f, ago) & IN_DIRS) !== bit) return false;
-  if (intentAt(f, ago + 1) & bit) return false;
-  for (let i = ago + 2; i <= ago + DOUBLE_TAP_WINDOW; i++) {
-    if ((intentAt(f, i) & IN_DIRS) === bit) return true;
-  }
-  return false;
-}
-
-/** f,f or b,b: a fresh tap of `bit` now, and another tap of it within the window. */
-export function doubleTap(f: FighterState, bit: number): boolean {
-  return doubleTapAt(f, bit, 0);
-}
-
-/** Was f,f completed this frame or within the last `within` frames? (f,f+3 pressed together) */
-export function recentDoubleTap(f: FighterState, bit: number, within: number): boolean {
-  for (let ago = 0; ago <= within; ago++) if (doubleTapAt(f, bit, ago)) return true;
-  return false;
+  return { dir, guard: (bits & BTN.GUARD) !== 0, attackHeld: (bits & BTN.ATTACK) !== 0, req };
 }

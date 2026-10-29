@@ -1,9 +1,9 @@
-import { KO_SLOWMO_FRAMES, PHASE, SLOWMO_DIVISOR } from './constants';
-import { resolveCombat, updateThrows } from './combat';
+import { FS, KO_SLOWMO_FRAMES, PHASE, SLOWMO_DIVISOR } from './constants';
+import { resolveCombat } from './combat';
+import { updateEntities } from './entities';
 import { pruneEvents } from './events';
-import { updateFighter } from './fighter';
-import { processInput } from './input';
-import { applyPhysics, pushApart, updateFacing } from './physics';
+import { applyPhysics, pushApart, setState, updateFighter } from './fighter';
+import { readInput, type Intent } from './input';
 import { roundLogic } from './round';
 import type { GameState } from './types';
 
@@ -14,27 +14,35 @@ import type { GameState } from './types';
 export function step(s: GameState, inputs: readonly [number, number]): void {
   s.frame++;
   s.phaseFrame++;
-  const ctrl = s.phase === PHASE.FIGHT;
+  const it: [Intent, Intent] = [readInput(s, 0, inputs[0]), readInput(s, 1, inputs[1])];
 
-  processInput(s, 0, inputs[0], ctrl);
-  processInput(s, 1, inputs[1], ctrl);
-
-  const slowmoSkip =
-    s.phase === PHASE.KO && s.phaseFrame <= KO_SLOWMO_FRAMES && s.phaseFrame % SLOWMO_DIVISOR !== 0;
-
+  // Ultimate cut-in: the world holds still
+  if (s.freeze > 0) {
+    s.freeze--;
+    s.phaseFrame--;
+    pruneEvents(s);
+    return;
+  }
   if (s.hitstop > 0) {
     s.hitstop--;
-  } else if (!slowmoSkip) {
-    updateFighter(s, 0, ctrl);
-    updateFighter(s, 1, ctrl);
-    updateThrows(s);
+    s.phaseFrame--;
+    pruneEvents(s);
+    return;
+  }
+  const slowmo =
+    s.phase === PHASE.KO && s.phaseFrame <= KO_SLOWMO_FRAMES && s.phaseFrame % SLOWMO_DIVISOR !== 0;
+  if (!slowmo) {
+    const ctrl = s.phase === PHASE.FIGHT;
+    updateFighter(s, 0, it[0], ctrl);
+    updateFighter(s, 1, it[1], ctrl);
     applyPhysics(s, 0);
     applyPhysics(s, 1);
     pushApart(s);
-    updateFacing(s);
-    if (ctrl) resolveCombat(s);
+    updateEntities(s);
+    if (s.phase === PHASE.FIGHT) resolveCombat(s);
+    // Safety: nobody stays held without a holder
+    for (const f of s.fighters) if (f.state === FS.HELD && f.heldBy < 0) setState(f, FS.HITSTUN, 8);
   }
-
   roundLogic(s);
   pruneEvents(s);
 }

@@ -16,7 +16,14 @@ const initial = () =>
 
 describe('packet codec', () => {
   it('round-trips', () => {
-    const p = { epoch: 3, start: 123456, ack: 123440, frame: 123460, adv: -3, inputs: [0, 5, 255, 65535, 16] };
+    const p = {
+      epoch: 3,
+      start: 123456,
+      ack: 123440,
+      frame: 123460,
+      adv: -3,
+      inputs: [0, 5, 255, 65535, 16],
+    };
     expect(decodeInputPacket(encodeInputPacket(p))).toEqual(p);
     expect(encodeInputPacket(p).byteLength).toBe(16 + 5 * 2);
   });
@@ -30,10 +37,41 @@ describe('packet codec', () => {
 
 describe('rollback soak with the real game simulation', () => {
   const named = [
-    ['LAN', { latency: 0, jitter: 0, loss: 0, delay: [2, 2], lateStart: 0, maxRollback: 8, ticks: 3000, seed: 1 }],
-    ['50–83 ms, 5% loss', { latency: 3, jitter: 2, loss: 0.05, delay: [2, 2], lateStart: 0, maxRollback: 8, ticks: 3000, seed: 3 }],
-    ['133–200 ms, 20% loss', { latency: 8, jitter: 4, loss: 0.2, delay: [3, 1], lateStart: 0, maxRollback: 8, ticks: 3000, seed: 5 }],
-    ['late start + stray packets from an old match', { latency: 2, jitter: 1, loss: 0.02, delay: [2, 2], lateStart: 20, maxRollback: 8, ticks: 3000, seed: 6, strayEpochPackets: true }],
+    [
+      'LAN',
+      { latency: 0, jitter: 0, loss: 0, delay: [2, 2], lateStart: 0, maxRollback: 8, ticks: 3000, seed: 1 },
+    ],
+    [
+      '50–83 ms, 5% loss',
+      {
+        latency: 3,
+        jitter: 2,
+        loss: 0.05,
+        delay: [2, 2],
+        lateStart: 0,
+        maxRollback: 8,
+        ticks: 3000,
+        seed: 3,
+      },
+    ],
+    [
+      '133–200 ms, 20% loss',
+      { latency: 8, jitter: 4, loss: 0.2, delay: [3, 1], lateStart: 0, maxRollback: 8, ticks: 3000, seed: 5 },
+    ],
+    [
+      'late start + stray packets from an old match',
+      {
+        latency: 2,
+        jitter: 1,
+        loss: 0.02,
+        delay: [2, 2],
+        lateStart: 20,
+        maxRollback: 8,
+        ticks: 3000,
+        seed: 6,
+        strayEpochPackets: true,
+      },
+    ],
   ] as const;
 
   it.each(named)('%s: 0 desyncs', (_name, cfg) => {

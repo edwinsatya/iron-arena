@@ -2,7 +2,8 @@ import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, type IceServer } from '@neonfist/
 
 export function generateRoomCode(randomUint32: () => number): string {
   let code = '';
-  for (let i = 0; i < ROOM_CODE_LENGTH; i++) code += ROOM_CODE_ALPHABET[randomUint32() % ROOM_CODE_ALPHABET.length];
+  for (let i = 0; i < ROOM_CODE_LENGTH; i++)
+    code += ROOM_CODE_ALPHABET[randomUint32() % ROOM_CODE_ALPHABET.length];
   return code;
 }
 
@@ -51,7 +52,7 @@ export async function fetchIceServers(env: TurnEnv, fetchFn: typeof fetch = fetc
 
 export function corsHeaders(origin: string | null, allowed: string): Record<string, string> {
   const list = allowed.split(',').map((s) => s.trim());
-  const allow = list.includes('*') ? '*' : origin && list.includes(origin) ? origin : list[0] ?? '*';
+  const allow = list.includes('*') ? '*' : origin && list.includes(origin) ? origin : (list[0] ?? '*');
   return {
     'Access-Control-Allow-Origin': allow,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',

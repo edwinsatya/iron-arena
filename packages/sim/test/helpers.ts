@@ -1,79 +1,58 @@
 import { BTN } from '@neonfist/shared';
-import { FS, PHASE } from '../src/constants';
-import { startMove } from '../src/fighter';
-import { ROSTER } from '../src/roster';
+import { INTRO_FRAMES, PHASE } from '../src/constants';
 import { createInitialState } from '../src/state';
 import { step } from '../src/step';
 import type { GameState } from '../src/types';
 
-export function fightState(p1 = 'dummy', p2 = 'dummy', roundFrames = 3600): GameState {
-  const s = createInitialState({
-    seed: 12345,
+export { BTN };
+
+export function newMatch(p1 = 'kaito', p2 = 'magnus', seed = 7): GameState {
+  return createInitialState({
+    seed,
     fighters: [p1, p2],
     roundsToWin: 2,
-    roundFrames,
+    roundFrames: 3600,
     viewMirrored: [false, false],
   });
-  while (s.phase !== PHASE.FIGHT) step(s, [0, 0]);
+}
+
+/** Skip the round intro. */
+export function toFight(s: GameState): GameState {
+  for (let i = 0; i <= INTRO_FRAMES + 2 && s.phase !== PHASE.FIGHT; i++) step(s, [0, 0]);
   return s;
 }
 
-/** Put the fighters `gap` mm apart around the stage centre, facing each other. */
-export function place(s: GameState, gap: number): void {
-  s.fighters[0].x = -Math.trunc(gap / 2);
-  s.fighters[1].x = gap - Math.trunc(gap / 2);
-  s.fighters[0].dirX = 1024;
-  s.fighters[1].dirX = -1024;
+/** Fight-ready match with fighters at x positions (mm), facing each other. */
+export function setup(p1 = 'kaito', p2 = 'magnus', ax = -1000, bx = 1000): GameState {
+  const s = toFight(newMatch(p1, p2));
+  const [a, b] = s.fighters;
+  a.x = ax;
+  b.x = bx;
+  a.z = b.z = 0;
+  a.fx = ax < bx ? 1024 : -1024;
+  b.fx = -a.fx;
+  a.fz = b.fz = 0;
+  return s;
 }
 
-export function moveIndex(s: GameState, p: number, id: string): number {
-  const i = ROSTER[s.fighters[p]!.char]!.moves.findIndex((m) => m.id === id);
-  if (i < 0) throw new Error(`no move ${id}`);
-  return i;
-}
-
-/** Start a move directly (bypasses input parsing — that is tested separately). */
-export function force(s: GameState, p: number, id: string): void {
-  startMove(s, p, ROSTER[s.fighters[p]!.char]!, moveIndex(s, p, id));
-}
-
-export function run(s: GameState, frames: number, inputs: [number, number] = [0, 0]): void {
-  for (let i = 0; i < frames; i++) step(s, inputs);
-}
-
-/** Step until `pred` is true (returns frames taken) or throw after `max` frames. */
-export function runUntil(
+/** Run n frames with constant inputs (or a function of the frame index). */
+export function run(
   s: GameState,
-  pred: (s: GameState) => boolean,
-  inputs: (s: GameState) => [number, number] = () => [0, 0],
-  max = 600,
-): number {
-  for (let i = 1; i <= max; i++) {
-    step(s, inputs(s));
-    if (pred(s)) return i;
+  n: number,
+  p1: number | ((k: number) => number) = 0,
+  p2: number | ((k: number) => number) = 0,
+): void {
+  for (let k = 0; k < n; k++) {
+    step(s, [typeof p1 === 'function' ? p1(k) : p1, typeof p2 === 'function' ? p2(k) : p2]);
   }
-  throw new Error('runUntil: condition never met');
 }
 
-/**
- * After a contact, both players mash 1 on alternating frames; the press is buffered, so each
- * fighter starts a new move on its first actionable frame. Returns defender − attacker frames.
- */
-export function measureAdvantage(s: GameState, attacker: number, defenderHold = 0): number {
-  // Move them far apart so the mashed jabs can't interact (timing doesn't depend on position).
-  s.fighters[0].x = -3500;
-  s.fighters[1].x = 3500;
-  const startFrame: [number, number] = [-1, -1];
-  for (let i = 0; i < 300 && (startFrame[0] < 0 || startFrame[1] < 0); i++) {
-    const press = i % 2 === 0 ? BTN.B1 : 0;
-    const inp: [number, number] = [press, press];
-    inp[1 - attacker] |= defenderHold;
-    step(s, inp);
-    for (const p of [0, 1]) {
-      const f = s.fighters[p]!;
-      if (startFrame[p]! < 0 && f.state === FS.ATTACK && f.moveFrame === 1) startFrame[p] = s.frame;
-    }
-  }
-  if (startFrame[0] < 0 || startFrame[1] < 0) throw new Error('measureAdvantage: nobody acted');
-  return startFrame[1 - attacker]! - startFrame[attacker]!;
+/** Press a button for one frame then release (with `hold` frames held). */
+export function tap(s: GameState, who: 0 | 1, bits: number, hold = 1, other = 0): void {
+  for (let k = 0; k < hold; k++) step(s, who === 0 ? [bits, other] : [other, bits]);
+  step(s, who === 0 ? [0, other] : [other, 0]);
+}
+
+export function eventsOf(s: GameState, type: number): number {
+  return s.recentEvents.filter((e) => e.type === type).length;
 }

@@ -1,4 +1,6 @@
 {
   "kaito": { "file": "stand-in-a.vrm", "height": 1.62 },
-  "magnus": { "file": "stand-in-b.vrm", "height": 1.72 }
+  "magnus": { "file": "stand-in-a.vrm", "height": 1.66 },
+  "riko": { "file": "stand-in-b.vrm", "height": 1.56 },
+  "seren": { "file": "stand-in-b.vrm", "height": 1.6 }
 }
