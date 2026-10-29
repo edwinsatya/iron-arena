@@ -15,7 +15,7 @@ export const reo: HeroData = {
   blurb: 'Shield up, sword ready. Answers every attack with a better one.',
   hp: 980,
   speed: 70,
-  jumpVy: 100,
+  jumpVy: 130,
   defensePct: 97,
   basic: ['re_b1', 're_b2', 're_b3'],
   dashAttack: 're_dash',

@@ -15,7 +15,7 @@ export const homura: HeroData = {
   blurb: 'Sets the whole stage alight from across it. Get close — if you can get through the fire.',
   hp: 1000,
   speed: 66,
-  jumpVy: 100,
+  jumpVy: 130,
   defensePct: 100,
   basic: ['hm_b1', 'hm_b2', 'hm_b3'],
   dashAttack: 'hm_dash',

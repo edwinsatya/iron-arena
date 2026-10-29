@@ -15,7 +15,7 @@ export const yomi: HeroData = {
   blurb: 'No face, no voice, no mercy. The longest reach in the tournament.',
   hp: 1060,
   speed: 66,
-  jumpVy: 100,
+  jumpVy: 130,
   defensePct: 100,
   basic: ['ym_b1', 'ym_b2', 'ym_b3'],
   dashAttack: 'ym_dash',

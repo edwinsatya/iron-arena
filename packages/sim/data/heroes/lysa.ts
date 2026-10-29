@@ -15,7 +15,7 @@ export const lysa: HeroData = {
   blurb: 'Never where you swing. Keep your distance and she wins; close it and she vanishes.',
   hp: 1010,
   speed: 80,
-  jumpVy: 104,
+  jumpVy: 135,
   defensePct: 100,
   basic: ['ly_b1', 'ly_b2', 'ly_b3'],
   dashAttack: 'ly_dash',

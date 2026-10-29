@@ -15,7 +15,7 @@ export const kuma: HeroData = {
   blurb: 'Armour on a bear. Gets angrier with every hit and hits back twice as hard.',
   hp: 890,
   speed: 60,
-  jumpVy: 92,
+  jumpVy: 120,
   defensePct: 98,
   basic: ['km_b1', 'km_b2', 'km_b3'],
   dashAttack: 'km_dash',

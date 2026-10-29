@@ -102,7 +102,7 @@ export const JUMP_SQUAT = 3;
 export const AIR_CONTROL = 7;
 /** Extra jumps in the air (double jump) and their strength (% of the hero's jump). */
 export const AIR_JUMPS = 1;
-export const AIR_JUMP_PCT = 88;
+export const AIR_JUMP_PCT = 100;
 export const DASH_FRAMES = 14;
 export const DASH_TAP_WINDOW = 12;
 export const LAND_FRAMES = 6;

@@ -15,7 +15,7 @@ export const hyoga: HeroData = {
   blurb: 'A walking glacier. Every swing freezes the floor; every skill is armoured.',
   hp: 990,
   speed: 54,
-  jumpVy: 90,
+  jumpVy: 117,
   defensePct: 94,
   basic: ['hy_b1', 'hy_b2'],
   dashAttack: 'hy_dash',

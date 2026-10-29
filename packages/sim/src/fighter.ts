@@ -605,7 +605,8 @@ function land(s: GameState, i: number, fallSpeed: number, a: ActionData | null):
 export function pushApart(s: GameState): void {
   const [a, b] = s.fighters;
   if (a.state === FS.HELD || b.state === FS.HELD) return;
-  if (a.y > 1500 + b.y || b.y > 1500 + a.y) return;
+  // High enough to pass over their head: no pushing (jump over the opponent)
+  if (a.y > 1150 + b.y || b.y > 1150 + a.y) return;
   const min = 2 * 400;
   const d2 = dist2(a.x, a.z, b.x, b.z);
   if (d2 >= min * min) return;

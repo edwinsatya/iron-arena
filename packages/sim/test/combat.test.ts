@@ -177,6 +177,24 @@ describe('rounds', () => {
     expect(s.phase).toBe(PHASE.FIGHT);
   });
 
+  it('a double jump clears the opponent: you can jump over them to the other side', () => {
+    for (const [me, them] of [
+      ['hyoga', 'hyoga'],
+      ['kuma', 'hyoga'],
+      ['benika', 'kuma'],
+    ] as const) {
+      const s = setup(me, them, -900, 900);
+      const [a, b] = s.fighters;
+      step(s, [BTN.JUMP | BTN.RIGHT, 0]);
+      let k = 0;
+      // Hold right; jump again near the top of the first jump
+      for (; k < 200 && !(a.state === FS.AIR && a.vy <= 10); k++) step(s, [BTN.JUMP | BTN.RIGHT, 0]);
+      step(s, [BTN.RIGHT, 0]);
+      for (k = 0; k < 200 && (a.y > 0 || k < 5); k++) step(s, [k < 14 ? BTN.JUMP | BTN.RIGHT : BTN.RIGHT, 0]);
+      expect(a.x, me).toBeGreaterThan(b.x);
+    }
+  });
+
   it('double jump: one extra jump in the air, refreshed on landing; tapping Jump makes a short hop', () => {
     const s = setup('benika', 'dummy', -3000, 3000);
     const a = s.fighters[0];

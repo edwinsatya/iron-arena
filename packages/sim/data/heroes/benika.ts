@@ -15,7 +15,7 @@ export const benika: HeroData = {
   blurb: 'A war-axe that splits the earth. She walks in, takes the hit and swings back harder.',
   hp: 960,
   speed: 64,
-  jumpVy: 96,
+  jumpVy: 125,
   defensePct: 95,
   basic: ['bn_b1', 'bn_b2', 'bn_b3'],
   dashAttack: 'bn_dash',

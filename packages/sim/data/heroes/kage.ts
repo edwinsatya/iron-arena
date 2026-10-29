@@ -15,7 +15,7 @@ export const kage: HeroData = {
   blurb: 'Hits from behind, never from the front. Lose sight of him and the round is over.',
   hp: 1000,
   speed: 82,
-  jumpVy: 106,
+  jumpVy: 138,
   defensePct: 100,
   basic: ['kg_b1', 'kg_b2', 'kg_b3'],
   dashAttack: 'kg_dash',

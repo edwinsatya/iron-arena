@@ -15,7 +15,7 @@ export const gokai: HeroData = {
   blurb: 'The sea took his ship but not his anchor. He pulls you in, then sinks you.',
   hp: 910,
   speed: 58,
-  jumpVy: 92,
+  jumpVy: 120,
   defensePct: 96,
   basic: ['gk_b1', 'gk_b2', 'gk_b3'],
   dashAttack: 'gk_dash',

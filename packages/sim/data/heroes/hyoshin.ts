@@ -16,7 +16,7 @@ export const hyoshin: HeroData = {
   blurb: 'A frozen heart that never stops beating. Keeps you at lance range, and shatters when cornered.',
   hp: 1040,
   speed: 64,
-  jumpVy: 100,
+  jumpVy: 130,
   defensePct: 100,
   basic: ['hs_b1', 'hs_b2', 'hs_b3'],
   dashAttack: 'hs_dash',

@@ -12,7 +12,7 @@ export const dummy: HeroData = {
   blurb: 'Stands there. Takes it.',
   hp: 1000,
   speed: 60,
-  jumpVy: 96,
+  jumpVy: 125,
   defensePct: 100,
   hidden: true,
   basic: ['d_jab'],
