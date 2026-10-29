@@ -1,4 +1,4 @@
-import { END, EV, FS, INTRO_FRAMES, KO_FRAMES, PHASE, RING_OUT_Y, ROUND_END_FRAMES } from './constants';
+import { END, EV, FS, INTRO_FRAMES, KO_FRAMES, PHASE, ROUND_END_FRAMES } from './constants';
 import { pushEvent } from './events';
 import { setState } from './fighter';
 import { ROSTER } from './roster';
@@ -13,7 +13,7 @@ function endRound(s: GameState, reason: number, winner: number): void {
   s.projectiles.length = 0;
 }
 
-/** Phases, timer, KOs, ring-outs and match end. */
+/** Phases, timer, KOs and match end (walls at the stage ends: no ring-outs). */
 export function roundLogic(s: GameState): void {
   const [a, b] = s.fighters;
   switch (s.phase) {
@@ -26,21 +26,6 @@ export function roundLogic(s: GameState): void {
       return;
     case PHASE.FIGHT: {
       if (s.timer > 0) s.timer--;
-      const outA = a.y < RING_OUT_Y;
-      const outB = b.y < RING_OUT_Y;
-      if (outA || outB) {
-        for (const [f, out, i] of [
-          [a, outA, 0],
-          [b, outB, 1],
-        ] as const) {
-          if (!out) continue;
-          f.hp = 0;
-          setState(f, FS.KO);
-          pushEvent(s, i, EV.RING_OUT, 0, f.x, f.y, f.z);
-        }
-        endRound(s, outA && outB ? END.DOUBLE_KO : END.RING_OUT, outA && outB ? -1 : outA ? 1 : 0);
-        return;
-      }
       const koA = a.hp <= 0;
       const koB = b.hp <= 0;
       if (koA || koB) {

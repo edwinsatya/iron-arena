@@ -58,6 +58,8 @@ export interface SpritePick {
   /** Offset in source pixels (+x = forward, +y = down). */
   dx?: number;
   dy?: number;
+  /** Rotate around this fraction of the body height above the feet (default: the feet). */
+  pivot?: number;
 }
 
 const ease = (k: number) => 1 - (1 - k) * (1 - k);
@@ -130,11 +132,26 @@ export function chooseSprite(atlas: Atlas, s: GameState, i: number, time: number
       return A.run ? loop(run, time, 1.5) : loop(walk, time, 2.2, { sx: 1.04, sy: 0.97 });
     case FS.JUMP_SQUAT:
       return jump ? at(jump, 0.1) : pick(idle, 0, { sx: 1.08, sy: 0.88 });
-    case FS.AIR:
-      if (jump) return at(jump, f.vy > 0 ? 0.3 : 0.7);
-      return f.vy > 0
-        ? at(walk, 0.25, { sx: 0.94, sy: 1.08 })
-        : at(walk, 0.75, { sx: 0.97, sy: 1.04, rot: -0.05 });
+    case FS.AIR: {
+      // Stretch on the way up, tuck at the top, reach down on the way down
+      const up = clamp(f.vy / Math.max(1, hero.jumpVy), -1, 1);
+      const lean = clamp(Math.abs(f.vx) / 80, 0, 1) * 0.12;
+      const base: Partial<SpritePick> = {
+        sx: 1 - 0.07 * Math.max(0, up) + 0.03 * Math.max(0, -up),
+        sy: 1 + 0.1 * Math.max(0, up) - 0.03 * Math.max(0, -up),
+        rot: -lean + (up < 0 ? 0.05 * -up : 0),
+      };
+      // Double jump: a quick forward flip around the middle of the body
+      if (f.airJumps > 0 && t < 20) {
+        const k = 1 - (1 - t / 20) ** 2;
+        base.rot = -Math.PI * 2 * k;
+        base.pivot = 0.5;
+        base.sx = 0.92;
+        base.sy = 0.92;
+      }
+      if (jump) return at(jump, up > 0.3 ? 0.25 : up > -0.3 ? 0.5 : 0.75, base);
+      return up > 0 ? at(walk, 0.25, base) : at(walk, 0.75, base);
+    }
     case FS.LAND:
       return pick(idle, 0, { sx: 1.1 - Math.min(0.1, t * 0.012), sy: 0.86 + Math.min(0.14, t * 0.018) });
     case FS.GUARD:
@@ -286,7 +303,10 @@ export class SpriteHero {
     const dir = facing * this.atlas.facing;
     g.save();
     g.translate(x + (p.dx ?? 0) * scale * dir, y + (p.dy ?? 0) * scale);
+    const piv = p.pivot ? p.pivot * this.atlas.pxPerM * 1.75 * scale : 0;
+    if (piv) g.translate(0, -piv);
     g.rotate(-p.rot * dir);
+    if (piv) g.translate(0, piv);
     g.scale(scale * dir * p.sx, scale * p.sy);
     g.globalAlpha = (opts.alpha ?? 1) * p.alpha;
     g.imageSmoothingEnabled = false;

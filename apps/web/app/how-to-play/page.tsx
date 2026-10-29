@@ -63,7 +63,8 @@ export default function HowToPlay() {
         <div className="ctrl">
           <h3>Win</h3>
           <p style={{ marginTop: 0 }}>
-            Empty their health, or knock them off either end of the stage for a ring-out. First to two rounds
+            Empty their health. Walls close both ends of the stage: knock someone into one hard and they bounce off it,
+            open for more. First to two rounds
             takes the match.
           </p>
         </div>

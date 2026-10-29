@@ -1,7 +1,7 @@
 # NEON FIST
 
 A 2D side-view brawler that runs in the browser. Pick a hero, send your friend a link, and fight
-on a stage with no railing at either end: empty their health or knock them off. Online play uses
+on a stage walled in at both ends: empty their health first. Online play uses
 GGPO-style **rollback netcode**, so it feels like you're in the same room.
 
 - **Heroes (10):** Benika (war axe), Lysa (bow), Hyōga (ice hammer), Hyōshin (ice heart),

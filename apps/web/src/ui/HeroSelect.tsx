@@ -21,8 +21,12 @@ export interface HeroSelectProps {
   keys?: KeyHintSet;
   /** Offer a random pick. */
   random?: boolean;
-  /** Stage picker, CPU level, buttons… */
+  /** Buttons under the grid (random, etc.). */
   children?: ReactNode;
+  /** Heroes are locked in: show this (arena, CPU level, Fight) in place of the grid. */
+  arena?: ReactNode;
+  /** What to tell each side while it picks. */
+  prompts?: [string, string];
 }
 
 function SkillRows({ hero, keys }: { hero: CompiledHero; keys: KeyHintSet }) {
@@ -133,6 +137,8 @@ export function HeroSelect({
   keys = KEY_HINTS.solo,
   random,
   children,
+  arena,
+  prompts = ['Pick your hero', 'Pick your rival'],
 }: HeroSelectProps) {
   const heroes = selectableCharacters();
   const [hover, setHover] = useState<string | null>(null);
@@ -154,60 +160,69 @@ export function HeroSelect({
       />
       <div className="picker">
         <div className="picker-head">
-          <span className="who" style={{ color: picking === 1 ? 'var(--p2)' : 'var(--p1)' }}>
-            {picking === null ? 'Locked in' : picking === 0 ? 'Player 1' : 'Player 2'}
+          <span
+            className="who"
+            style={{ color: arena ? 'var(--hazard)' : picking === 1 ? 'var(--p2)' : 'var(--p1)' }}
+          >
+            {arena ? 'Choose the arena' : picking === null ? 'Locked in' : prompts[picking]}
           </span>
-          <span className="muted">{picking === null ? '' : 'Choose a hero'}</span>
+          <span className="muted">{arena ? '' : picking === null ? '' : 'Click to lock in'}</span>
         </div>
-        <div className="tiles" role="group" aria-label="Heroes">
-          {heroes.map((h) => (
-            <button
-              key={h.id}
-              type="button"
-              className="tile"
-              style={{ '--hero': LOOKS[h.id]!.color } as React.CSSProperties}
-              aria-label={h.name}
-              aria-pressed={picking !== null && picks[picking] === h.id}
-              data-p1={picks[0] === h.id}
-              data-p2={picks[1] === h.id}
-              disabled={picking === null}
-              onMouseEnter={() => setHover(h.id)}
-              onMouseLeave={() => setHover(null)}
-              onFocus={() => setHover(h.id)}
-              onBlur={() => setHover(null)}
-              onClick={() => onPick(h.id)}
-            >
-              <Portrait heroId={h.id} kind="face" />
-              <span className="tile-name">{h.name.split(' ')[0]!.toUpperCase()}</span>
-              {picks[0] === h.id && <span className="tag p1">P1</span>}
-              {picks[1] === h.id && <span className="tag p2">P2</span>}
-            </button>
-          ))}
-          {random &&
-            [0, 1, 2, 3].slice(heroes.length % 4 === 0 ? 4 : heroes.length % 4).map((k) => (
-              <span key={k} className="tile random" aria-hidden="true">
-                ?
-              </span>
-            ))}
-        </div>
-        <div className="hero-detail panel" style={{ '--hero': look.color } as React.CSSProperties}>
-          <h3>
-            {preview.name} <span style={{ color: look.color }}>{preview.title}</span>
-          </h3>
-          <div className="role">
-            <span>{preview.role}</span>
-            <span>
-              Difficulty{' '}
-              <span className="dots">
-                {'■'.repeat(preview.difficulty)}
-                {'□'.repeat(3 - preview.difficulty)}
-              </span>
-            </span>
-            <span>{preview.hp} HP</span>
-          </div>
-          <SkillRows hero={preview} keys={keys} />
-        </div>
-        {children}
+        {arena ? (
+          <div className="arena-step">{arena}</div>
+        ) : (
+          <>
+            <div className="tiles" role="group" aria-label="Heroes">
+              {heroes.map((h) => (
+                <button
+                  key={h.id}
+                  type="button"
+                  className="tile"
+                  style={{ '--hero': LOOKS[h.id]!.color } as React.CSSProperties}
+                  aria-label={h.name}
+                  aria-pressed={picking !== null && picks[picking] === h.id}
+                  data-p1={picks[0] === h.id}
+                  data-p2={picks[1] === h.id}
+                  disabled={picking === null}
+                  onMouseEnter={() => setHover(h.id)}
+                  onMouseLeave={() => setHover(null)}
+                  onFocus={() => setHover(h.id)}
+                  onBlur={() => setHover(null)}
+                  onClick={() => onPick(h.id)}
+                >
+                  <Portrait heroId={h.id} kind="face" />
+                  <span className="tile-name">{h.name.split(' ')[0]!.toUpperCase()}</span>
+                  {picks[0] === h.id && <span className="tag p1">P1</span>}
+                  {picks[1] === h.id && <span className="tag p2">P2</span>}
+                </button>
+              ))}
+              {random &&
+                [0, 1, 2, 3].slice(heroes.length % 4 === 0 ? 4 : heroes.length % 4).map((k) => (
+                  <span key={k} className="tile random" aria-hidden="true">
+                    ?
+                  </span>
+                ))}
+            </div>
+            <div className="hero-detail panel" style={{ '--hero': look.color } as React.CSSProperties}>
+              <h3>
+                {preview.name} <span style={{ color: look.color }}>{preview.title}</span>
+              </h3>
+              <div className="role">
+                <span>{preview.role}</span>
+                <span>
+                  Difficulty{' '}
+                  <span className="dots">
+                    {'■'.repeat(preview.difficulty)}
+                    {'□'.repeat(3 - preview.difficulty)}
+                  </span>
+                </span>
+                <span>{preview.hp} HP</span>
+              </div>
+              <SkillRows hero={preview} keys={keys} />
+            </div>
+            {children}
+          </>
+        )}
       </div>
       <Side
         side={1}

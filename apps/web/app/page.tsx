@@ -12,10 +12,10 @@ import { cleanName, loadSettings, saveSettings } from '../src/ui/settings';
 import { Portrait } from '../src/ui/usePortrait';
 
 const MENU: { href: string; name: string; hint: string }[] = [
-  { href: '/versus', name: 'Versus CPU', hint: 'Warm up against the computer' },
+  { href: '/versus', name: 'Versus CPU', hint: 'Against the computer' },
   { href: '/local', name: 'Local versus', hint: 'Two players, one keyboard' },
-  { href: '/training', name: 'Training', hint: 'Learn combos on a dummy' },
-  { href: '/how-to-play', name: 'Heroes & controls', hint: 'Every skill and key' },
+  { href: '/training', name: 'Training', hint: 'Combos on a dummy' },
+  { href: '/how-to-play', name: 'Heroes & keys', hint: 'Every skill and key' },
   { href: '/settings', name: 'Settings', hint: 'Name, sound, graphics' },
 ];
 
@@ -74,12 +74,13 @@ export default function Home() {
           </span>
         </h1>
         <p className="tagline">
-          Four heroes. Three skills and an ultimate each. A stage with no railing at either end — knock your friend off
-          it.
+          {selectableCharacters().length} heroes. Three skills and an ultimate each. Walls at both ends, so there is
+          nowhere to run.
         </p>
 
         <section className="online-box panel" aria-label="Play online">
-          <form onSubmit={onCreate} style={{ display: 'grid', gap: 10 }}>
+          <h2 className="online-title">Play a friend online</h2>
+          <form onSubmit={onCreate} style={{ display: 'grid', gap: 8 }}>
             <label htmlFor="name">Your fighter name</label>
             <div className="row">
               <input
@@ -129,8 +130,7 @@ export default function Home() {
           </ul>
         </nav>
         <p className="home-foot">
-          Free, in the browser, no install. Rollback netcode keeps online fights smooth. Hero sprites and
-          art by{' '}
+          Free, no install, rollback netcode. Hero sprites and art by{' '}
           <a href="https://elie-automata.itch.io/" target="_blank" rel="noreferrer">
             elie automata
           </a>

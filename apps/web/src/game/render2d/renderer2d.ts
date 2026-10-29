@@ -97,6 +97,25 @@ export class GameRenderer {
     this.resize();
   }
 
+  private vig: HTMLCanvasElement | null = null;
+
+  private vignette(): HTMLCanvasElement {
+    const v = this.v;
+    const w = Math.max(1, Math.round(v.w / 2));
+    const h = Math.max(1, Math.round(v.h / 2));
+    if (this.vig && this.vig.width === w && this.vig.height === h) return this.vig;
+    const c = (this.vig ??= document.createElement('canvas'));
+    c.width = w;
+    c.height = h;
+    const g = c.getContext('2d')!;
+    const vg = g.createRadialGradient(w / 2, h * 0.55, h * 0.35, w / 2, h * 0.55, w * 0.75);
+    vg.addColorStop(0, 'rgba(10, 6, 20, 0)');
+    vg.addColorStop(1, 'rgba(10, 6, 20, 0.38)');
+    g.fillStyle = vg;
+    g.fillRect(0, 0, w, h);
+    return c;
+  }
+
   private resize() {
     const w = Math.max(1, this.host.clientWidth);
     const h = Math.max(1, this.host.clientHeight);
@@ -168,7 +187,7 @@ export class GameRenderer {
     this.camX += (cx - this.camX) * k;
     // Keep the camera over the stage (a little void may show at the ends)
     const half = this.viewW / 2;
-    const lim = Math.max(0, ARENA_R + 2600 - half);
+    const lim = Math.max(0, ARENA_R + 900 - half);
     this.camX = Math.max(-lim, Math.min(lim, this.camX));
     v.scale = v.w / this.viewW;
     v.camX = this.camX;
@@ -194,9 +213,9 @@ export class GameRenderer {
     const g = this.g;
     const v = this.v;
     g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    g.imageSmoothingQuality = 'high';
+    g.imageSmoothingQuality = 'low';
 
-    drawBackdrop(g, this.stage, v);
+    drawBackdrop(g, this.stage, v, this.dpr);
     this.stage.floor(g, v, this.time);
     this.effects.drawBack(g, s, v);
 
@@ -217,12 +236,8 @@ export class GameRenderer {
     this.drawAmbient(g, dt);
     if (this.showHitboxes) this.hitboxes(g, s);
 
-    // Vignette
-    const vg = g.createRadialGradient(v.w / 2, v.h * 0.55, v.h * 0.35, v.w / 2, v.h * 0.55, v.w * 0.75);
-    vg.addColorStop(0, 'rgba(10, 6, 20, 0)');
-    vg.addColorStop(1, 'rgba(10, 6, 20, 0.38)');
-    g.fillStyle = vg;
-    g.fillRect(0, 0, v.w, v.h);
+    // Vignette (drawn once per screen size)
+    g.drawImage(this.vignette(), 0, 0, v.w, v.h);
 
     this.flashEl.style.opacity = String(Math.min(0.85, this.effects.flash));
   }
@@ -292,7 +307,11 @@ export class GameRenderer {
     const scale = sprite.scaleFor(v);
 
     // Afterimages while dashing or lunging
-    const fast = f.state === FS.DASH || (f.state === FS.ACTION && Math.abs(f.vx) > 80) || f.state === FS.LAUNCHED;
+    const fast =
+      f.state === FS.DASH ||
+      (f.state === FS.ACTION && Math.abs(f.vx) > 80) ||
+      f.state === FS.LAUNCHED ||
+      (f.state === FS.AIR && f.airJumps > 0 && f.stateFrame < 14);
     if (fast) {
       trail.unshift({ x: f.x, y: f.y, pick, facing });
       if (trail.length > 6) trail.length = 6;

@@ -35,6 +35,7 @@ export function createFighter(charId: string, side: 0 | 1): FighterState {
     buffDamagePct: 0,
     buffSpeedPct: 0,
     invulnFrames: 0,
+    airJumps: 0,
     holdA: 0,
     prevBits: 0,
     ageA: 99,

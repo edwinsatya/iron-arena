@@ -1,6 +1,7 @@
 import {
   AIR_CONTROL,
-  ARENA_R,
+  AIR_JUMP_PCT,
+  AIR_JUMPS,
   ARENA_WALK_R,
   BUFFER_FRAMES,
   CHARGE_FULL,
@@ -9,6 +10,7 @@ import {
   DASH_FRAMES,
   DOWN_FRAMES,
   EV,
+  FALL_GRAVITY,
   FRICTION_PCT,
   FS,
   GETUP_FRAMES,
@@ -18,6 +20,7 @@ import {
   MAX_FALL,
   ULT_FREEZE,
   ULT_MAX,
+  WALL_BOUNCE_SPEED,
 } from './constants';
 import { spawnFor } from './entities';
 import { pushEvent } from './events';
@@ -185,7 +188,21 @@ function tryRequest(s: GameState, i: number, req: number, dir: number): boolean 
     return false;
   }
   if (req === REQ.JUMP) {
-    if (inAir || !(free(f) || cancellable || f.state === FS.LAND)) return false;
+    if (inAir) {
+      // Double jump: a second, slightly smaller jump that can change direction
+      if (f.state !== FS.AIR || f.airJumps >= AIR_JUMPS) return false;
+      f.airJumps++;
+      f.vy = pct(h.jumpVy, AIR_JUMP_PCT);
+      if (dir >= 0) {
+        faceDir(f, dir);
+        const sp = runSpeed(f);
+        f.vx = (f.fx * sp) >> 10;
+      } else f.vx = pct(f.vx, 50);
+      setState(f, FS.AIR);
+      pushEvent(s, i, EV.JUMP, 1, f.x, f.y, f.z);
+      return true;
+    }
+    if (!(free(f) || cancellable || f.state === FS.LAND)) return false;
     faceDir(f, dir);
     setState(f, FS.JUMP_SQUAT);
     return true;
@@ -405,6 +422,8 @@ export function updateFighter(s: GameState, i: number, it: Intent, ctrl: boolean
       if (ctrl && it.req !== REQ.NONE) {
         if (tryRequest(s, i, it.req, it.dir)) break;
       }
+      // Let go of Jump early while rising fast: a short hop
+      if (!it.jumpHeld && f.vy > heroOf(f).jumpVy >> 1) f.vy = heroOf(f).jumpVy >> 1;
       if (it.dir >= 0) {
         const [dx, dz] = DIR8[it.dir]!;
         const sp = runSpeed(f);
@@ -485,7 +504,28 @@ function clampMag(v: number, m: number): number {
   return v > m ? m : v < -m ? -m : v;
 }
 
-/** Move, fall, land, and fall off the roof. */
+/**
+ * Walls at both ends of the stage: nobody leaves it. A hard knockback into a wall bounces the
+ * victim back off it (a wall splat you can follow up on).
+ */
+function hitWall(s: GameState, i: number): void {
+  const f = s.fighters[i]!;
+  if (f.x >= -ARENA_WALK_R && f.x <= ARENA_WALK_R) return;
+  const side = f.x > 0 ? 1 : -1;
+  f.x = side * ARENA_WALK_R;
+  if (f.vx * side <= 0) return;
+  const speed = f.vx * side;
+  const reeling = f.state === FS.LAUNCHED || f.state === FS.HITSTUN || f.state === FS.KO;
+  if (reeling && speed > WALL_BOUNCE_SPEED) {
+    f.vx = -side * Math.trunc((speed * 35) / 100);
+    if (f.state === FS.LAUNCHED && f.vy < 30) f.vy = 30;
+    pushEvent(s, i, EV.WALL, speed, f.x + side * 300, f.y + 900, f.z);
+  } else {
+    f.vx = 0;
+  }
+}
+
+/** Move, fall and land; walls keep everyone on the stage. */
 export function applyPhysics(s: GameState, i: number): void {
   const f = s.fighters[i]!;
   if (f.state === FS.HELD) {
@@ -495,42 +535,30 @@ export function applyPhysics(s: GameState, i: number): void {
     f.z = p.z;
     f.y = h.y + 250;
     f.vx = f.vy = f.vz = 0;
+    hitWall(s, i);
     return;
   }
   const a = actionOf(f);
   f.x += f.vx;
   f.z += f.vz;
-  const selfPropelled =
-    f.state === FS.RUN ||
-    f.state === FS.DASH ||
-    f.state === FS.AIR ||
-    f.state === FS.JUMP_SQUAT ||
-    f.state === FS.LAND ||
-    f.state === FS.IDLE ||
-    f.state === FS.GUARD ||
-    f.state === FS.CHARGE ||
-    f.state === FS.ACTION;
-  if (selfPropelled) clampToRoof(f);
+  hitWall(s, i);
 
-  const overVoid = f.x * f.x + f.z * f.z > ARENA_R * ARENA_R;
-  if (f.y > 0 || f.vy !== 0 || overVoid) {
-    f.vy = Math.max(-MAX_FALL, f.vy - GRAVITY);
+  if (f.y > 0 || f.vy !== 0) {
+    const g = f.state === FS.AIR && f.vy <= 0 ? FALL_GRAVITY : GRAVITY;
+    f.vy = Math.max(-MAX_FALL, f.vy - g);
     f.y += f.vy;
-    if (f.y <= 0 && !overVoid) {
+    if (f.y <= 0) {
       f.y = 0;
       const fallSpeed = f.vy;
       f.vy = 0;
       land(s, i, fallSpeed, a);
-    } else if (overVoid && f.y <= 0 && f.state !== FS.FALLING && f.state !== FS.KO) {
-      setState(f, FS.FALLING);
-      f.action = -1;
-      pushEvent(s, i, EV.FALL, 0, f.x, f.y, f.z);
     }
   }
 }
 
 function land(s: GameState, i: number, fallSpeed: number, a: ActionData | null): void {
   const f = s.fighters[i]!;
+  f.airJumps = 0;
   switch (f.state) {
     case FS.AIR:
       setState(f, FS.LAND);
@@ -589,4 +617,15 @@ export function pushApart(s: GameState): void {
   a.z -= (nz * push) >> 10;
   b.x += (nx * push) >> 10;
   b.z += (nz * push) >> 10;
+  // Pinned against a wall: the other one gets pushed out instead
+  for (const [f, o] of [
+    [a, b],
+    [b, a],
+  ] as const) {
+    const lim = f.x > 0 ? ARENA_WALK_R : -ARENA_WALK_R;
+    if (f.x > ARENA_WALK_R || f.x < -ARENA_WALK_R) {
+      o.x -= f.x - lim;
+      f.x = lim;
+    }
+  }
 }

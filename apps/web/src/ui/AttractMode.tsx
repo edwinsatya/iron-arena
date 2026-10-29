@@ -27,7 +27,7 @@ export function AttractMode({ className }: { className?: string }) {
     };
     let state = fresh();
     let bots = [cpuBot(seed * 3, { level: 2 }), cpuBot(seed * 5, { level: 2 })];
-    const renderer = new GameRenderer(host, { showcase: true, quality: 'medium', stage: 'rooftop-dusk' });
+    const renderer = new GameRenderer(host, { showcase: true, quality: 'low', stage: 'rooftop-dusk' });
     const loop = new FixedStepLoop(
       () => {
         step(state, [bots[0]!(state, 0), bots[1]!(state, 1)]);

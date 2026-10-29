@@ -1,8 +1,8 @@
 # NEON FIST — game design (v3, side-view brawler)
 
 > Since 29 Oct 2026 NEON FIST is a **2D side-view brawler** with pixel-art heroes: move left and
-> right, jump, three action buttons, skills on button chords, and ring-outs off either end of the
-> stage. It replaces the 3D arena version (v2). The architecture (deterministic sim, rollback
+> right, jump and double jump, three action buttons, skills on button chords, and walls at both
+> ends of the stage. It replaces the 3D arena version (v2). The architecture (deterministic sim, rollback
 > netcode, lobby, WebRTC) is unchanged; the sim keeps everything on the z = 0 line.
 > Hero sprites and art are free packs by elie automata (see CREDITS.md); names, skills, stages,
 > effects and code are original.
@@ -10,15 +10,17 @@
 ## Match
 
 - **1 vs 1**, online (rollback), local (one keyboard / two pads), versus CPU, training.
-- **Best of 3 rounds**, 60 seconds each. A round ends by **K.O.** (health 0), **ring-out** (fall off
-  either end of the stage) or **time** (more health left wins).
+- **Best of 3 rounds**, 60 seconds each. A round ends by **K.O.** (health 0) or **time** (more
+  health left wins). There are no ring-outs.
 - The ultimate meter carries over between rounds; health, cooldowns and positions reset.
 
 ## Stages
 
-A 16.4 m long floor with a drop at both ends. You can't walk off by yourself — only knockback
-carries you over the edge. **Lantern Harbor** (sunset pier, harbour water below) and **Neon
-Rooftop** (midnight, city lights far below). Backdrops are painted in code with parallax layers.
+A 16.4 m long floor with a **wall at each end**: nobody leaves the stage. A hard knockback into a
+wall bounces the victim back off it (WALL!), open for a follow-up; projectiles break on the walls.
+Jumping: hold Jump for a full jump, tap it for a short hop, press it again in the air for a
+**double jump** (one per jump, refreshed on landing). **Lantern Harbor** (sunset pier, stone walls) and **Neon
+Rooftop** (midnight, neon-lit barriers). Backdrops are painted in code with parallax layers.
 
 ## Controls
 

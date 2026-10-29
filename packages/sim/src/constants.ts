@@ -69,6 +69,8 @@ export const EV = {
   GRAB: 20,
   ROUND: 21,
   FALL: 22,
+  /** Slammed into a wall (value: impact speed). */
+  WALL: 23,
 } as const;
 
 /** Action kinds (what a move is for). */
@@ -83,19 +85,24 @@ export const AK = {
 } as const;
 
 // ——— Arena ———
-/** Arena radius (mm). Beyond it there is no floor. */
+/** Half the stage width (mm): walls stand at ±ARENA_R. */
 export const ARENA_R = 8200;
-/** Players can't run past this radius; only knockback carries them over the edge. */
+/** Fighter centres stay within this (the body touches the wall). Nobody leaves the stage. */
 export const ARENA_WALK_R = 7900;
-/** Below this height a falling fighter is out of the ring. */
-export const RING_OUT_Y = -2600;
+/** Knockback faster than this into a wall bounces the victim back off it. */
+export const WALL_BOUNCE_SPEED = 40;
 export const START_X = 3200;
 
 // ——— Movement ———
 export const GRAVITY = 6;
+/** Falling after the apex is a little heavier: a snappier arc. */
+export const FALL_GRAVITY = 8;
 export const MAX_FALL = 160;
 export const JUMP_SQUAT = 3;
-export const AIR_CONTROL = 4;
+export const AIR_CONTROL = 7;
+/** Extra jumps in the air (double jump) and their strength (% of the hero's jump). */
+export const AIR_JUMPS = 1;
+export const AIR_JUMP_PCT = 88;
 export const DASH_FRAMES = 14;
 export const DASH_TAP_WINDOW = 12;
 export const LAND_FRAMES = 6;

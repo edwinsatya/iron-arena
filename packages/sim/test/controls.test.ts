@@ -47,8 +47,7 @@ describe('movement', () => {
   it('jumps and lands', () => {
     const s = setup();
     const a = s.fighters[0];
-    tap(s, 0, BTN.JUMP);
-    run(s, 10);
+    tap(s, 0, BTN.JUMP, 14);
     expect(a.y).toBeGreaterThan(400);
     run(s, 60);
     expect(a.y).toBe(0);

@@ -30,7 +30,7 @@ export const homura: HeroData = {
       total: 24,
       lockOn: 12000,
       projectiles: [
-        { frame: 9, kind: 'orb', at: [500, 1200, 0], speed: 200, life: 44, r: 270, hit: { damage: 34, hitstun: 24, kb: 22 } },
+        { frame: 9, kind: 'orb', at: [500, 1200, 0], speed: 200, life: 44, r: 270, hit: { damage: 37, hitstun: 24, kb: 22 } },
       ],
       chain: { from: 10, to: 23, into: 'hm_b2' },
       cancelFrom: 12,
@@ -41,7 +41,7 @@ export const homura: HeroData = {
       total: 24,
       lockOn: 12000,
       projectiles: [
-        { frame: 9, kind: 'orb', at: [500, 1200, 0], speed: 200, life: 44, r: 270, hit: { damage: 34, hitstun: 24, kb: 22 } },
+        { frame: 9, kind: 'orb', at: [500, 1200, 0], speed: 200, life: 44, r: 270, hit: { damage: 37, hitstun: 24, kb: 22 } },
       ],
       chain: { from: 10, to: 23, into: 'hm_b3' },
       cancelFrom: 12,

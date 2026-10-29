@@ -19,6 +19,8 @@ export interface Intent {
   dir: number;
   guard: boolean;
   attackHeld: boolean;
+  /** Jump (or up) is held: releasing it early makes a short hop. */
+  jumpHeld: boolean;
   /** Request made this frame (REQ.*). */
   req: number;
 }
@@ -87,5 +89,11 @@ export function readInput(s: GameState, i: number, raw: number): Intent {
     f.ageA = f.ageG = f.ageJ = CAP;
   }
 
-  return { dir, guard: (bits & BTN.GUARD) !== 0, attackHeld: (bits & BTN.ATTACK) !== 0, req };
+  return {
+    dir,
+    guard: (bits & BTN.GUARD) !== 0,
+    attackHeld: (bits & BTN.ATTACK) !== 0,
+    jumpHeld: (bits & (BTN.JUMP | BTN.UP)) !== 0,
+    req,
+  };
 }

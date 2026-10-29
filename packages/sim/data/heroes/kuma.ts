@@ -13,7 +13,7 @@ export const kuma: HeroData = {
   weapon: 'claw',
   difficulty: 1,
   blurb: 'Armour on a bear. Gets angrier with every hit and hits back twice as hard.',
-  hp: 920,
+  hp: 890,
   speed: 60,
   jumpVy: 92,
   defensePct: 98,

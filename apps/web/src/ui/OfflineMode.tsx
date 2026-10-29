@@ -33,13 +33,21 @@ const LEVELS = ['Easy', 'Normal', 'Hard'];
 
 const COPY: Record<
   OfflineKind,
-  { title: string; small: string; steps: string[]; labels: [string, string]; fight: string }
+  {
+    title: string;
+    small: string;
+    steps: string[];
+    labels: [string, string];
+    prompts: [string, string];
+    fight: string;
+  }
 > = {
   cpu: {
     title: 'Select your hero',
     small: 'Versus computer',
     steps: ['Player', 'Rival', 'Arena'],
     labels: ['P1, your hero', 'CPU, your rival'],
+    prompts: ['Pick your hero', 'Pick the CPU rival'],
     fight: 'Fight',
   },
   local: {
@@ -47,6 +55,7 @@ const COPY: Record<
     small: 'Local versus',
     steps: ['Player 1', 'Player 2', 'Arena'],
     labels: ['Player 1', 'Player 2'],
+    prompts: ['Player 1, pick a hero', 'Player 2, pick a hero'],
     fight: 'Fight',
   },
   training: {
@@ -54,6 +63,7 @@ const COPY: Record<
     small: 'Practice',
     steps: ['Your hero', 'Sparring partner', 'Arena'],
     labels: ['You', 'Sparring partner'],
+    prompts: ['Pick your hero', 'Pick a sparring partner'],
     fight: 'Start training',
   },
 };
@@ -258,38 +268,42 @@ export function OfflineMode({ kind }: { kind: OfflineKind }) {
         picking={step <= 1 ? (step as 0 | 1) : null}
         onPick={pick}
         sideLabels={copy.labels}
+        prompts={copy.prompts}
         keys={kind === 'local' ? (step === 1 ? KEY_HINTS.p2 : KEY_HINTS.p1) : KEY_HINTS.solo}
+        arena={
+          step <= 1 ? undefined : (
+            <>
+              <StagePicker value={stage} onChange={setStage} />
+              {kind === 'cpu' && (
+                <div className="cpu-level" role="group" aria-label="CPU level">
+                  CPU level
+                  <div className="chips">
+                    {LEVELS.map((l, i) => (
+                      <button key={l} className="chip" aria-pressed={level === i} onClick={() => setLevel(i)}>
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="picker-actions">
+                <button className="btn" onClick={start}>
+                  {copy.fight}
+                </button>
+                <button className="btn ghost" onClick={() => setStep(0)}>
+                  Change heroes
+                </button>
+              </div>
+            </>
+          )
+        }
       >
-        {step <= 1 ? (
+        {step <= 1 && (
           <div className="picker-actions">
             <button className="btn ghost" onClick={random}>
               Random hero
             </button>
           </div>
-        ) : (
-          <>
-            <StagePicker value={stage} onChange={setStage} />
-            {kind === 'cpu' && (
-              <div className="cpu-level" role="group" aria-label="CPU level">
-                CPU level
-                <div className="chips">
-                  {LEVELS.map((l, i) => (
-                    <button key={l} className="chip" aria-pressed={level === i} onClick={() => setLevel(i)}>
-                      {l}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div className="picker-actions">
-              <button className="btn" onClick={start}>
-                {copy.fight}
-              </button>
-              <button className="btn ghost" onClick={() => setStep(0)}>
-                Change heroes
-              </button>
-            </div>
-          </>
         )}
       </HeroSelect>
     </main>

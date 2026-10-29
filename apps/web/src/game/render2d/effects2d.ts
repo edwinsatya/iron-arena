@@ -9,6 +9,7 @@ import {
   type SimEvent,
 } from '@neonfist/sim';
 import { LOOKS } from '../looks';
+import { crescent, crystalLance, embers, flame, flameWall, hash, rays, smoke, starBurst, waterCurl } from './fxdraw';
 import { hexA, type View2D } from './view';
 
 export interface EffectCallbacks {
@@ -124,8 +125,15 @@ export class Effects2D {
         break;
       }
       case EV.DASH:
-      case EV.JUMP:
         this.dust(e.x, 8);
+        break;
+      case EV.JUMP:
+        if (e.value === 1) {
+          // Double jump: a burst of wind under the feet
+          this.ring(e.x, e.y + 100, 150, 900, '#ffffff', 0.3, true);
+          this.ring(e.x, e.y + 100, 80, 600, own, 0.25, true);
+          this.burst(e.x, e.y + 200, 10, '#ffffff', 3000, 0.25);
+        } else this.dust(e.x, 8);
         break;
       case EV.LAND:
         this.dust(e.x, e.value < -60 ? 16 : 6);
@@ -148,10 +156,13 @@ export class Effects2D {
         this.shake = Math.max(this.shake, 22);
         this.flash = Math.max(this.flash, 0.55);
         break;
-      case EV.RING_OUT:
-      case EV.FALL:
-        this.shake = Math.max(this.shake, 8);
-        this.popup(e.x, 1600, 'RING OUT', '#ffd23f', 40);
+      case EV.WALL:
+        // Slammed into the wall: debris, a crack and a jolt
+        this.burst(e.x, e.y, 22, '#e8dcc8', 7000, 0.4);
+        this.impact(e.x, e.y, 800, '#ffd23f');
+        this.dust(e.x, 10);
+        this.popup(e.x - Math.sign(e.x) * 600, e.y + 700, 'WALL!', '#ffd23f', 34);
+        this.shake = Math.max(this.shake, 14);
         break;
       case EV.GRAB:
         this.ring(e.x, e.y, 150, 1000, '#ffd27a', 0.25, false);
@@ -371,6 +382,24 @@ export class Effects2D {
       }
       case 'orb':
       case 'foxfire': {
+        if (look.weapon === 'fire') {
+          // Fireball: a flaming tail behind a white-hot core
+          g.rotate(ang);
+          g.save();
+          g.rotate(Math.PI / 2);
+          for (let q = 0; q < 3; q++) flame(g, (q - 1) * r * 0.35, r * 0.4, r * 1.3, r * (4.2 - Math.abs(q - 1)), this.time + q, p.age + q);
+          g.restore();
+          const core = g.createRadialGradient(0, 0, 0, 0, 0, r * 1.2);
+          core.addColorStop(0, '#fffbe8');
+          core.addColorStop(0.5, '#ffc04a');
+          core.addColorStop(1, 'rgba(255, 90, 30, 0)');
+          g.fillStyle = core;
+          g.beginPath();
+          g.arc(0, 0, r * 1.2, 0, TAU);
+          g.fill();
+          embers(g, -r * 2, 0, r * 2, r * 2, this.time, 8, '#ffd27a', p.age);
+          break;
+        }
         const c = spec.kind === 'foxfire' ? '#5ec8ff' : look.color;
         const flick = 1 + Math.sin(this.time * 30 + p.age) * 0.12;
         const gr = g.createRadialGradient(0, 0, 0, 0, 0, r * 2 * flick);
@@ -381,31 +410,12 @@ export class Effects2D {
         g.beginPath();
         g.arc(0, 0, r * 2 * flick, 0, TAU);
         g.fill();
-        // Trail
-        g.rotate(ang);
-        g.fillStyle = hexA(c, 0.35);
-        g.beginPath();
-        g.moveTo(0, -r * 0.8);
-        g.lineTo(-r * 4, 0);
-        g.lineTo(0, r * 0.8);
-        g.fill();
         break;
       }
       case 'lance': {
         g.rotate(ang);
-        const L = v.px(2400);
-        g.fillStyle = hexA(look.color, 0.5);
-        g.beginPath();
-        g.moveTo(L * 0.5, 0);
-        g.lineTo(-L * 0.5, -r * 1.2);
-        g.lineTo(-L * 0.5, r * 1.2);
-        g.fill();
-        g.fillStyle = '#ffffff';
-        g.beginPath();
-        g.moveTo(L * 0.5, 0);
-        g.lineTo(-L * 0.4, -r * 0.5);
-        g.lineTo(-L * 0.4, r * 0.5);
-        g.fill();
+        crystalLance(g, v.px(1900), Math.max(6, r * 0.55), look.color, look.glow);
+        embers(g, -v.px(900), 0, v.px(700), v.px(300), this.time, 6, '#e8fbff', p.age);
         break;
       }
       case 'shard': {
@@ -519,14 +529,41 @@ export class Effects2D {
         break;
       }
       case 'wave': {
-        g.scale((p.vx >= 0 ? 1 : -1) * v.flip, 1);
-        const H = v.px(1600);
-        g.fillStyle = hexA(look.color, 0.55);
-        g.beginPath();
-        g.moveTo(r, 0);
-        g.quadraticCurveTo(r * 2, -H * 0.5, r * 0.4, -H);
-        g.quadraticCurveTo(-r, -H * 0.5, -r * 2, 0);
-        g.fill();
+        const dir = (p.vx >= 0 ? 1 : -1) * v.flip;
+        g.scale(dir, 1);
+        const H = v.px(1700);
+        if (look.weapon === 'fire') {
+          // A rolling wall of flame
+          flameWall(g, -r * 1.6, r * 1.2, 0, H, this.time, p.age);
+          embers(g, 0, -H * 0.5, r * 3, H, this.time, 14, '#ffd27a', p.age);
+        } else if (look.weapon === 'anchor') {
+          waterCurl(g, r * 3, H, this.time);
+        } else {
+          // A big crescent slash of light (sword) or of void (scythe) with an afterimage trail
+          const dark = look.weapon === 'scythe';
+          const S = v.px(1250);
+          g.translate(0, -S * 0.75);
+          g.rotate(-0.35 + Math.sin(this.time * 6) * 0.03);
+          for (let q = 3; q >= 1; q--) {
+            g.save();
+            g.translate(-q * S * 0.22, 0);
+            g.globalAlpha = 0.18 * (4 - q);
+            crescent(g, S, S * 0.34, look.color, look.color, 2.6);
+            g.restore();
+          }
+          g.globalAlpha = 1;
+          g.shadowColor = look.color;
+          g.shadowBlur = 18;
+          crescent(g, S, S * 0.34, dark ? '#1a0826' : look.color, dark ? look.color : '#fffbe8', 2.6);
+          g.shadowBlur = 0;
+          g.strokeStyle = dark ? look.glow : '#ffffff';
+          g.lineWidth = 2;
+          g.beginPath();
+          g.arc(0, 0, S * 0.99, -1.25, 1.25);
+          g.stroke();
+          if (dark) smoke(g, -S * 0.6, S * 0.6, S * 0.5, this.time, 7, '#2a0f3a', p.age);
+          else embers(g, -S * 0.5, S * 0.7, S * 0.9, S * 1.2, this.time, 12, '#fff4c8', p.age);
+        }
         break;
       }
     }
@@ -663,19 +700,25 @@ export class Effects2D {
         break;
       }
       case 'holy': {
+        // A pillar of dawn: a beam from the sky, rays, rings of light and sparks
         const h = v.sy(0) + 40;
-        const w = rx * (0.5 + 0.5 * Math.min(1, k * 4));
+        const w = rx * 0.55 * (0.4 + 0.6 * Math.min(1, k * 4));
         const gr = g.createLinearGradient(x - w, 0, x + w, 0);
         gr.addColorStop(0, 'rgba(255,240,190,0)');
-        gr.addColorStop(0.5, 'rgba(255,250,230,0.95)');
+        gr.addColorStop(0.5, 'rgba(255,252,236,0.95)');
         gr.addColorStop(1, 'rgba(255,240,190,0)');
         g.fillStyle = gr;
         g.fillRect(x - w, y0 - h, w * 2, h);
-        g.strokeStyle = hexA(look.color, 0.9);
-        g.lineWidth = 4;
-        g.beginPath();
-        g.ellipse(x, y0, rx * 1.1, rx * 0.22, 0, 0, TAU);
-        g.stroke();
+        rays(g, x, y0, rx * 2.2, 9, this.time, '#ffe9a8');
+        for (let n = 0; n < 3; n++) {
+          const ry = y0 - v.px(600 + n * 900) - k * v.px(400);
+          g.strokeStyle = hexA(look.color, 0.85 - n * 0.2);
+          g.lineWidth = 4 - n;
+          g.beginPath();
+          g.ellipse(x, ry, rx * (0.9 - n * 0.2), rx * 0.18, 0, 0, TAU);
+          g.stroke();
+        }
+        embers(g, x, y0, rx * 1.6, v.px(3000), this.time, 24, '#fff6c8', a.age);
         break;
       }
       case 'shout': {
@@ -690,20 +733,33 @@ export class Effects2D {
         break;
       }
       case 'barrage': {
-        g.strokeStyle = look.color;
-        g.lineWidth = 3;
-        for (let i = 0; i < 10; i++) {
-          const sx = x + (((i * 73 + a.age * 13) % 100) / 100 - 0.5) * rx * 2;
-          const sy = y0 - ((a.age * 40 + i * 60) % 400);
+        // Arrows raining down, each with a streak of light
+        for (let i = 0; i < 14; i++) {
+          const sx = x + (hash(i * 7.1) - 0.5) * rx * 1.8;
+          const fall = ((a.age * 0.09 + hash(i * 3.3)) % 1) * v.px(2600);
+          const sy = y0 - v.px(2600) + fall;
+          g.save();
+          g.translate(sx, sy);
+          g.rotate(Math.PI / 2 + 0.12);
+          const tr = g.createLinearGradient(-v.px(700), 0, 0, 0);
+          tr.addColorStop(0, hexA(look.glow, 0));
+          tr.addColorStop(1, hexA(look.glow, 0.8));
+          g.fillStyle = tr;
+          g.fillRect(-v.px(700), -2, v.px(700), 4);
+          g.fillStyle = '#e8f0f2';
           g.beginPath();
-          g.moveTo(sx, sy - 40);
-          g.lineTo(sx, sy);
-          g.stroke();
+          g.moveTo(v.px(120), 0);
+          g.lineTo(0, -4);
+          g.lineTo(0, 4);
+          g.fill();
+          g.restore();
         }
-        g.fillStyle = hexA(look.color, 0.3);
+        g.strokeStyle = hexA(look.color, 0.8);
+        g.lineWidth = 3;
         g.beginPath();
         g.ellipse(x, y0, rx, rx * 0.18, 0, 0, TAU);
-        g.fill();
+        g.stroke();
+        embers(g, x, y0, rx * 1.6, v.px(500), this.time, 10, look.glow, a.age);
         break;
       }
       case 'meteor': {
@@ -811,18 +867,26 @@ export class Effects2D {
         }
         break;
       }
-      case 'blast':
+      case 'blast': {
+        // A pillar of fire bursting out of the ground
+        const rise = Math.min(1, k * 4);
+        g.fillStyle = 'rgba(40, 14, 10, 0.5)';
+        g.beginPath();
+        g.ellipse(x, y0, rx, rx * 0.18, 0, 0, TAU);
+        g.fill();
+        flameWall(g, x - rx * 0.8, x + rx * 0.8, y0, v.px(2600) * rise, this.time, a.action);
+        flame(g, x, y0, rx * 0.9, v.px(3400) * rise, this.time, 99);
+        smoke(g, x, y0 - v.px(2600) * rise, rx * 0.6, this.time, 5, '#3a2a2a', a.age);
+        embers(g, x, y0, rx * 2, v.px(3200), this.time, 18, '#ffd27a', a.age);
+        if (k < 0.3) starBurst(g, x, y0 - v.px(300), rx * 1.2, k / 0.3, '#ff7a2a', '#ffe08a', a.age);
+        break;
+      }
       case 'burst':
       default: {
-        const R = rx * (0.5 + 0.7 * Math.min(1, k * 3));
-        const gr = g.createRadialGradient(x, y0 - R * 0.4, 0, x, y0 - R * 0.4, R);
-        gr.addColorStop(0, '#ffffff');
-        gr.addColorStop(0.4, spec.kind === 'blast' ? '#ffcf6a' : hexA(look.glow, 0.95));
-        gr.addColorStop(1, hexA(spec.kind === 'blast' ? '#ff6a3a' : look.color, 0));
-        g.fillStyle = gr;
-        g.beginPath();
-        g.arc(x, y0 - R * 0.4, R, 0, TAU);
-        g.fill();
+        // A star-shaped blast in the hero's colours
+        starBurst(g, x, y0 - v.px(900), rx * 1.1, Math.min(1, k * 1.4), look.color, look.glow, a.age + a.action);
+        if (look.weapon === 'fire') flameWall(g, x - rx * 0.7, x + rx * 0.7, y0, v.px(1400) * (1 - k), this.time, a.age);
+        else embers(g, x, y0 - v.px(400), rx * 1.6, v.px(1600), this.time, 14, look.glow, a.age);
         break;
       }
     }

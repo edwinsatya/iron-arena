@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { END, EV, FS, JUGGLE_LIMIT, PHASE, RING_OUT_Y, ULT_MAX } from '../src/constants';
+import { ARENA_WALK_R, END, EV, FS, JUGGLE_LIMIT, PHASE, ULT_MAX } from '../src/constants';
 import { getCharacter } from '../src/roster';
 import { step } from '../src/step';
 import { BTN, eventsOf, run, setup, tap } from './helpers';
@@ -155,14 +155,62 @@ describe('skills', () => {
 });
 
 describe('rounds', () => {
-  it('a knockback off the roof is a ring-out', () => {
-    const s = setup('benika', 'dummy', 6600, 7300);
-    s.fighters[0].fx = 1024;
-    tap(s, 0, BTN.SKILL2);
-    for (let k = 0; k < 200 && s.phase === PHASE.FIGHT; k++) step(s, [0, 0]);
-    expect(s.fighters[1].y).toBeLessThan(RING_OUT_Y + 1);
-    expect(s.endReason).toBe(END.RING_OUT);
-    expect(s.endWinner).toBe(0);
+  it('walls: a knockback into the stage end bounces off it, nobody leaves the stage', () => {
+    const s = setup('benika', 'dummy', 5000, 7300);
+    // Launched hard toward the right wall
+    const v = s.fighters[1];
+    v.state = FS.LAUNCHED;
+    v.vx = 90;
+    v.vy = 40;
+    v.y = 200;
+    let wall = false;
+    for (let k = 0; k < 200 && s.phase === PHASE.FIGHT; k++) {
+      step(s, [0, 0]);
+      if (eventsOf(s, EV.WALL) > 0) wall = true;
+      for (const f of s.fighters) {
+        expect(Math.abs(f.x)).toBeLessThanOrEqual(ARENA_WALK_R);
+        expect(f.y).toBeGreaterThanOrEqual(0);
+      }
+    }
+    expect(wall).toBe(true);
+    expect(v.x).toBeLessThan(ARENA_WALK_R); // bounced back off it
+    expect(s.phase).toBe(PHASE.FIGHT);
+  });
+
+  it('double jump: one extra jump in the air, refreshed on landing; tapping Jump makes a short hop', () => {
+    const s = setup('benika', 'dummy', -3000, 3000);
+    const a = s.fighters[0];
+    tap(s, 0, BTN.JUMP);
+    let peakTap = 0;
+    for (let k = 0; k < 80; k++) {
+      step(s, [0, 0]);
+      peakTap = Math.max(peakTap, a.y);
+    }
+    expect(a.y).toBe(0);
+    // Held jump goes higher than a tap
+    step(s, [BTN.JUMP, 0]);
+    let peakHeld = 0;
+    for (let k = 0; k < 14; k++) {
+      step(s, [BTN.JUMP, 0]);
+      peakHeld = Math.max(peakHeld, a.y);
+    }
+    // Double jump near the top
+    step(s, [0, 0]);
+    step(s, [BTN.JUMP, 0]);
+    expect(a.airJumps).toBe(1);
+    expect(s.recentEvents.some((e) => e.type === EV.JUMP && e.value === 1)).toBe(true);
+    for (let k = 0; k < 20; k++) {
+      step(s, [BTN.JUMP, 0]);
+      peakHeld = Math.max(peakHeld, a.y);
+    }
+    // A third jump is not allowed
+    step(s, [0, 0]);
+    step(s, [BTN.JUMP, 0]);
+    expect(a.airJumps).toBe(1);
+    for (let k = 0; k < 120 && a.y > 0; k++) step(s, [0, 0]);
+    expect(a.y).toBe(0);
+    expect(a.airJumps).toBe(0);
+    expect(peakHeld).toBeGreaterThan(peakTap * 1.5);
   });
 
   it('time out: more health wins; first to 2 rounds wins the match', () => {

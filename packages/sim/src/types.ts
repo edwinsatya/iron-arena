@@ -235,6 +235,8 @@ export interface FighterState {
   buffDamagePct: number;
   buffSpeedPct: number;
   invulnFrames: number;
+  /** Air jumps used since leaving the ground (double jump). */
+  airJumps: number;
   /** Frames Attack has been held without a break (charge attacks). */
   holdA: number;
   // Input tracking (lives here so rollback restores it)

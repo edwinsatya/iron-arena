@@ -83,7 +83,7 @@ export const gokai: HeroData = {
           frames: [16, 20],
           at: [1500, 900, 0],
           r: 700,
-          hit: { damage: 70, guardBreak: true, kb: -44, hitstun: 30, hitstop: 9 },
+          hit: { damage: 58, guardBreak: true, kb: -44, hitstun: 30, hitstop: 9 },
         },
       ],
       cancelFrom: 32,

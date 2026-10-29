@@ -208,8 +208,9 @@ export class Sfx {
         this.thump(60, 0.9, 1);
         this.burst({ freq: 300, q: 0.5, dur: 0.8, gain: 0.5, type: 'lowpass' });
         break;
-      case EV.FALL:
-        this.tone(1200, 200, 1.2, 0.2, 'sine');
+      case EV.WALL:
+        this.thump(55, 0.5, 1);
+        this.burst({ freq: 900, q: 0.7, dur: 0.35, gain: 0.5, type: 'lowpass', sweepTo: 200 });
         break;
     }
   }

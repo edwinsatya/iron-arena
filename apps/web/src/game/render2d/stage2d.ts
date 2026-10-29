@@ -1,5 +1,5 @@
 import { ARENA_R } from '@neonfist/sim';
-import { hexA, mix, seeded, type View2D } from './view';
+import { hexA, mix, seeded, View2D } from './view';
 
 /**
  * Painted side-view backdrops, drawn once into layers with canvas 2D and scrolled with parallax.
@@ -284,26 +284,13 @@ function harbor(): Stage2D {
       { canvas: mid, parallax: 0.4 },
       { canvas: near, parallax: 0.75 },
     ],
-    floor: (g, v, time) => {
+    floor: (g, v) => {
       drawFloor(g, v, {
         top: '#c9b394',
         bottom: '#e8d6b8',
         line: hexA('#8f7558', 0.45),
         edge: '#a88c6b',
-        beyond: (x0, x1, yTop) => {
-          // Harbour water beyond the end of the pier
-          const sea = g.createLinearGradient(0, yTop, 0, v.h);
-          sea.addColorStop(0, '#4f7fae');
-          sea.addColorStop(1, '#1f3f6e');
-          g.fillStyle = sea;
-          g.fillRect(x0, yTop + 6, x1 - x0, v.h - yTop);
-          g.fillStyle = hexA('#ffffff', 0.35);
-          for (let k = 0; k < 6; k++) {
-            const y = yTop + 20 + k * ((v.h - yTop) / 6);
-            const off = (time * 30 + k * 40) % 80;
-            for (let x = x0 - 80 + off; x < x1; x += 80) g.fillRect(x, y, 30, 2);
-          }
-        },
+        wall: { top: '#d9c3a2', bottom: '#9c8364', line: hexA('#6e5940', 0.5), bricks: true },
       });
     },
     tint: '#ffb35a',
@@ -447,27 +434,14 @@ function rooftop(): Stage2D {
       { canvas: mid, parallax: 0.35 },
       { canvas: near, parallax: 0.75 },
     ],
-    floor: (g, v, time) => {
+    floor: (g, v) => {
       drawFloor(g, v, {
         top: '#3a3760',
         bottom: '#57527f',
         line: hexA('#9a92d6', 0.25),
         edge: '#ffcf3e',
         hazard: true,
-        beyond: (x0, x1, yTop) => {
-          // The drop: city lights far below
-          const d = g.createLinearGradient(0, yTop, 0, v.h);
-          d.addColorStop(0, '#120c2c');
-          d.addColorStop(1, '#2a1650');
-          g.fillStyle = d;
-          g.fillRect(x0, yTop, x1 - x0, v.h - yTop);
-          for (let k = 0; k < 40; k++) {
-            const lx = x0 + ((k * 97.3 + Math.floor(v.camX / 50)) % Math.max(1, x1 - x0));
-            const ly = yTop + 30 + ((k * 53.1) % (v.h - yTop - 30));
-            g.fillStyle = hexA(k % 3 ? '#ffd48a' : '#ff4fa3', 0.4 + 0.3 * Math.sin(time * 2 + k));
-            g.fillRect(lx, ly, 3, 3);
-          }
-        },
+        wall: { top: '#2c2950', bottom: '#1a1736', line: hexA('#ff4fa3', 0.8), bricks: false },
       });
     },
     tint: '#7a5cff',
@@ -481,7 +455,8 @@ interface FloorStyle {
   line: string;
   edge: string;
   hazard?: boolean;
-  beyond: (x0: number, x1: number, yTop: number) => void;
+  /** The walls at both ends of the stage. */
+  wall: { top: string; bottom: string; line: string; bricks: boolean };
 }
 
 /** The fighting floor: a band with perspective tile lines that scroll with the camera. */
@@ -500,11 +475,6 @@ function drawFloor(g: CanvasRenderingContext2D, v: View2D, st: FloorStyle) {
   const R = ARENA_R * v.flip;
   const leftEdge = Math.max(-200, at(L, yTop));
   const rightEdge = Math.min(v.w + 200, at(R, yTop));
-  // Void beyond each end
-  const lb = Math.max(at(L, yTop), at(L, yBot));
-  const rb = Math.min(at(R, yTop), at(R, yBot));
-  if (lb > 0) st.beyond(0, lb, yTop);
-  if (rb < v.w) st.beyond(rb, v.w, yTop);
 
   g.save();
   g.beginPath();
@@ -547,17 +517,66 @@ function drawFloor(g: CanvasRenderingContext2D, v: View2D, st: FloorStyle) {
   g.fillRect(0, yTop, v.w, yBot - yTop);
   g.restore();
 
-  // Edges of the stage (where ring-outs happen)
+  // Walls at both ends: nobody leaves the stage
+  const wallTop = v.sy(3800);
   for (const sgn of [-1, 1]) {
-    const x0 = at(sgn * ARENA_R, yTop);
-    const x1 = at(sgn * ARENA_R, yBot);
-    if (Math.max(x0, x1) < -50 || Math.min(x0, x1) > v.w + 50) continue;
-    g.strokeStyle = st.edge;
-    g.lineWidth = st.hazard ? 10 : 6;
-    if (st.hazard) g.setLineDash([18, 14]);
+    const xTop = at(sgn * ARENA_R, yTop);
+    const xBot = at(sgn * ARENA_R, yBot);
+    const outer = sgn * v.flip > 0 ? v.w + 20 : -20;
+    if ((outer > 0 && Math.min(xTop, xBot) > v.w + 20) || (outer < 0 && Math.max(xTop, xBot) < -20)) continue;
+    g.save();
     g.beginPath();
-    g.moveTo(x0, yTop);
-    g.lineTo(x1, yBot);
+    g.moveTo(xTop, wallTop);
+    g.lineTo(outer, wallTop);
+    g.lineTo(outer, yBot);
+    g.lineTo(xBot, yBot);
+    g.lineTo(xTop, yTop);
+    g.closePath();
+    const wf = g.createLinearGradient(0, wallTop, 0, yBot);
+    wf.addColorStop(0, st.wall.top);
+    wf.addColorStop(1, st.wall.bottom);
+    g.fillStyle = wf;
+    g.fill();
+    g.clip();
+    g.strokeStyle = st.wall.line;
+    g.lineWidth = 2;
+    const rows = 9;
+    for (let r = 1; r < rows; r++) {
+      const y = wallTop + ((yTop - wallTop) * r) / rows;
+      g.beginPath();
+      g.moveTo(Math.min(xTop, outer) - 10, y);
+      g.lineTo(Math.max(xTop, outer) + 10, y);
+      g.stroke();
+      if (st.wall.bricks) {
+        const bw = v.px(700);
+        for (let x = xTop + ((r % 2) * bw) / 2 * sgn * v.flip; Math.abs(x - xTop) < Math.abs(outer - xTop) + bw; x += bw * sgn * v.flip) {
+          g.beginPath();
+          g.moveTo(x, y);
+          g.lineTo(x, y - (yTop - wallTop) / rows);
+          g.stroke();
+        }
+      }
+    }
+    if (!st.wall.bricks) {
+      // Neon strip and hazard band
+      g.fillStyle = st.wall.line;
+      g.fillRect(Math.min(xTop, outer), wallTop + (yTop - wallTop) * 0.3, Math.abs(outer - xTop), 4);
+    }
+    // Shade toward the stage: the wall's face catches less light
+    const sh = g.createLinearGradient(xTop, 0, xTop + sgn * v.flip * v.px(900), 0);
+    sh.addColorStop(0, 'rgba(0,0,0,0.35)');
+    sh.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = sh;
+    g.fillRect(Math.min(xTop, outer), wallTop, Math.abs(outer - xTop), yBot - wallTop);
+    g.restore();
+    // Trim
+    g.strokeStyle = st.edge;
+    g.lineWidth = st.hazard ? 8 : 6;
+    if (st.hazard) g.setLineDash([16, 12]);
+    g.beginPath();
+    g.moveTo(xTop, wallTop);
+    g.lineTo(xTop, yTop);
+    g.lineTo(xBot, yBot);
     g.stroke();
     g.setLineDash([]);
   }
@@ -566,24 +585,72 @@ function drawFloor(g: CanvasRenderingContext2D, v: View2D, st: FloorStyle) {
   g.fillRect(at(-ARENA_R, yTop), yTop, at(ARENA_R, yTop) - at(-ARENA_R, yTop), 3);
 }
 
-/** Draw the backdrop layers with parallax (they don't zoom: only the floor and heroes do). */
-export function drawBackdrop(g: CanvasRenderingContext2D, stage: Stage2D, v: View2D) {
+/** Layers pre-scaled to the screen (rebuilt only when the screen size changes). */
+const scaled = new WeakMap<Stage2D, { key: string; layers: HTMLCanvasElement[] }>();
+
+function scaledLayers(stage: Stage2D, w: number, h: number, dpr: number): HTMLCanvasElement[] {
+  const key = `${w}x${h}@${dpr}`;
+  const hit = scaled.get(stage);
+  if (hit && hit.key === key) return hit.layers;
+  const layers = stage.layers.map((l) => {
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(w * dpr));
+    c.height = Math.max(1, Math.round(h * dpr));
+    const g = c.getContext('2d')!;
+    g.imageSmoothingQuality = 'high';
+    g.drawImage(l.canvas, 0, 0, c.width, c.height);
+    return c;
+  });
+  scaled.set(stage, { key, layers });
+  return layers;
+}
+
+/**
+ * Draw the backdrop layers with parallax (they don't zoom: only the floor and heroes do).
+ * The big painted layers are scaled to the screen once and then only blitted.
+ */
+export function drawBackdrop(g: CanvasRenderingContext2D, stage: Stage2D, v: View2D, dpr = 1) {
   // Cover the screen height down to the floor top (plus a little so seams never show)
   const hDst = v.h * (FLOOR_TOP + 0.02) * (REF_H / 710);
   const s = hDst / REF_H;
   const wDst = Math.max(REF_W * s, v.w * 1.15);
-  const sx = wDst / REF_W;
   const slack = Math.max(0, wDst - v.w);
   const camN = Math.max(-1, Math.min(1, (v.camX * v.flip) / ARENA_R));
   g.fillStyle = stage.skyTop;
   g.fillRect(0, 0, v.w, v.h);
-  for (const l of stage.layers) {
+  const layers = scaledLayers(stage, Math.round(wDst), Math.round(hDst), Math.min(dpr, 1.25));
+  stage.layers.forEach((l, k) => {
     const x = (v.w - wDst) / 2 - camN * (slack / 2) * l.parallax + v.ox * l.parallax;
     const lift = (v.groundY - v.h * GROUND) * (0.3 + 0.7 * l.parallax);
-    g.drawImage(l.canvas, x, v.oy * l.parallax + lift, REF_W * sx, REF_H * s);
-  }
+    g.drawImage(layers[k]!, x, v.oy * l.parallax + lift, wDst, hDst);
+  });
 }
 
 export function buildStage2D(id: string): Stage2D {
   return id === 'rooftop-night' ? rooftop() : harbor();
+}
+
+const previews = new Map<string, string>();
+
+/** A still of the stage (backdrop, floor and walls) as an image URL, for the arena picker. */
+export function stagePreview(id: string, w = 480, h = 270): string {
+  const key = `${id}:${w}x${h}`;
+  const hit = previews.get(key);
+  if (hit) return hit;
+  const stage = buildStage2D(id);
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const g = c.getContext('2d')!;
+  const v = new View2D();
+  v.w = w;
+  v.h = h;
+  v.camX = 0;
+  v.scale = w / 15000;
+  v.groundY = h * GROUND;
+  drawBackdrop(g, stage, v);
+  stage.floor(g, v, 0);
+  const url = c.toDataURL('image/jpeg', 0.85);
+  previews.set(key, url);
+  return url;
 }

@@ -4,7 +4,8 @@ import { dist2, localToWorld, normalize, rotate } from './math';
 import { ROSTER } from './roster';
 import type { ActionData, AreaSpec, GameState, ProjectileSpec } from './types';
 
-const FAR2 = (ARENA_R + 6000) * (ARENA_R + 6000);
+/** Projectiles break on the walls at the ends of the stage. */
+const WALL_X = ARENA_R + 200;
 
 export function projectileSpec(char: number, action: number, spec: number): ProjectileSpec {
   return ROSTER[char]!.actions[action]!.projectiles![spec]!;
@@ -132,7 +133,7 @@ export function updateEntities(s: GameState): void {
   for (let r = 0; r < s.projectiles.length; r++) {
     const p = s.projectiles[r]!;
     const spec = projectileSpec(p.char, p.action, p.spec);
-    const gone = p.age >= spec.life || (p.hit === 1 && !spec.pierce) || p.x * p.x + p.z * p.z > FAR2;
+    const gone = p.age >= spec.life || (p.hit === 1 && !spec.pierce) || p.x > WALL_X || p.x < -WALL_X;
     if (gone) {
       if (p.age >= spec.life && p.hit === 0) explode(s, p);
       continue;
