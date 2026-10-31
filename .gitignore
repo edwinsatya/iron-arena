@@ -16,5 +16,4 @@ next-env.d.ts
 desync-*.json
 
 # Raw animation packs (converted into the game by tools)
-assets-src/animations/
 assets-src/sprites/
