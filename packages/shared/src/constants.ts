@@ -42,6 +42,7 @@ export const SELECTABLE_FIGHTERS = [
   'lysa',
   'hyoga',
   'hyoshin',
+  'akari',
   'reo',
   'kage',
   'homura',

@@ -161,6 +161,8 @@ export function chooseSprite(atlas: Atlas, s: GameState, i: number, time: number
     case FS.GUARD_BREAK: {
       const k = Math.min(1, t / 6);
       const back = 0.22 * (1 - Math.max(0, (t - 8) / 14));
+      // A real flinch animation when the pack has one
+      if (A.hurt) return over(A.hurt, t, 20, { rot: Math.max(0, back) * 0.3 });
       return death
         ? at(death, 0.12 + 0.06 * k, { rot: Math.max(0, back) * 0.5 })
         : pick(idle, 0, { rot: Math.max(0, back) });
@@ -421,6 +423,7 @@ const HAS_ART: Record<string, string[]> = {
   lysa: ['face', 'faceShout', 'full', 'cardS1', 'cardS2', 'cardS3', 'cardUlt'],
   hyoga: ['face', 'faceShout', 'full', 'cardS1', 'cardS2', 'cardS3', 'cardUlt'],
   hyoshin: ['face', 'full', 'cardS1', 'cardS2', 'cardS3', 'cardUlt'],
+  akari: ['face', 'faceShout', 'full', 'cardS1', 'cardS2', 'cardS3', 'cardUlt'],
 };
 
 /** A still for menus and cards: an action at its contact frame, or the first idle frame. */

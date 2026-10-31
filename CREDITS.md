@@ -12,6 +12,7 @@ All heroes are drawn with free character packs by **elie automata** ([itch.io](h
 | Lysa | Elven Bow Scout (free complete pack) |
 | Hyōga | Glacierbreaker Knight (free complete pack) |
 | Hyōshin | Glacial Heart (free complete pack) |
+| Akari | Young Swordswoman (free complete pack) |
 | Reo | Shield Knight (free pack) |
 | Kage | Black Assassin (free pack) |
 | Homura | Fire Witch (free pack) |

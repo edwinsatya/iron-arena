@@ -58,6 +58,7 @@ Guard+Jump = skill 3, all three = ultimate. Phones and tablets get an on-screen 
 | **Lysa** "Windfeather Scout" | Archer (bow) | 1010 | **Hayate Piercer**: piercing arrow | **Kazekiri Dash**: invulnerable dash-kick, launches | **Konoha Vortex**: vanishes backwards, leaves cutting leaves | **Takanome Volley**: marks the target, homing arrows, final rain |
 | **Hyōga** "Glacierbreaker" | Guardian (ice hammer) | 990 | **Hyōtsui Hammerfall**: hammer drop, ice spikes burst ahead | **Fubuki Cyclone**: pulling spin, leaves foes dizzy | **Hyōheki Bastion**: ice wall shove, 4 s armor, small heal | **Eikyū Permafrost**: the floor freezes over, then shatters |
 | **Hyōshin** "Glacial Heart" | Mage (ice) | 1040 | **Hyōsō Bolt**: piercing bolt that freezes in place | **Frost Barrier**: repelling ice sphere, then armour | **Death Shatter**: bursts into cutting shards, re-forms far away | **Absolute Zero**: teleports in, blizzard vortex drags everything in |
+| **Akari** "Dawn Blade" | Knight (sword) | 940 | **Shōten Rising**: rising launcher that jumps after them | **Senkō Flash**: invulnerable dash-through cut that stuns | **Kabuto-wari**: armoured guard-breaking overhead | **Reimei Sky Blade**: chant, then a blade of light falls from the sky |
 | **Reo** "Aegis Knight" | Knight (sword and shield) | 980 | **Hakō Wave**: piercing sword wave | **Shōryū Rising**: rising launcher | **Kōbō Aegis**: shield counter, unblockable riposte | **Akatsuki Daybreak**: teleports in, seven light cuts, pillar of dawn |
 | **Kage** "Hooded Shadow" | Assassin (daggers) | 1000 | **Senbon Fan**: three kunai | **Shunpo Behind**: blink behind, stunning cut | **Utsusemi Decoy**: smoke counter, unblockable strike from behind | **Senjin Thousand Cuts**: teleports in, cuts from every side |
 | **Homura** "Ember Witch" | Mage (fire) | 1000 | **Kaen Pillar**: fire pillar under the enemy | **Homura Wave**: rolling wall of flame | **Hōen Ward**: flame burst pushes away, +20% damage | **Ryūsei Meteor**: meteors track the enemy, then the big one |
@@ -87,5 +88,5 @@ controls* page is generated from the data.
 
 `pnpm balance [matches] [--detail]` plays CPU-vs-CPU for every pair and prints win rates, round
 endings, a win matrix and each hero's damage by move. Last run (10 matches per pair, hard CPU):
-Gōkai 64%, Kuma 60%, Hyōga 58%, Benika 56%, Reo 56%, Hyōshin 44%, Lysa 42%, Kage 42%,
-Homura 40%, Yomi 38%. CPU play favours melee; tune with real players.
+Gōkai 61%, Benika 58%, Kuma 58%, Hyōga 56%, Reo 54%, Akari 53%, Kage 46%, Hyōshin 43%,
+Lysa 41%, Homura 40%, Yomi 39%. CPU play favours melee; tune with real players.

@@ -52,6 +52,9 @@ interface HeroCfg {
   art?: string;
   /** Skill card index (0–3 on the board) for skill 1, 2, 3 and the ultimate. */
   cards?: [number, number, number, number];
+  /** Packs with an "actions" board instead of a skills board: file suffix and the card crops
+   * [left, top, size] for skill 1, 2, 3 and the ultimate. */
+  actionCards?: { file: string; rects: [number, number, number][] };
   /** Packs without art: the sprite frame to crop a portrait from. */
   face?: { src: string; dir: string; frame: number };
   /** Packs with full art but no portrait board: square crop of Fullart_01 for the portrait. */
@@ -120,6 +123,33 @@ const HEROES: HeroCfg[] = [
       shatter: { src: 'Death', range: [0, 11], hit: 8 },
       zero: { src: 'Absolute_Zero', hit: 9 },
       death: { src: 'Death' },
+    },
+  },
+  {
+    id: 'akari',
+    pack: 'young-swordswoman-COMPLETE-FREE',
+    height: 1.7,
+    art: 'Young_Swordswoman_',
+    actionCards: {
+      file: 'character_actions.png',
+      // Rising slash, downward slash, overhead slash, spell chant (picture area of each card)
+      rects: [
+        [111, 880, 255],
+        [856, 520, 255],
+        [482, 880, 255],
+        [856, 880, 255],
+      ],
+    },
+    anims: {
+      idle: { src: 'Idle', fps: 10, loop: true },
+      walk: { src: 'Walk', fps: 12, loop: true },
+      run: { src: 'Run', fps: 14, loop: true },
+      jump: { src: 'Jump' },
+      hurt: { src: 'Recoil' },
+      down: { src: 'Downward_Sword_Slash', hit: 6 },
+      rise: { src: 'Rising_Sword_Slash', hit: 7 },
+      over: { src: 'Overhead_Slash', hit: 3 },
+      chant: { src: 'Spell_Chant', hit: 3 },
     },
   },
   {
@@ -415,6 +445,18 @@ async function hero(cfg: HeroCfg) {
         const name = k === 3 ? 'card-ult.webp' : `card-s${k + 1}.webp`;
         await sharp(join(artDir, skills))
           .extract({ left: boxes[card]!, top: 238, width: 276, height: 262 })
+          .resize(240, 240)
+          .webp({ quality: 88 })
+          .toFile(join(out, name));
+        art[k === 3 ? 'cardUlt' : `cardS${k + 1}`] = name;
+      }
+    }
+    const actions = cfg.actionCards && files.find((f) => f.startsWith(cfg.art!) && f.endsWith(cfg.actionCards!.file));
+    if (actions && cfg.actionCards) {
+      for (const [k, [left, top, size]] of cfg.actionCards.rects.entries()) {
+        const name = k === 3 ? 'card-ult.webp' : `card-s${k + 1}.webp`;
+        await sharp(join(artDir, actions))
+          .extract({ left, top, width: size, height: size })
           .resize(240, 240)
           .webp({ quality: 88 })
           .toFile(join(out, name));
