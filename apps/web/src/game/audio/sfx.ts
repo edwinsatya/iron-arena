@@ -114,6 +114,11 @@ export class Sfx {
         if (weapon === 'fire') this.burst({ freq: 900, q: 0.7, dur: 0.3, gain: 0.35, type: 'lowpass', sweepTo: 300 });
         if (weapon === 'ice') this.burst({ freq: 5200, q: 5, dur: 0.18, gain: 0.3, sweepTo: 7000 });
         if (weapon === 'hammer' || weapon === 'anchor') this.thump(70, 0.25, 0.7);
+        if (weapon === 'lantern') {
+          // Iron lantern clank and a crackle of fire
+          this.burst({ freq: 2600, q: 7, dur: 0.12, gain: 0.3, sweepTo: 2200 });
+          this.burst({ freq: 900, q: 0.7, dur: 0.22, gain: 0.25, type: 'lowpass', sweepTo: 300 });
+        }
         this.burst({
           freq: 1800 - heavy * 900,
           q: 0.9,
@@ -163,11 +168,21 @@ export class Sfx {
           this.burst({ freq: 4200, q: 3, dur: 0.2, gain: 0.25, sweepTo: 2000 });
         } else if (weapon === 'dagger') {
           this.burst({ freq: 5200, q: 4, dur: 0.1, gain: 0.25, sweepTo: 2600 });
+        } else if (weapon === 'lantern') {
+          // Glass clinks, wings flutter
+          this.tone(2300, 2900, 0.08, 0.14, 'triangle');
+          this.burst({ freq: 1300, q: 2.5, dur: 0.28, gain: 0.22, sweepTo: 900 });
         } else {
           this.tone(380, 980, 0.22, 0.25, 'triangle');
         }
         break;
       case EV.EXPLODE:
+        if (weapon === 'lantern') {
+          // A flask shatters into a hiss of poison
+          this.burst({ freq: 5600, q: 2, dur: 0.22, gain: 0.35, sweepTo: 2600 });
+          this.burst({ freq: 500, q: 0.6, dur: 0.6, gain: 0.35, type: 'lowpass', sweepTo: 180 });
+          break;
+        }
         this.thump(55, 0.6, 1);
         this.burst({ freq: 700, q: 0.6, dur: 0.5, gain: 0.7, type: 'lowpass', sweepTo: 120 });
         break;

@@ -2,7 +2,7 @@ import { BTN } from '@neonfist/shared';
 import { FS, ULT_MAX } from './constants';
 import { dist2, isqrt } from './math';
 import { ROSTER } from './roster';
-import type { GameState } from './types';
+import type { CompiledHero, GameState } from './types';
 
 function makeRng(seed: number) {
   let a = seed | 0;
@@ -47,6 +47,11 @@ const BUTTONS = [
  * A random "player" for soak tests and synctests: holds directions, taps and holds buttons,
  * double-taps to dash, chords skills. Exercises every system without looking at the state.
  */
+/** Heroes whose basic attack is a shot keep their distance; the rest close in. */
+function fightsAtRange(hero: CompiledHero): boolean {
+  return (hero.actions[hero.basicIdx[0]!]?.projectiles?.length ?? 0) > 0;
+}
+
 export function randomBot(seed: number): () => number {
   const r = makeRng(seed);
   let dir = 0;
@@ -101,7 +106,7 @@ export function cpuBot(seed: number, opts: CpuOptions = { level: 1 }) {
     const f = s.fighters[me]!;
     const o = s.fighters[1 - me]!;
     const hero = ROSTER[f.char]!;
-    const ranged = hero.role === 'Archer' || hero.role === 'Mage';
+    const ranged = fightsAtRange(hero);
     const dx = o.x - f.x;
     const dz = o.z - f.z;
     const dist = isqrt(dx * dx + dz * dz);
@@ -132,7 +137,7 @@ export function cpuBot(seed: number, opts: CpuOptions = { level: 1 }) {
 
     const threatened =
       o.state === FS.ACTION &&
-      dist < (ROSTER[o.char]!.role === 'Archer' || ROSTER[o.char]!.role === 'Mage' ? 9000 : 2600);
+      dist < (fightsAtRange(ROSTER[o.char]!) ? 9000 : 2600);
     const projectileIncoming = s.projectiles.some(
       (p) => p.owner !== me && dist2(p.x, p.z, f.x, f.z) < 2200 * 2200,
     );

@@ -28,7 +28,7 @@ export interface Look {
   /** Second colour for gradients and effects. */
   glow: string;
   /** Sound family for hits and swings. */
-  weapon: 'axe' | 'bow' | 'hammer' | 'sword' | 'dagger' | 'fire' | 'ice' | 'anchor' | 'scythe' | 'claw' | 'none';
+  weapon: 'axe' | 'bow' | 'hammer' | 'sword' | 'dagger' | 'fire' | 'ice' | 'anchor' | 'scythe' | 'claw' | 'lantern' | 'none';
   /** Sprite animation per action id. */
   actions: Record<string, AnimRef>;
   /** Victory pose. */
@@ -246,6 +246,25 @@ export const LOOKS: Record<string, Look> = {
       km_s2: { anim: 'attack', cycle: [8, 6] },
       km_s3: { anim: 'idle', puppet: 'guard' },
       km_ult: { anim: 'attack', cycle: [10, 8] },
+    },
+  },
+  karasu: {
+    color: '#8fe05a',
+    glow: '#e2ffb5',
+    weapon: 'lantern',
+    altHue: 250,
+    win: { anim: 'win', hold: 6 },
+    actions: {
+      kr_b1: 'attack',
+      kr_b2: 'swing2',
+      kr_b3: 'slam',
+      kr_dash: { anim: 'attack', puppet: 'lunge' },
+      kr_air: 'toss',
+      kr_charge: 'plague',
+      kr_s1: 'toss',
+      kr_s2: 'present',
+      kr_s3: { anim: 'veil', until: 22, after: 'idle' },
+      kr_ult: 'ultcast',
     },
   },
   dummy: {

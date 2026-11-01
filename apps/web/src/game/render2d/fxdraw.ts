@@ -13,14 +13,29 @@ export function hash(n: number): number {
   return s - Math.floor(s);
 }
 
+/** Flame colours, outside → core. */
+export type FlamePalette = [string, string, string];
+export const FIRE: FlamePalette = ['rgba(255, 70, 30, 0.85)', 'rgba(255, 150, 40, 0.92)', 'rgba(255, 236, 160, 0.95)'];
+/** Plague fire: the Plague Doctor's lantern. */
+export const PLAGUE_FIRE: FlamePalette = ['rgba(40, 150, 70, 0.85)', 'rgba(120, 220, 80, 0.92)', 'rgba(228, 255, 180, 0.95)'];
+
 /** One flickering flame tongue standing on (x, y), `w` wide and `h` tall (px). */
-export function flame(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, t: number, seed = 0) {
+export function flame(
+  g: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  t: number,
+  seed = 0,
+  pal: FlamePalette = FIRE,
+) {
   if (!(h > 1) || !(w > 0.5)) return;
   const sway = Math.sin(t * 9 + seed * 3.1) * w * 0.35;
   const layers: [string, number, number][] = [
-    ['rgba(255, 70, 30, 0.85)', 1, 1],
-    ['rgba(255, 150, 40, 0.92)', 0.72, 0.8],
-    ['rgba(255, 236, 160, 0.95)', 0.42, 0.55],
+    [pal[0], 1, 1],
+    [pal[1], 0.72, 0.8],
+    [pal[2], 0.42, 0.55],
   ];
   for (const [c, kw, kh] of layers) {
     const ww = w * kw;
@@ -44,6 +59,7 @@ export function flameWall(
   h: number,
   t: number,
   seed = 0,
+  pal: FlamePalette = FIRE,
 ) {
   if (!(h > 1) || !(Math.abs(x1 - x0) > 1)) return;
   const n = Math.min(24, Math.max(3, Math.round(Math.abs(x1 - x0) / (h * 0.28))));
@@ -51,7 +67,7 @@ export function flameWall(
     const k = (i + 0.5) / n;
     const mid = 1 - Math.abs(k - 0.5) * 1.4;
     const fx = x0 + (x1 - x0) * k;
-    flame(g, fx, y, (Math.abs(x1 - x0) / n) * 1.9, h * (0.55 + 0.45 * mid) * (0.8 + 0.2 * hash(i + seed)), t, i + seed);
+    flame(g, fx, y, (Math.abs(x1 - x0) / n) * 1.9, h * (0.55 + 0.45 * mid) * (0.8 + 0.2 * hash(i + seed)), t, i + seed, pal);
   }
 }
 
@@ -232,4 +248,150 @@ export function crystalLance(g: CanvasRenderingContext2D, len: number, w: number
   g.moveTo(len * 0.5, 0);
   g.lineTo(-len * 0.5, 0);
   g.stroke();
+}
+
+/**
+ * A crow in flight facing +x, `s` px from beak to tail. `flap` (−1..1) sets the wing beat.
+ * Black feathers with a blue sheen and a glinting green eye.
+ */
+export function crow(g: CanvasRenderingContext2D, s: number, flap: number) {
+  const up = flap * s * 0.55;
+  // Far wing (darker, behind the body)
+  g.fillStyle = '#0d0a14';
+  g.beginPath();
+  g.moveTo(s * 0.05, -s * 0.05);
+  g.quadraticCurveTo(-s * 0.15, -s * 0.1 - up * 0.8, -s * 0.38, -s * 0.12 - up * 0.9);
+  g.lineTo(-s * 0.22, -s * 0.02);
+  g.closePath();
+  g.fill();
+  // Tail fan
+  g.fillStyle = '#16111f';
+  g.beginPath();
+  g.moveTo(-s * 0.22, 0);
+  g.lineTo(-s * 0.5, -s * 0.09);
+  g.lineTo(-s * 0.54, s * 0.02);
+  g.lineTo(-s * 0.5, s * 0.1);
+  g.closePath();
+  g.fill();
+  // Body and head
+  g.beginPath();
+  g.ellipse(-s * 0.02, 0, s * 0.27, s * 0.11, 0, 0, TAU);
+  g.fill();
+  g.beginPath();
+  g.arc(s * 0.24, -s * 0.04, s * 0.09, 0, TAU);
+  g.fill();
+  // Beak
+  g.fillStyle = '#2a2433';
+  g.beginPath();
+  g.moveTo(s * 0.31, -s * 0.07);
+  g.lineTo(s * 0.46, -s * 0.02);
+  g.lineTo(s * 0.31, -s * 0.0);
+  g.closePath();
+  g.fill();
+  // Near wing with a sheen
+  g.fillStyle = '#1d1730';
+  g.beginPath();
+  g.moveTo(s * 0.12, -s * 0.03);
+  g.quadraticCurveTo(-s * 0.02, -s * 0.12 - up, -s * 0.36, -s * 0.16 - up * 1.1);
+  g.quadraticCurveTo(-s * 0.18, -s * 0.04 - up * 0.3, -s * 0.16, s * 0.02);
+  g.closePath();
+  g.fill();
+  g.strokeStyle = 'rgba(120, 140, 220, 0.35)';
+  g.lineWidth = Math.max(1, s * 0.025);
+  g.beginPath();
+  g.moveTo(s * 0.08, -s * 0.04);
+  g.quadraticCurveTo(-s * 0.04, -s * 0.11 - up * 0.9, -s * 0.3, -s * 0.15 - up);
+  g.stroke();
+  // Eye
+  g.fillStyle = '#b6ff7a';
+  g.beginPath();
+  g.arc(s * 0.27, -s * 0.06, Math.max(1, s * 0.022), 0, TAU);
+  g.fill();
+}
+
+/** A round-bottomed glass flask of glowing green liquid, cork up, `s` px tall. */
+export function flask(g: CanvasRenderingContext2D, s: number, t: number) {
+  const r = s * 0.32;
+  const glow = g.createRadialGradient(0, s * 0.12, 0, 0, s * 0.12, s * 0.9);
+  glow.addColorStop(0, 'rgba(150, 255, 110, 0.45)');
+  glow.addColorStop(1, 'rgba(150, 255, 110, 0)');
+  g.fillStyle = glow;
+  g.beginPath();
+  g.arc(0, s * 0.12, s * 0.9, 0, TAU);
+  g.fill();
+  // Liquid (sloshing)
+  g.save();
+  g.beginPath();
+  g.arc(0, s * 0.12, r, 0, TAU);
+  g.clip();
+  g.fillStyle = '#3f9a3a';
+  g.fillRect(-r, s * 0.12 - r * (0.1 + Math.sin(t * 12) * 0.08), r * 2, r * 2);
+  g.fillStyle = 'rgba(200, 255, 150, 0.85)';
+  g.beginPath();
+  g.arc(-r * 0.3, s * 0.18, r * 0.16, 0, TAU);
+  g.arc(r * 0.25, s * 0.28, r * 0.1, 0, TAU);
+  g.fill();
+  g.restore();
+  // Glass
+  g.strokeStyle = 'rgba(225, 245, 255, 0.95)';
+  g.lineWidth = Math.max(1.2, s * 0.05);
+  g.beginPath();
+  g.arc(0, s * 0.12, r, -1.25, Math.PI + 1.25);
+  g.lineTo(-r * 0.32, -s * 0.36);
+  g.lineTo(r * 0.32, -s * 0.36);
+  g.closePath();
+  g.stroke();
+  g.fillStyle = 'rgba(225, 245, 255, 0.25)';
+  g.fill();
+  // Cork
+  g.fillStyle = '#8a5a34';
+  g.fillRect(-r * 0.36, -s * 0.5, r * 0.72, s * 0.14);
+  // Glint
+  g.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  g.fillRect(-r * 0.55, -s * 0.02, Math.max(1, s * 0.05), s * 0.14);
+}
+
+/**
+ * A cloud of plague: heaving puffs of sickly green with a dark core, bubbles and spores. Drawn
+ * standing on (x, y), `r` px wide each side. `k`: 0 → 1 over its life (swells, then thins out).
+ */
+export function miasma(g: CanvasRenderingContext2D, x: number, y: number, r: number, t: number, k: number, seed = 0) {
+  const swell = Math.min(1, k * 4);
+  const fade = 1 - Math.max(0, k - 0.75) / 0.25;
+  // Stain on the ground
+  g.fillStyle = `rgba(30, 60, 20, ${0.45 * fade})`;
+  g.beginPath();
+  g.ellipse(x, y, r * 1.05, r * 0.2, 0, 0, TAU);
+  g.fill();
+  const puffs = 11;
+  for (let i = 0; i < puffs; i++) {
+    const a = hash(i + seed) * TAU + t * (0.35 + hash(i * 3 + seed) * 0.3) * (i % 2 ? 1 : -1);
+    const d = r * (0.15 + 0.65 * hash(i * 5 + seed));
+    const px = x + Math.cos(a) * d;
+    const py = y - r * (0.35 + 0.45 * hash(i * 7 + seed)) * swell + Math.sin(t * 1.6 + i) * r * 0.05;
+    const pr = r * (0.28 + 0.22 * hash(i * 11 + seed)) * (0.6 + 0.4 * swell);
+    const dark = i % 3 === 0;
+    const gr = g.createRadialGradient(px, py, 0, px, py, pr);
+    gr.addColorStop(0, dark ? `rgba(60, 40, 80, ${0.55 * fade})` : `rgba(140, 220, 90, ${0.5 * fade})`);
+    gr.addColorStop(0.6, dark ? `rgba(45, 30, 60, ${0.35 * fade})` : `rgba(80, 160, 60, ${0.32 * fade})`);
+    gr.addColorStop(1, 'rgba(40, 90, 40, 0)');
+    g.fillStyle = gr;
+    g.beginPath();
+    g.arc(px, py, pr, 0, TAU);
+    g.fill();
+  }
+  // Bubbles and spores drifting up
+  for (let i = 0; i < 14; i++) {
+    const life = (t * (0.4 + hash(i + seed * 2) * 0.4) + hash(i * 13 + seed)) % 1;
+    const px = x + (hash(i * 17 + seed) - 0.5) * r * 1.8 + Math.sin(t * 3 + i) * r * 0.05;
+    const py = y - life * r * 1.5;
+    const br = Math.max(1.5, r * 0.035 * (1 - life * 0.5));
+    g.globalAlpha = (1 - life) * fade;
+    g.strokeStyle = '#d6ff9a';
+    g.lineWidth = 1.2;
+    g.beginPath();
+    g.arc(px, py, br, 0, TAU);
+    g.stroke();
+  }
+  g.globalAlpha = 1;
 }

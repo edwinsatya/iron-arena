@@ -19,6 +19,7 @@ All heroes are drawn with free character packs by **elie automata** ([itch.io](h
 | Gōkai | Tentaclebeard Admiral (free pack) |
 | Yomi | Faceless Void Reaper (free pack) |
 | Kuma | Black Bear Bandit (free pack) |
+| Karasu | Plague Doctor (free pack; missing moves built from its frames) |
 | Training dummy | Wasteland Juggernaut (free pack) |
 
 Licence (from the packs): *Commercial and non-commercial use and modifications allowed. Credit "elie automata". Distribution within finished projects allowed. No standalone resale, sharing or redistribution of original or modified assets.*

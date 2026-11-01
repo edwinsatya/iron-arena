@@ -35,6 +35,24 @@ the sim decides the speed of every animation.
 Packs that only include an idle animation can still become casters: their spells are drawn in
 code, so the body barely needs to move.
 
+### Building missing moves from a pack's own frames
+
+`tools/sprites.ts` can make new animations out of the frames a pack already has (the licence
+allows modifications). Karasu, the Plague Doctor, is built this way from a free pack with only
+idle, walk, jump and one lantern swing:
+
+| Move | Made from |
+|---|---|
+| Run | Walk frames, faster, leaning into the stride (`xf` tilt) |
+| Jump, landing, guard | Hand-picked jump frames (crouch, spring, tuck, cloak flare; huddled crouch) |
+| Hurt, knockdown, KO | Crouch and idle frames tilted back around the feet and laid on the floor (`xf` with `ground`) |
+| Basic combo | The side swing, the same swing seen from three quarters, then the front-facing slam |
+| Flask throw, crow call | The swing re-timed without its fire arc / with the lantern held out (`pick`) |
+| Plague attacks, ultimate | Frames recoloured: the lantern, flames, sparks and their light turn green (`plague`) |
+
+Options per animation: `pick` (frames in any order, repeats, `[folder, frame]` from another
+animation), `dir` (another facing), `plague` (fire → green) and `xf` (tilt, shift, `ground`).
+
 ## Current roster
 
 - **Benika, Crimson Axemaiden** (Battle Axemaiden): Chiwari Shatter, Tsumuji Whirl, Otakebi War Cry; ultimate Guren Judgment
@@ -48,3 +66,4 @@ code, so the body barely needs to move.
 - **Gōkai, Drowned Admiral** (Tentaclebeard Admiral): Uzushio Maelstrom, Tsunami Wall, Barnacle Hide; ultimate Daikaishō Leviathan
 - **Yomi, Faceless Reaper** (Faceless Void Reaper): Yamigiri Crescent, Soul Snatch, Grave Hands; ultimate Yomi Gate
 - **Kuma, Black Bear Bandit** (Black Bear Bandit): Grizzly Roar, Frenzy Claws, Hibernate; ultimate Ōkuma Rampage
+- **Karasu, Plague Doctor** (Plague Doctor, free pack: idle, walk, jump, one lantern swing): Ekibyō Flask, Kurobane Swarm, Miasma Veil; ultimate Kokushibyō. Every missing move is built from the pack's own frames (see below)

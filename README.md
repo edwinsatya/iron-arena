@@ -4,9 +4,9 @@ A 2D side-view brawler that runs in the browser. Pick a hero, send your friend a
 on a stage walled in at both ends: empty their health first. Online play uses
 GGPO-style **rollback netcode**, so it feels like you're in the same room.
 
-- **Heroes (11):** Benika (war axe), Lysa (bow), Hyōga (ice hammer), Hyōshin (ice heart),
+- **Heroes (12):** Benika (war axe), Lysa (bow), Hyōga (ice hammer), Hyōshin (ice heart),
   Akari (sword), Reo (sword and shield), Kage (daggers), Homura (fire magic), Gōkai (anchor and tides),
-  Yomi (void scythe), Kuma (bear claws), each with a combo, dash, air and charged attacks, **3 skills and an ultimate** with a cut-in
+  Yomi (void scythe), Kuma (bear claws), Karasu (plague lantern), each with a combo, dash, air and charged attacks, **3 skills and an ultimate** with a cut-in
 - **Modes:** online room, versus CPU (3 levels), local versus (one keyboard or two gamepads),
   training with a sparring partner
 - **Stages:** Lantern Harbor (sunset) and Neon Rooftop (midnight), painted parallax backdrops

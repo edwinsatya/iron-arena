@@ -30,13 +30,34 @@ interface AnimCfg {
   range?: [number, number];
   /** Play backwards (e.g. getting up = death reversed). */
   reverse?: boolean;
-  /** Use exactly these source frames, in this order. */
-  pick?: number[];
+  /** Use exactly these source frames, in this order; [folder, frame] takes a frame from another
+   * animation (same facing). */
+  pick?: (number | [string, number])[];
   /** Facing folder (default east = side view; south faces the camera). */
   dir?: string;
   /** A turn on the spot: frame `pick[0] ?? 0` of every direction, clockwise from east. */
   spin?: boolean;
+  /** Recolour the fire (lantern glass, flames, sparks and the light they cast) sickly green. */
+  plague?: boolean;
+  /**
+   * New poses made from existing frames: per output frame (array) or as a function of the frame
+   * number, a tilt around the feet and a shift. See Xf.
+   */
+  xf?: Xf[] | ((k: number, n: number) => Xf);
 }
+
+/** Frame transform. `rot`: degrees, + = leaning back (head away from the facing). `dx`/`dy`:
+ * shift in source pixels (+x = forward, +y = down). `ground`: lift the pose so nothing sinks
+ * below the floor line (falls, lying down). */
+interface Xf {
+  rot?: number;
+  dx?: number;
+  dy?: number;
+  ground?: boolean;
+}
+
+/** Room around transformed frames so tilted poses never get clipped. */
+const PAD = 72;
 
 const SPIN = ['east', 'south-east', 'south', 'south-west', 'west', 'north-west', 'north', 'north-east'];
 
@@ -235,6 +256,67 @@ const HEROES: HeroCfg[] = [
     },
   },
   {
+    // The free pack has idle, walk, jump and one lantern swing (8 directions). Everything else is
+    // built from those frames: re-timed picks, the front and 3/4 views, green plague fire, tilts.
+    id: 'karasu',
+    pack: 'plague-doctor-FREE',
+    height: 1.75,
+    face: { src: 'Idle', dir: 'south-east', frame: 0 },
+    anims: {
+      idle: { src: 'Idle', fps: 10, loop: true },
+      walk: { src: 'Walk', fps: 12, loop: true },
+      // Leaning into the stride
+      run: { src: 'Walk', fps: 20, loop: true, xf: (k) => ({ rot: -8, dy: k % 9 < 4 ? -1 : 0 }) },
+      // Crouch, spring, tuck, cloak flaring on the way down
+      jump: { src: 'Jump', pick: [8, 10, 12, 15, 16] },
+      land: { src: 'Jump', pick: [16, 17, 18, 19, 20] },
+      // Huddled behind the cloak
+      guard: { src: 'Jump', pick: [7, 7] },
+      hurt: {
+        src: 'Jump',
+        pick: [7, 7, 6, 5, 4],
+        xf: [{ rot: 8, dx: -3 }, { rot: 16, dx: -7 }, { rot: 12, dx: -5 }, { rot: 6, dx: -2 }, { rot: 2 }],
+      },
+      // Knocked off the feet: tilts back, curls up and lands on the back (getting up = reversed)
+      death: {
+        src: 'Jump',
+        pick: [7, 7, ['Idle', 0], ['Idle', 0], ['Idle', 0], ['Idle', 0], ['Idle', 0], ['Idle', 0]],
+        xf: [
+          { rot: 10, dx: -3 },
+          { rot: 28, dx: -8, ground: true },
+          { rot: 50, dx: -12, ground: true },
+          { rot: 72, dx: -14, ground: true },
+          { rot: 90, dx: -14, dy: -5, ground: true },
+          { rot: 90, dx: -14, ground: true },
+          { rot: 88, dx: -14, ground: true },
+          { rot: 90, dx: -14, ground: true },
+        ],
+      },
+      attack: { src: 'Basic_Attack', hit: 6 },
+      // Back-swing seen from three quarters
+      swing2: { src: 'Basic_Attack', dir: 'south-east', hit: 5 },
+      // Facing out: raise the fist, then smash the lantern down in a burst of fire
+      slam: { src: 'Basic_Attack', dir: 'south', hit: 7 },
+      plague: { src: 'Basic_Attack', hit: 6, plague: true },
+      // Throwing a flask: the swing without its fire arc
+      toss: { src: 'Basic_Attack', pick: [1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15], hit: 5 },
+      // Holding the green lantern out while crows pour from it
+      present: { src: 'Basic_Attack', pick: [2, 3, 4, 5, 8, 9, 8, 9, 8, 9, 10, 11, 12, 13, 14, 15], hit: 4, plague: true },
+      // Pulling the cloak around and sinking into it
+      veil: { src: 'Jump', pick: [4, 5, 6, 7, 8, 8, 9, 10], hit: 4 },
+      // Ultimate: fist raised, the lantern burning green and trembling with power, then the smash
+      ultcast: {
+        src: 'Basic_Attack',
+        dir: 'south',
+        plague: true,
+        pick: [0, 1, 2, 3, 4, 5, 6, ...[5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5], 7, 8, 8, 9, 10, 11, 13, 15],
+        hit: 6,
+      },
+      front: { src: 'Idle', dir: 'south', fps: 10, loop: true },
+      win: { src: 'Basic_Attack', dir: 'south', pick: [0, 1, 2, 3, 4, 5, 6], plague: true },
+    },
+  },
+  {
     id: 'dummy',
     pack: 'wasteland-juggernaut-FREE',
     height: 1.85,
@@ -285,6 +367,187 @@ function feet(im: Img): [number, number] {
         n++;
       }
   return [Math.round(n ? sum / n : (b[0] + b[2]) / 2), b[3] - 1];
+}
+
+/** Hue (degrees), saturation and value (0..1). */
+function hsv(r: number, g: number, b: number): [number, number, number] {
+  const mx = Math.max(r, g, b);
+  const mn = Math.min(r, g, b);
+  const d = mx - mn;
+  let h = 0;
+  if (d > 0) {
+    if (mx === r) h = ((g - b) / d) % 6;
+    else if (mx === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  return [h, mx === 0 ? 0 : d / mx, mx / 255];
+}
+
+function fromHsv(h: number, s: number, v: number): [number, number, number] {
+  const c = v * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = v - c;
+  const [r, g, b] =
+    h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+  return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+}
+
+/**
+ * Which pixels are fire: thick bright-orange areas (lantern glass, flame arcs) and very hot
+ * pixels seed a flood through flame-coloured neighbours; floating specks and thin strokes in
+ * the air are sparks. Thin gold trims on the clothes are neither thick nor floating, so they
+ * keep their colour.
+ */
+function fireMask(im: Img): Uint8Array {
+  const { w: W, h: H, data } = im;
+  const N = W * H;
+  const alpha = new Uint8Array(N);
+  const warm = new Uint8Array(N);
+  const fireish = new Uint8Array(N);
+  const loose = new Uint8Array(N);
+  const hot = new Uint8Array(N);
+  for (let i = 0; i < N; i++) {
+    if (data[i * 4 + 3]! < 10) continue;
+    alpha[i] = 1;
+    const [h, s, v] = hsv(data[i * 4]!, data[i * 4 + 1]!, data[i * 4 + 2]!);
+    const red = h <= 15 || h >= 345;
+    if ((h <= 62 || h >= 350) && s >= 0.5 && v >= 0.55) warm[i] = 1;
+    if ((h <= 68 || h >= 340) && ((v >= 0.75 && s >= 0.12) || (red && s >= 0.45 && v >= 0.28))) fireish[i] = 1;
+    if ((h <= 45 || h >= 340) && s >= 0.45 && v >= 0.35) loose[i] = 1;
+    if ((h >= 5 && h <= 28 && s >= 0.82 && v >= 0.85) || (h >= 35 && h <= 58 && s >= 0.78 && v >= 0.95)) hot[i] = 1;
+  }
+  const around = (i: number, f: (j: number) => void) => {
+    const x = i % W;
+    const y = (i / W) | 0;
+    for (let yy = y - 1; yy <= y + 1; yy++)
+      for (let xx = x - 1; xx <= x + 1; xx++)
+        if ((yy !== y || xx !== x) && yy >= 0 && yy < H && xx >= 0 && xx < W) f(yy * W + xx);
+  };
+  const air = (i: number) => {
+    let n = 0;
+    around(i, (j) => (n += alpha[j] ? 0 : 1));
+    return n;
+  };
+  // Thick warm areas survive a 3×3 erosion; drop the tiny ones (a thick bit of trim)
+  const core = new Uint8Array(N);
+  for (let i = 0; i < N; i++) {
+    if (!warm[i]) continue;
+    const x = i % W;
+    const y = (i / W) | 0;
+    if (x === 0 || y === 0 || x === W - 1 || y === H - 1) continue;
+    let all = true;
+    around(i, (j) => (all &&= warm[j] === 1));
+    if (all) core[i] = 1;
+  }
+  const seen = new Uint8Array(N);
+  for (let i = 0; i < N; i++) {
+    if (!core[i] || seen[i]) continue;
+    const comp = [i];
+    seen[i] = 1;
+    for (let q = 0; q < comp.length; q++)
+      around(comp[q]!, (j) => {
+        if (core[j] && !seen[j]) {
+          seen[j] = 1;
+          comp.push(j);
+        }
+      });
+    if (comp.length < 5) for (const j of comp) core[j] = 0;
+  }
+  // Flood from the cores and hot pixels through flame colours
+  const out = new Uint8Array(N);
+  const depth = new Int16Array(N);
+  const queue: number[] = [];
+  for (let i = 0; i < N; i++)
+    if (core[i] || hot[i]) {
+      out[i] = 1;
+      queue.push(i);
+    }
+  for (let q = 0; q < queue.length; q++) {
+    const i = queue[q]!;
+    if (depth[i]! >= 90) continue;
+    around(i, (j) => {
+      if (fireish[j] && !out[j]) {
+        out[j] = 1;
+        depth[j] = depth[i]! + 1;
+        queue.push(j);
+      }
+    });
+  }
+  // Sparks floating in the air, then thin strokes touching them
+  for (let i = 0; i < N; i++) if (!out[i] && (warm[i] || fireish[i] || loose[i]) && air(i) >= 4) out[i] = 1;
+  for (let pass = 0; pass < 3; pass++) {
+    const add: number[] = [];
+    for (let i = 0; i < N; i++) {
+      if (out[i] || !(fireish[i] || loose[i]) || air(i) < 2) continue;
+      let touch = false;
+      around(i, (j) => (touch ||= out[j] === 1));
+      if (touch) add.push(i);
+    }
+    for (const i of add) out[i] = 1;
+  }
+  return out;
+}
+
+/** The fire turns plague-green: orange → green, yellow cores → pale lime, gradients kept. */
+function plague(im: Img): Img {
+  const mask = fireMask(im);
+  const data = Buffer.from(im.data);
+  for (let i = 0; i < mask.length; i++) {
+    if (!mask[i]) continue;
+    const [h0, s, v] = hsv(data[i * 4]!, data[i * 4 + 1]!, data[i * 4 + 2]!);
+    const h = h0 >= 300 ? h0 - 360 : h0;
+    const [r, g, b] = fromHsv(100 + (h - 10) * 0.55, Math.min(1, s * 0.95), v);
+    data[i * 4] = r;
+    data[i * 4 + 1] = g;
+    data[i * 4 + 2] = b;
+  }
+  return { data, w: im.w, h: im.h };
+}
+
+/** Tilt and shift a frame around its feet (nearest neighbour, so the pixels stay crisp). */
+function transform(im: Img, foot: [number, number], xf: Xf): Img {
+  const W = im.w + PAD * 2;
+  const H = im.h + PAD * 2;
+  const px = foot[0] + PAD;
+  const py = foot[1] + PAD;
+  const th = (-(xf.rot ?? 0) * Math.PI) / 180;
+  const cos = Math.cos(th);
+  const sin = Math.sin(th);
+  const out = Buffer.alloc(W * H * 4);
+  let lift = 0;
+  const sample = (X: number, Y: number): number => {
+    // Inverse: source = R(-θ)·(dest − pivot − d) + pivot
+    const ux = X + 0.5 - px - (xf.dx ?? 0);
+    const uy = Y + 0.5 - py - (xf.dy ?? 0) + lift;
+    const sx = Math.floor(ux * cos + uy * sin + px - PAD);
+    const sy = Math.floor(-ux * sin + uy * cos + py - PAD);
+    if (sx < 0 || sy < 0 || sx >= im.w || sy >= im.h) return -1;
+    return (sy * im.w + sx) * 4;
+  };
+  const render = () => {
+    out.fill(0);
+    let bottom = -1;
+    for (let Y = 0; Y < H; Y++)
+      for (let X = 0; X < W; X++) {
+        const s = sample(X, Y);
+        if (s < 0 || im.data[s + 3]! < 8) continue;
+        const d = (Y * W + X) * 4;
+        out[d] = im.data[s]!;
+        out[d + 1] = im.data[s + 1]!;
+        out[d + 2] = im.data[s + 2]!;
+        out[d + 3] = im.data[s + 3]!;
+        bottom = Math.max(bottom, Y);
+      }
+    return bottom;
+  };
+  const bottom = render();
+  if (xf.ground && bottom > py) {
+    lift = bottom - py;
+    render();
+  }
+  return { data: out, w: W, h: H };
 }
 
 function unzip(pack: string): string {
@@ -344,11 +607,17 @@ async function hero(cfg: HeroCfg) {
   for (const [name, a] of Object.entries(cfg.anims)) {
     let files: string[];
     if (a.spin) {
-      files = SPIN.map((d) => list(join(dir, cfg.animDir ?? 'Animations', a.src, d))[a.pick?.[0] ?? 0]!);
+      const at = typeof a.pick?.[0] === 'number' ? a.pick[0] : 0;
+      files = SPIN.map((d) => list(join(dir, cfg.animDir ?? 'Animations', a.src, d))[at]!);
     } else {
       files = list(join(dir, cfg.animDir ?? 'Animations', a.src, a.dir ?? 'east'));
       if (a.range) files = files.slice(a.range[0], a.range[1] + 1);
-      if (a.pick) files = a.pick.map((i) => files[i]!).filter(Boolean);
+      if (a.pick) {
+        const all = files;
+        files = a.pick
+          .map((i) => (typeof i === 'number' ? all[i] : list(join(dir, cfg.animDir ?? 'Animations', i[0], a.dir ?? 'east'))[i[1]]))
+          .filter((f): f is string => !!f);
+      }
     }
     if (a.reverse) files.reverse();
     const frames: Frame[] = [];
@@ -359,8 +628,15 @@ async function hero(cfg: HeroCfg) {
     let fy = footY;
     const first = await load(files[0]!);
     if (first.w !== idle0.w || first.h !== idle0.h) [fx, fy] = feet(first);
+    const foot: [number, number] = [fx, fy];
+    if (a.xf) {
+      fx += PAD;
+      fy += PAD;
+    }
     for (const [k, f] of files.entries()) {
-      const img = await load(f);
+      let img = await load(f);
+      if (a.plague) img = plague(img);
+      if (a.xf) img = transform(img, foot, (typeof a.xf === 'function' ? a.xf(k, files.length) : a.xf[k]) ?? {});
       const box = bbox(img) ?? [fx, fy, fx + 1, fy + 1];
       const w = box[2] - box[0];
       const h = box[3] - box[1];
@@ -493,7 +769,10 @@ async function hero(cfg: HeroCfg) {
 
 async function main() {
   mkdirSync(OUT, { recursive: true });
+  // `pnpm sprites karasu reo` converts only those heroes
+  const only = process.argv.slice(2);
   for (const h of HEROES) {
+    if (only.length && !only.includes(h.id)) continue;
     if (!existsSync(join(SRC, `${h.pack}.zip`)) && !existsSync(join(WORK, h.pack))) {
       console.warn(`(skip) ${h.id}: ${SRC}/${h.pack}.zip not found`);
       continue;

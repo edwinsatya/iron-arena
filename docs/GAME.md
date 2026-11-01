@@ -65,6 +65,7 @@ Guard+Jump = skill 3, all three = ultimate. Phones and tablets get an on-screen 
 | **Gōkai** "Drowned Admiral" | Guardian (anchor) | 910 | **Uzushio Maelstrom**: whirlpool under the enemy pulls them in | **Tsunami Wall**: rolling wave | **Barnacle Hide**: armour and a heal | **Daikaishō Leviathan**: tentacles rise around the enemy |
 | **Yomi** "Faceless Reaper" | Knight (scythe) | 1060 | **Yamigiri Crescent**: piercing void crescent | **Soul Snatch**: long hook pulls the enemy in, stunned | **Grave Hands**: hands burst up under the enemy | **Yomi Gate**: teleports in, the underworld opens |
 | **Kuma** "Black Bear Bandit" | Berserker (claws) | 920 | **Grizzly Roar**: knock back and daze | **Frenzy Claws**: charging flurry with armour | **Hibernate**: heal, then armour | **Ōkuma Rampage**: pounce, maul, ground-shaking finish |
+| **Karasu** "Plague Doctor" | Mage (lantern) | 1040 | **Ekibyō Flask**: lobbed flask bursts into a poison cloud | **Kurobane Swarm**: crows pour from the lantern and hunt the enemy | **Miasma Veil**: poison burst, scatters into crows and re-forms further back | **Kokushibyō**: a storm of plague and crows, then a pillar of green fire |
 
 Every hero also has a dash attack, an air attack and a charged attack. The in-game *Heroes &
 controls* page is generated from the data.
@@ -88,5 +89,6 @@ controls* page is generated from the data.
 
 `pnpm balance [matches] [--detail]` plays CPU-vs-CPU for every pair and prints win rates, round
 endings, a win matrix and each hero's damage by move. Last run (10 matches per pair, hard CPU):
-Gōkai 61%, Benika 58%, Kuma 58%, Hyōga 56%, Reo 54%, Akari 53%, Kage 46%, Hyōshin 43%,
-Lysa 41%, Homura 40%, Yomi 39%. CPU play favours melee; tune with real players.
+Gōkai 60%, Benika 58%, Kuma 58%, Hyōga 56%, Akari 54%, Reo 53%, Kage 46%, Lysa 45%,
+Karasu 45%, Hyōshin 44%, Homura 43%, Yomi 38%. CPU play favours melee; tune with real players.
+The CPU keeps its distance only with heroes whose basic attack is a shot.

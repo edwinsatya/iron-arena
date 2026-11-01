@@ -9,7 +9,22 @@ import {
   type SimEvent,
 } from '@neonfist/sim';
 import { LOOKS } from '../looks';
-import { crescent, crystalLance, embers, flame, flameWall, hash, rays, smoke, starBurst, waterCurl } from './fxdraw';
+import {
+  crescent,
+  crow,
+  crystalLance,
+  embers,
+  flame,
+  flameWall,
+  flask,
+  hash,
+  miasma,
+  PLAGUE_FIRE,
+  rays,
+  smoke,
+  starBurst,
+  waterCurl,
+} from './fxdraw';
 import { hexA, type View2D } from './view';
 
 export interface EffectCallbacks {
@@ -108,6 +123,14 @@ export class Effects2D {
         this.ring(e.x, e.y, 60, 380, '#ffffff', 0.12, false);
         break;
       case EV.EXPLODE:
+        if (LOOKS[ROSTER[s.fighters[e.fighter]?.char ?? 0]!.id]?.weapon === 'lantern') {
+          // A flask shatters: glass, a splash of green and a puff of plague
+          this.burst(e.x, Math.max(200, e.y), 18, '#e8fbff', 6000, 0.3);
+          this.burst(e.x, Math.max(200, e.y), 22, '#8fe05a', 5000, 0.45);
+          this.ring(e.x, 0, 200, 1300, '#8fe05a', 0.35, true);
+          this.shake = Math.max(this.shake, 4);
+          break;
+        }
         this.burst(e.x, Math.max(200, e.y), 30, '#ffb066', 8000, 0.45);
         this.ring(e.x, 0, 300, 1700, '#ffb066', 0.35, true);
         this.shake = Math.max(this.shake, 10);
@@ -115,7 +138,11 @@ export class Effects2D {
       case EV.TELEPORT: {
         const w = LOOKS[ROSTER[s.fighters[e.fighter]?.char ?? 0]!.id]?.weapon;
         if (w === 'dagger') this.smoke(e.x);
-        else if (w === 'fire') {
+        else if (w === 'lantern') {
+          // Dissolves into plague smoke and a burst of crows
+          this.smoke(e.x, '80, 150, 70');
+          this.crows(e.x, 1100, 7);
+        } else if (w === 'fire') {
           this.burst(e.x, 900, 22, '#ffb43a', 6000, 0.35);
           this.ring(e.x, 0, 100, 900, '#ff6a2a', 0.3, true);
         } else {
@@ -256,15 +283,36 @@ export class Effects2D {
     });
   }
 
-  /** Ninja smoke puff (teleports). */
-  private smoke(x: number) {
+  /** Crows bursting out of a point and flying off. */
+  private crows(x: number, y: number, n: number) {
+    const birds = Array.from({ length: n }, (_, i) => {
+      const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.6;
+      const sp = 3500 + Math.random() * 2500;
+      return { vx: Math.cos(a) * sp, vy: -Math.sin(a) * sp, ph: i * 1.7, s: 380 + Math.random() * 200 };
+    });
+    this.add(0.7, (g, v, k) => {
+      const t = k * 0.7;
+      for (const b of birds) {
+        g.save();
+        g.translate(v.sx(x + b.vx * t), v.sy(y + b.vy * t + 900 * t));
+        g.scale(Math.sign(b.vx * v.flip) || 1, 1);
+        g.globalAlpha = 1 - Math.max(0, k - 0.6) / 0.4;
+        crow(g, v.px(b.s), Math.sin(this.time * 28 + b.ph));
+        g.restore();
+      }
+      g.globalAlpha = 1;
+    });
+  }
+
+  /** Smoke puff (teleports); `rgb` tints it. */
+  private smoke(x: number, rgb = '70, 60, 95') {
     const puffs = Array.from({ length: 9 }, () => ({
       ox: (Math.random() - 0.5) * 900,
       oy: 300 + Math.random() * 1300,
       r: 260 + Math.random() * 220,
     }));
     this.add(0.55, (g, v, k) => {
-      g.fillStyle = `rgba(70, 60, 95, ${0.75 * (1 - k)})`;
+      g.fillStyle = `rgba(${rgb}, ${0.75 * (1 - k)})`;
       for (const p of puffs) {
         g.beginPath();
         g.arc(v.sx(x + p.ox * (1 + k)), v.sy(p.oy + k * 300), v.px(p.r * (0.7 + k * 0.6)), 0, TAU);
@@ -526,6 +574,28 @@ export class Effects2D {
           g.arc(v.px(120), 0, 9, 0, TAU);
           g.fill();
         }
+        break;
+      }
+      case 'flask': {
+        // Spinning flask with a trail of green droplets
+        const dir = (p.vx >= 0 ? 1 : -1) * v.flip;
+        for (let q = 1; q <= 5; q++) {
+          g.fillStyle = hexA('#8fe05a', 0.55 - q * 0.09);
+          g.beginPath();
+          g.arc((-p.vx * q * 0.9 * v.px(1)) * v.flip, p.vy * q * 0.9 * v.px(1), Math.max(1.5, r * (0.32 - q * 0.04)), 0, TAU);
+          g.fill();
+        }
+        g.rotate(p.age * 0.32 * dir);
+        flask(g, Math.max(18, r * 2.4), this.time);
+        break;
+      }
+      case 'crow': {
+        // A crow diving at the enemy, wings beating
+        const dir = (p.vx >= 0 ? 1 : -1) * v.flip;
+        g.scale(dir, 1);
+        g.rotate(Math.atan2(-p.vy, Math.abs(p.vx) + 1) * 0.8);
+        smoke(g, -r * 1.2, r * 0.2, r * 0.5, this.time * 2, 4, '#1a1426', p.age + p.spec * 7);
+        crow(g, Math.max(18, r * 2.6), Math.sin(this.time * 26 + p.age * 0.4 + p.spec * 2.1));
         break;
       }
       case 'wave': {
@@ -855,6 +925,50 @@ export class Effects2D {
         glow.addColorStop(1, hexA('#c04cff', 0));
         g.fillStyle = glow;
         g.fillRect(x - rx, y0 - rx, rx * 2, rx * 1.2);
+        break;
+      }
+      case 'miasma': {
+        miasma(g, x, y0, rx, this.time, k, a.action * 3 + a.spec);
+        break;
+      }
+      case 'plague': {
+        // The Black Death: a churning storm of plague with crows wheeling through it
+        miasma(g, x, y0, rx * 1.1, this.time * 1.6, k, 5);
+        miasma(g, x, y0 - v.px(600), rx * 0.8, this.time * 2.2, k, 11);
+        for (let n = 0; n < 8; n++) {
+          const ang = this.time * (2.4 + (n % 3) * 0.3) + (n * TAU) / 8;
+          const px = x + Math.cos(ang) * rx * 0.85;
+          const py = y0 - v.px(700 + (n % 3) * 450) + Math.sin(ang) * rx * 0.18;
+          g.save();
+          g.translate(px, py);
+          g.scale(-Math.sin(ang) >= 0 ? 1 : -1, 1);
+          crow(g, v.px(520), Math.sin(this.time * 30 + n * 1.3));
+          g.restore();
+        }
+        embers(g, x, y0, rx * 1.8, v.px(2600), this.time, 18, '#c8ff8a', a.age);
+        break;
+      }
+      case 'pyre': {
+        // The lantern's fire erupts: a towering pillar of green flame, crows scattering. Already
+        // half-risen on its first frame (the hit freezes the action right there).
+        const rise = 0.5 + 0.5 * Math.min(1, k * 4);
+        g.fillStyle = 'rgba(20, 40, 16, 0.5)';
+        g.beginPath();
+        g.ellipse(x, y0, rx, rx * 0.18, 0, 0, TAU);
+        g.fill();
+        flameWall(g, x - rx * 0.8, x + rx * 0.8, y0, v.px(2700) * rise, this.time, a.action, PLAGUE_FIRE);
+        flame(g, x, y0, rx * 0.9, v.px(3800) * rise, this.time, 99, PLAGUE_FIRE);
+        smoke(g, x, y0 - v.px(2700) * rise, rx * 0.6, this.time, 6, '#24331c', a.age);
+        embers(g, x, y0, rx * 2, v.px(3400), this.time, 20, '#e2ffb5', a.age);
+        if (k < 0.3) starBurst(g, x, y0 - v.px(300), rx * 1.2, k / 0.3, '#5fd04a', '#e2ffb5', a.age);
+        for (let n = 0; n < 6; n++) {
+          const side = n % 2 ? 1 : -1;
+          g.save();
+          g.translate(x + side * k * v.px(2600 + n * 300), y0 - v.px(1200 + n * 260) - k * v.px(1800));
+          g.scale(side, 1);
+          crow(g, v.px(480), Math.sin(this.time * 30 + n));
+          g.restore();
+        }
         break;
       }
       case 'smoke': {

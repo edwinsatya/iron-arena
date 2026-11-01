@@ -153,9 +153,12 @@ export function chooseSprite(atlas: Atlas, s: GameState, i: number, time: number
       return up > 0 ? at(walk, 0.25, base) : at(walk, 0.75, base);
     }
     case FS.LAND:
+      if (A.land) return over(A.land, t, 6, { sx: 1.05 - Math.min(0.05, t * 0.01), sy: 0.94 + Math.min(0.06, t * 0.012) });
       return pick(idle, 0, { sx: 1.1 - Math.min(0.1, t * 0.012), sy: 0.86 + Math.min(0.14, t * 0.018) });
     case FS.GUARD:
     case FS.BLOCKSTUN:
+      // A guard pose when the pack has one (or one was made for it)
+      if (A.guard) return pick(A.guard, f.state === FS.BLOCKSTUN ? 1 : 0, { rot: f.state === FS.BLOCKSTUN ? 0.05 : 0 });
       return pick(idle, 0, { sx: 0.97, sy: 0.98, rot: f.state === FS.BLOCKSTUN ? 0.06 : 0 });
     case FS.HITSTUN:
     case FS.GUARD_BREAK: {

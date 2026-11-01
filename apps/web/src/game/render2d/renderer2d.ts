@@ -15,6 +15,7 @@ import {
 } from '@neonfist/sim';
 import { lookFor } from '../looks';
 import { Effects2D } from './effects2d';
+import { crow } from './fxdraw';
 import { chooseSprite, impactFrame, loadSpriteHero, type SpritePick, type SpriteHero } from './sprites';
 import { buildStage2D, drawBackdrop, GROUND, type Stage2D } from './stage2d';
 import { hexA, View2D } from './view';
@@ -520,6 +521,28 @@ export class GameRenderer {
         g.stroke();
         g.restore();
       }
+    } else if (id === 'kr_s2' && t <= 34) {
+      // The lantern flares green as the crows pour out of it
+      const k = Math.min(1, t / 14) * (t > 26 ? Math.max(0, 1 - (t - 26) / 8) : 1);
+      this.lanternGlow(g, v.sx(f.x) + dir * v.px(850), v.sy(f.y + 800), v.px(620) * (0.6 + 0.4 * k), k);
+    } else if (id === 'kr_ult' && t < 100) {
+      // Calling the plague: the lantern blazes at his chest and crows spiral in around him
+      const k = Math.min(1, t / 20);
+      const cx = v.sx(f.x);
+      const cy = v.sy(f.y + 800);
+      this.lanternGlow(g, cx, cy, v.px(900) * (0.7 + 0.3 * Math.sin(this.time * 14)), k);
+      const close = Math.min(1, t / 60);
+      for (let n = 0; n < 5; n++) {
+        const ang = this.time * 3.2 + (n * Math.PI * 2) / 5;
+        const rad = v.px(1500 - 700 * close);
+        g.save();
+        g.translate(cx + Math.cos(ang) * rad, cy - v.px(500) + Math.sin(ang) * rad * 0.3);
+        g.scale(-Math.sin(ang) >= 0 ? 1 : -1, 1);
+        g.globalAlpha = k;
+        crow(g, v.px(460), Math.sin(this.time * 30 + n * 1.9));
+        g.restore();
+      }
+      g.globalAlpha = 1;
     } else if ((id === 're_s1' || id === 're_charge') && t >= 8 && t <= 18) {
       // Sword glints before the wave leaves
       const k = (t - 8) / 10;
@@ -528,6 +551,19 @@ export class GameRenderer {
       g.arc(v.sx(f.x) + dir * v.px(500), v.sy(f.y + 1100), v.px(260) * (0.5 + k), 0, Math.PI * 2);
       g.fill();
     }
+  }
+
+  /** A green lantern light (Karasu): a soft halo with a white-hot core. */
+  private lanternGlow(g: CanvasRenderingContext2D, x: number, y: number, r: number, k: number) {
+    if (k <= 0) return;
+    const gr = g.createRadialGradient(x, y, 0, x, y, r);
+    gr.addColorStop(0, `rgba(240, 255, 210, ${0.85 * k})`);
+    gr.addColorStop(0.25, `rgba(150, 240, 100, ${0.55 * k})`);
+    gr.addColorStop(1, 'rgba(60, 160, 60, 0)');
+    g.fillStyle = gr;
+    g.beginPath();
+    g.arc(x, y, r, 0, Math.PI * 2);
+    g.fill();
   }
 
   private aura(g: CanvasRenderingContext2D, x: number, y: number, color: string, k: number) {

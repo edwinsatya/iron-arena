@@ -39,7 +39,18 @@ export interface Strike {
 }
 
 export type ProjectileKind =
-  'bullet' | 'slug' | 'orb' | 'foxfire' | 'lance' | 'mine' | 'grenade' | 'wave' | 'shard' | 'arrow';
+  | 'bullet'
+  | 'slug'
+  | 'orb'
+  | 'foxfire'
+  | 'lance'
+  | 'mine'
+  | 'grenade'
+  | 'wave'
+  | 'shard'
+  | 'arrow'
+  | 'flask'
+  | 'crow';
 
 export interface ProjectileSpec {
   frame: number;
@@ -81,7 +92,10 @@ export type AreaKind =
   | 'meteor'
   | 'smoke'
   | 'tide'
-  | 'void';
+  | 'void'
+  | 'miasma'
+  | 'plague'
+  | 'pyre';
 
 /** A ground circle that hits everyone inside after a telegraph. */
 export interface AreaSpec {
@@ -150,7 +164,19 @@ export interface ActionData {
   air?: boolean;
 }
 
-export type Weapon = 'axe' | 'bow' | 'hammer' | 'sword' | 'dagger' | 'fire' | 'ice' | 'anchor' | 'scythe' | 'claw' | 'none';
+export type Weapon =
+  | 'axe'
+  | 'bow'
+  | 'hammer'
+  | 'sword'
+  | 'dagger'
+  | 'fire'
+  | 'ice'
+  | 'anchor'
+  | 'scythe'
+  | 'claw'
+  | 'lantern'
+  | 'none';
 /** Melee roles close in; Archer keeps its distance (the CPU plays them differently). */
 export type Role = 'Berserker' | 'Archer' | 'Guardian' | 'Knight' | 'Assassin' | 'Mage' | 'Dummy';
 
