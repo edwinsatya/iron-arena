@@ -1,7 +1,8 @@
 # Heroes and sprite packs
 
-Heroes are pixel-art sprites from free packs by **elie automata** (itch.io). Each pack has every
-animation in 8 directions; the game uses the side view (`east`, mirrored for facing left).
+Heroes are pixel-art sprites from free packs, all by **elie automata** (itch.io) except Kamakiri's
+(the Void Mantis pack, see CREDITS.md). Each pack has every animation in 8 directions; the game
+uses the side view (`east`, mirrored for facing left).
 Complete packs also have painted art: portraits, full-length art and skill cards, which the HUD,
 select screen and ultimate cut-in use.
 
@@ -51,7 +52,19 @@ idle, walk, jump and one lantern swing:
 | Plague attacks, ultimate | Frames recoloured: the lantern, flames, sparks and their light turn green (`plague`) |
 
 Options per animation: `pick` (frames in any order, repeats, `[folder, frame]` from another
-animation), `dir` (another facing), `plague` (fire → green) and `xf` (tilt, shift, `ground`).
+animation), `dir` (another facing), `plague` (fire → green), `xf` (tilt, shift, `ground`) and
+`noHover`. Per hero: `hover` (floats that many pixels above the floor), `bust` (a manual crop when
+the automatic portrait misses the head) and `credit`.
+
+Two more heroes are built the same way:
+
+| Hero | The pack has | Made from it |
+|---|---|---|
+| Kamakiri, Void Mantis | A walk and one slash in 8 directions; one-frame idle, flying and dead poses (stored as `<State>/<facing>.png`, which the converter reads as one-frame animations) | Idle breathing (the idle pose rising and settling), run (tilted walk), jump and hover (the flying pose), guard (blades folded, from the walk), flinch and knockdown (tilts, then the dead pose), the slash seen side-on, from three quarters (a full circle) and from the front (both blades), the slash twice, the snare (a lunge), the dive (flying pose and slash, nose down) |
+| Kurage, Abyssal Jelly | Idle, move, a tentacle lash and death (complete pack) | It floats (`hover`); guard = shrinking into its bell, flinch = the first death frames, knockdown = collapsing into a puddle (getting up re-forms it), the pulse = the bell swelling, the gaze = the front view with the great eye |
+
+Kamakiri's snare is the game's first grab (`grab` / `release` in the action data): the forelegs
+catch the enemy through guard, hold them, cut and kick them away.
 
 ## Current roster
 
@@ -67,3 +80,5 @@ animation), `dir` (another facing), `plague` (fire → green) and `xf` (tilt, sh
 - **Yomi, Faceless Reaper** (Faceless Void Reaper): Yamigiri Crescent, Soul Snatch, Grave Hands; ultimate Yomi Gate
 - **Kuma, Black Bear Bandit** (Black Bear Bandit): Grizzly Roar, Frenzy Claws, Hibernate; ultimate Ōkuma Rampage
 - **Karasu, Plague Doctor** (Plague Doctor, free pack: idle, walk, jump, one lantern swing): Ekibyō Flask, Kurobane Swarm, Miasma Veil; ultimate Kokushibyō. Every missing move is built from the pack's own frames (see below)
+- **Kamakiri, Void Mantis** (Void Mantis Pixel Art v1.0, free pack): Kamaitachi, Hanemai Dive, Kamae Snare; ultimate Kokū Harvest
+- **Kurage, Abyssal Jelly** (Abyssal Jelly, free complete pack): Shiden Bolt, Abyssal Tether, Hakkō Pulse; ultimate Shinkai Gaze

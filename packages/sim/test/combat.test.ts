@@ -154,6 +154,75 @@ describe('skills', () => {
   });
 });
 
+describe('Kamakiri and Kurage', () => {
+  it('Kamae Snare catches through guard, holds the enemy, then cuts and kicks them away', () => {
+    const s = setup('kamakiri', 'dummy', 0, 900);
+    const d = s.fighters[1];
+    let held = false;
+    tap(s, 0, BTN.SKILL3, 1, BTN.GUARD);
+    run(s, 70, 0, (k) => {
+      if (d.state === FS.HELD) held = true;
+      return k < 4 ? BTN.GUARD : 0;
+    });
+    expect(held).toBe(true);
+    expect(d.hp).toBeLessThan(1000 - 80);
+    expect(d.heldBy).toBe(-1);
+  });
+
+  it("Kamakiri's wind blades, dive and ultimate land from mid range", () => {
+    for (const key of [BTN.SKILL1, BTN.SKILL2]) {
+      const s = setup('kamakiri', 'dummy', -1200, 1200);
+      tap(s, 0, key);
+      run(s, 120);
+      expect(s.fighters[1].hp, `skill ${key}`).toBeLessThan(1000);
+    }
+    const s = setup('kamakiri', 'dummy', -1500, 1500);
+    s.fighters[0].ult = ULT_MAX;
+    tap(s, 0, BTN.ULT);
+    run(s, 220);
+    expect(s.fighters[1].hp).toBeLessThan(800);
+  });
+
+  it('Abyssal Tether drags the enemy in from across the stage and stings again', () => {
+    for (const gap of [3000, 2000]) {
+      const s = setup('kurage', 'dummy', -gap / 2, gap / 2);
+      const d = s.fighters[1];
+      tap(s, 0, BTN.SKILL2);
+      let hits = 0;
+      let hp = d.hp;
+      let closest = d.x;
+      run(s, 60, 0, () => {
+        if (d.hp !== hp) hits++;
+        hp = d.hp;
+        closest = Math.min(closest, d.x);
+        return 0;
+      });
+      expect(hits, `gap ${gap}`).toBe(2);
+      expect(closest, `gap ${gap}`).toBeLessThan(gap / 2 - 600);
+    }
+  });
+
+  it('Hakkō Pulse leaves a close enemy reeling, and Shiden Bolt hits across the stage', () => {
+    const s = setup('kurage', 'dummy', 0, 1000);
+    tap(s, 0, BTN.SKILL3);
+    run(s, 16);
+    expect(s.fighters[1].state).toBe(FS.DIZZY);
+
+    const far = setup('kurage', 'dummy', -3000, 3000);
+    tap(far, 0, BTN.SKILL1);
+    run(far, 60);
+    expect(far.fighters[1].hp).toBeLessThan(1000);
+  });
+
+  it("Kurage's ultimate connects from mid range", () => {
+    const s = setup('kurage', 'dummy', -1500, 1500);
+    s.fighters[0].ult = ULT_MAX;
+    tap(s, 0, BTN.ULT);
+    run(s, 220);
+    expect(s.fighters[1].hp).toBeLessThan(800);
+  });
+});
+
 describe('rounds', () => {
   it('walls: a knockback into the stage end bounces off it, nobody leaves the stage', () => {
     const s = setup('benika', 'dummy', 5000, 7300);

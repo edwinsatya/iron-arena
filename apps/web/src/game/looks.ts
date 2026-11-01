@@ -47,6 +47,7 @@ export interface Look {
     | 'scythe'
     | 'claw'
     | 'lantern'
+    | 'sting'
     | 'none';
   /** Sprite animation per action id. */
   actions: Record<string, AnimRef>;
@@ -284,6 +285,45 @@ export const LOOKS: Record<string, Look> = {
       kr_s2: 'present',
       kr_s3: { anim: 'veil', until: 22, after: 'idle' },
       kr_ult: 'ultcast',
+    },
+  },
+  kamakiri: {
+    color: '#a8f5cf',
+    glow: '#effff7',
+    weapon: 'scythe',
+    altHue: 130,
+    win: { anim: 'win', hold: 3 },
+    actions: {
+      mt_b1: 'attack',
+      mt_b2: 'spin',
+      mt_b3: 'twin',
+      mt_dash: { anim: 'attack', puppet: 'lunge' },
+      mt_air: 'dive',
+      mt_charge: 'twin',
+      mt_s1: 'double',
+      mt_s2: 'dive',
+      mt_s3: 'snare',
+      mt_s3_maul: { anim: 'spin', cycle: [6, 10] },
+      mt_ult: 'hover',
+    },
+  },
+  kurage: {
+    color: '#d667ff',
+    glow: '#ffc8ff',
+    weapon: 'sting',
+    altHue: 150,
+    win: 'win',
+    actions: {
+      jl_b1: 'attack',
+      jl_b2: 'lash',
+      jl_b3: 'attack',
+      jl_dash: { anim: 'walk', puppet: 'lunge' },
+      jl_air: 'attack',
+      jl_charge: 'lash',
+      jl_s1: 'attack',
+      jl_s2: { anim: 'pulse', puppet: 'raise' },
+      jl_s3: 'attack',
+      jl_ult: { anim: 'front', puppet: 'raise' },
     },
   },
   dummy: {

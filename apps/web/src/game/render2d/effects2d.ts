@@ -10,6 +10,7 @@ import {
 } from '@neonfist/sim';
 import { LOOKS } from '../looks';
 import {
+  abyssEye,
   crescent,
   crow,
   crystalLance,
@@ -18,6 +19,7 @@ import {
   flameWall,
   flask,
   hash,
+  lightning,
   miasma,
   PLAGUE_FIRE,
   rays,
@@ -619,6 +621,71 @@ export class Effects2D {
         crow(g, Math.max(18, r * 2.6), Math.sin(this.time * 26 + p.age * 0.4 + p.spec * 2.1));
         break;
       }
+      case 'spark': {
+        // A crackling star of stinging light, little arcs jumping off it (Kurage)
+        const R = Math.max(9, r * 1.5);
+        const beat = 1 + Math.sin(this.time * 42 + p.age) * 0.16;
+        const gr = g.createRadialGradient(0, 0, 0, 0, 0, R * 2.2 * beat);
+        gr.addColorStop(0, '#ffffff');
+        gr.addColorStop(0.25, hexA(look.glow, 0.95));
+        gr.addColorStop(0.55, hexA(look.color, 0.55));
+        gr.addColorStop(1, hexA(look.color, 0));
+        g.fillStyle = gr;
+        g.beginPath();
+        g.arc(0, 0, R * 2.2 * beat, 0, TAU);
+        g.fill();
+        for (let q = 0; q < 3; q++) {
+          const a = hash(q * 3.1 + Math.floor(this.time * 20) + p.spec) * TAU;
+          lightning(
+            g,
+            0,
+            0,
+            Math.cos(a) * R * 2.4,
+            Math.sin(a) * R * 2.4,
+            1.2,
+            this.time,
+            look.color,
+            q + p.age,
+          );
+        }
+        g.rotate(this.time * 5 + p.age * 0.15);
+        g.fillStyle = '#ffffff';
+        g.beginPath();
+        for (let q = 0; q < 8; q++) {
+          const a = (q / 8) * TAU;
+          const rr = q % 2 ? R * 0.3 : R * 1.35 * beat;
+          g[q ? 'lineTo' : 'moveTo'](Math.cos(a) * rr, Math.sin(a) * rr);
+        }
+        g.closePath();
+        g.fill();
+        break;
+      }
+      case 'bolt': {
+        // Shiden: purple lightning streaking ahead of a white-hot head
+        g.rotate(ang);
+        const len = v.px(1500);
+        const R = Math.max(6, r * 0.9);
+        const tail = g.createLinearGradient(-len, 0, 0, 0);
+        tail.addColorStop(0, hexA(look.color, 0));
+        tail.addColorStop(1, hexA(look.color, 0.45));
+        g.fillStyle = tail;
+        g.beginPath();
+        g.moveTo(0, -R);
+        g.lineTo(-len, 0);
+        g.lineTo(0, R);
+        g.fill();
+        lightning(g, -len, 0, 0, 0, 3, this.time, look.color, p.age);
+        lightning(g, -len * 0.7, 0, 0, 0, 1.6, this.time + 0.37, look.glow, p.age + 9);
+        const head = g.createRadialGradient(0, 0, 0, 0, 0, R * 2);
+        head.addColorStop(0, '#ffffff');
+        head.addColorStop(0.4, hexA(look.glow, 0.9));
+        head.addColorStop(1, hexA(look.color, 0));
+        g.fillStyle = head;
+        g.beginPath();
+        g.arc(0, 0, R * 2, 0, TAU);
+        g.fill();
+        break;
+      }
       case 'wave': {
         const dir = (p.vx >= 0 ? 1 : -1) * v.flip;
         g.scale(dir, 1);
@@ -955,6 +1022,125 @@ export class Effects2D {
         glow.addColorStop(1, hexA('#c04cff', 0));
         g.fillStyle = glow;
         g.fillRect(x - rx, y0 - rx, rx * 2, rx * 1.2);
+        break;
+      }
+      case 'reap': {
+        const S = v.px(1300);
+        const cy = y0 - v.px(1000);
+        if (a.spec === 0) {
+          // Kokū Harvest: crescents of the void cut through the target from every side
+          g.fillStyle = hexA('#14081f', 0.45);
+          g.beginPath();
+          g.ellipse(x, y0, rx, rx * 0.2, 0, 0, TAU);
+          g.fill();
+          for (let q = 0; q < 4; q++) {
+            const n = Math.floor(a.age / 5) * 4 + q;
+            const life = (a.age % 5) / 5;
+            g.save();
+            g.translate(x + (hash(n * 1.7) - 0.5) * rx * 0.8, cy + (hash(n * 2.3) - 0.5) * v.px(900));
+            g.rotate(hash(n * 3.9) * TAU);
+            g.translate((life - 0.5) * S * 0.9, 0);
+            g.globalAlpha = Math.max(0, fade) * (1 - life);
+            g.shadowColor = look.color;
+            g.shadowBlur = 14;
+            crescent(g, S * 0.6, S * 0.2, look.color, q % 2 ? '#1a0826' : look.glow, 2.4);
+            g.restore();
+          }
+          smoke(g, x, y0 - v.px(300), rx * 0.6, this.time, 6, '#2a0f3a', a.age);
+          embers(g, x, y0, rx * 1.6, v.px(2400), this.time, 14, look.glow, a.age);
+        } else {
+          // The last cut: two great crescents cross in an X, then the void bursts
+          const cross = Math.min(1, k * 3);
+          for (const side of [-1, 1]) {
+            g.save();
+            g.translate(x, cy);
+            g.rotate(side * 0.8);
+            g.translate((cross - 0.5) * S * 1.4, 0);
+            g.globalAlpha = Math.max(0, 1 - k * 1.2);
+            g.shadowColor = look.color;
+            g.shadowBlur = 22;
+            crescent(g, S * 1.2, S * 0.36, look.color, '#1a0826', 2.6);
+            g.restore();
+          }
+          starBurst(g, x, cy, rx * 1.3, k, look.color, look.glow, a.age);
+          smoke(g, x, y0 - v.px(600), rx * 0.8, this.time, 8, '#2a0f3a', a.age + 5);
+        }
+        break;
+      }
+      case 'pulse': {
+        // Hakkō: the bell flares and a ring of light rolls out from it
+        const cy = y0 - v.px(1000);
+        const R = rx * (0.3 + 0.95 * Math.min(1, k * 1.5));
+        const flash = g.createRadialGradient(x, cy, 0, x, cy, R * 1.25);
+        flash.addColorStop(0, hexA('#ffffff', 0.9 * (1 - k)));
+        flash.addColorStop(0.35, hexA(look.glow, 0.55 * (1 - k)));
+        flash.addColorStop(1, hexA(look.color, 0));
+        g.fillStyle = flash;
+        g.beginPath();
+        g.arc(x, cy, R * 1.25, 0, TAU);
+        g.fill();
+        for (let n = 0; n < 3; n++) {
+          g.strokeStyle = hexA(n ? look.color : '#ffffff', (1 - k) * (0.9 - n * 0.25));
+          g.lineWidth = Math.max(1, v.px(90) * (1 - n * 0.3) * (1 - k * 0.6));
+          g.beginPath();
+          g.ellipse(x, cy, R * (1 - n * 0.16), R * 0.82 * (1 - n * 0.16), 0, 0, TAU);
+          g.stroke();
+        }
+        rays(g, x, cy, R * 1.5, 11, this.time, look.glow);
+        g.strokeStyle = hexA(look.color, 0.8 * (1 - k));
+        g.lineWidth = 2;
+        g.beginPath();
+        g.ellipse(x, y0, R, R * 0.18, 0, 0, TAU);
+        g.stroke();
+        break;
+      }
+      case 'abyss': {
+        const cy = y0 - v.px(1700);
+        if (a.spec === 0) {
+          // Shinkai: the deep closes over the target, lightning stings in the dark, the eye opens
+          const swell = Math.min(1, k * 5);
+          const deep = g.createRadialGradient(x, y0 - v.px(900), 0, x, y0 - v.px(900), rx * 1.4);
+          deep.addColorStop(0, hexA('#2a0f4a', 0.7 * swell));
+          deep.addColorStop(0.7, hexA('#12062a', 0.55 * swell));
+          deep.addColorStop(1, hexA('#12062a', 0));
+          g.fillStyle = deep;
+          g.beginPath();
+          g.arc(x, y0 - v.px(900), rx * 1.4, 0, TAU);
+          g.fill();
+          for (let q = 0; q < 3; q++) {
+            const n = Math.floor(a.age / 6) * 3 + q;
+            if (hash(n * 4.1) < 0.35) continue;
+            const sx = x + (hash(n * 1.3) - 0.5) * rx * 1.4;
+            lightning(
+              g,
+              sx,
+              cy,
+              x + (hash(n * 2.9) - 0.5) * rx * 0.6,
+              y0 - v.px(500),
+              2.2,
+              this.time,
+              look.color,
+              n,
+            );
+          }
+          // Bubbles drifting up through the dark
+          g.strokeStyle = hexA(look.glow, 0.7);
+          g.lineWidth = 1.2;
+          for (let n = 0; n < 12; n++) {
+            const life = (this.time * (0.35 + hash(n) * 0.3) + hash(n * 5)) % 1;
+            g.globalAlpha = Math.max(0, fade) * (1 - life);
+            g.beginPath();
+            g.arc(x + (hash(n * 7) - 0.5) * rx * 1.6, y0 - life * v.px(2600), 2 + hash(n * 3) * 3, 0, TAU);
+            g.stroke();
+          }
+          g.globalAlpha = Math.max(0, fade);
+          abyssEye(g, x, cy - v.px(500), rx * 0.75, Math.min(1, k * 1.6), this.time, look.color, look.glow);
+        } else {
+          // The eye bursts with light
+          abyssEye(g, x, cy - v.px(500), rx * 0.75 * (1 + k * 0.4), 1 - k, this.time, look.color, look.glow);
+          starBurst(g, x, y0 - v.px(900), rx * 1.5, k, look.color, look.glow, a.age);
+          rays(g, x, y0, rx * 2.4, 12, this.time, look.glow);
+        }
         break;
       }
       case 'miasma': {

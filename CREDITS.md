@@ -4,7 +4,7 @@ Game design, code, stages, effects and hero names/skill names in IRON ARENA are 
 
 ## Character sprites and art — elie automata
 
-All heroes are drawn with free character packs by **elie automata** ([itch.io](https://elie-automata.itch.io/)):
+Every hero but Kamakiri is drawn with free character packs by **elie automata** ([itch.io](https://elie-automata.itch.io/)):
 
 | Hero | Pack |
 |---|---|
@@ -20,11 +20,17 @@ All heroes are drawn with free character packs by **elie automata** ([itch.io](h
 | Yomi | Faceless Void Reaper (free pack) |
 | Kuma | Black Bear Bandit (free pack) |
 | Karasu | Plague Doctor (free pack; missing moves built from its frames) |
+| Kurage | Abyssal Jelly (free complete pack) |
 | Training dummy | Wasteland Juggernaut (free pack) |
 
 Licence (from the packs): *Commercial and non-commercial use and modifications allowed. Credit "elie automata". Distribution within finished projects allowed. No standalone resale, sharing or redistribution of original or modified assets.*
 
 So the raw zips stay out of git (`assets-src/sprites/` is ignored). `pnpm sprites` converts them into the game's sheets under `apps/web/public/sprites/`, which ship only as part of the game. Don't publish those files on their own.
+
+## Kamakiri — Void Mantis Pixel Art
+
+Kamakiri is drawn with the free **Void Mantis Pixel Art (v1.0)** pack; its readme names no author.
+Its licence: *Free for personal and commercial projects. Do not resell or redistribute as a game asset. Credit is appreciated but not required. Modify as needed. No NFT use.* The missing moves are built from its frames, and the raw zip stays out of git like the others.
 
 ## Code & libraries
 
@@ -34,7 +40,7 @@ So the raw zips stay out of git (`assets-src/sprites/` is ignored). `pnpm sprite
 
 ## Fonts
 
-- [Dela Gothic One](https://fonts.google.com/specimen/Dela+Gothic+One) and [Zen Kaku Gothic New](https://fonts.google.com/specimen/Zen+Kaku+Gothic+New), SIL Open Font License, self-hosted via Fontsource
+- [Grenze](https://fonts.google.com/specimen/Grenze), [Alegreya Sans](https://fonts.google.com/specimen/Alegreya+Sans) and [Shippori Mincho B1](https://fonts.google.com/specimen/Shippori+Mincho+B1), SIL Open Font License, self-hosted via Fontsource
 
 ## Sound
 

@@ -1088,7 +1088,7 @@ li + li .menu-item {
 }
 .tiles {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 8px;
 }
 .tile {
@@ -3290,7 +3290,7 @@ html.in-game body {
     display: none;
   }
   .tiles {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 6px;
   }
   .tile .tile-name {

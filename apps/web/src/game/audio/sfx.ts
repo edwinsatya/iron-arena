@@ -116,6 +116,11 @@ export class Sfx {
           this.burst({ freq: 900, q: 0.7, dur: 0.3, gain: 0.35, type: 'lowpass', sweepTo: 300 });
         if (weapon === 'ice') this.burst({ freq: 5200, q: 5, dur: 0.18, gain: 0.3, sweepTo: 7000 });
         if (weapon === 'hammer' || weapon === 'anchor') this.thump(70, 0.25, 0.7);
+        if (weapon === 'sting') {
+          // A wet slap and an electric zap
+          this.burst({ freq: 7000, q: 6, dur: 0.12, gain: 0.25, sweepTo: 3500 });
+          this.tone(140, 90, 0.16, 0.18, 'sawtooth');
+        }
         if (weapon === 'lantern') {
           // Iron lantern clank and a crackle of fire
           this.burst({ freq: 2600, q: 7, dur: 0.12, gain: 0.3, sweepTo: 2200 });
@@ -170,6 +175,10 @@ export class Sfx {
           this.burst({ freq: 4200, q: 3, dur: 0.2, gain: 0.25, sweepTo: 2000 });
         } else if (weapon === 'dagger') {
           this.burst({ freq: 5200, q: 4, dur: 0.1, gain: 0.25, sweepTo: 2600 });
+        } else if (weapon === 'sting') {
+          // A crackle of lightning leaving the tentacle
+          this.tone(260, 1500, 0.12, 0.16, 'sawtooth');
+          this.burst({ freq: 6200, q: 2.5, dur: 0.22, gain: 0.28, sweepTo: 2400 });
         } else if (weapon === 'lantern') {
           // Glass clinks, wings flutter
           this.tone(2300, 2900, 0.08, 0.14, 'triangle');

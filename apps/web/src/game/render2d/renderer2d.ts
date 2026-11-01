@@ -15,7 +15,7 @@ import {
 } from '@neonfist/sim';
 import { lookFor } from '../looks';
 import { Effects2D } from './effects2d';
-import { crow } from './fxdraw';
+import { crow, lightning, starBurst, tentacle } from './fxdraw';
 import { chooseSprite, impactFrame, loadSpriteHero, type SpritePick, type SpriteHero } from './sprites';
 import { buildStage2D, drawBackdrop, GROUND, type Stage2D } from './stage2d';
 import { hexA, View2D } from './view';
@@ -575,6 +575,66 @@ export class GameRenderer {
         g.restore();
       }
       g.globalAlpha = 1;
+    } else if (id === 'jl_s3' && t >= 5 && t <= 26) {
+      // Abyssal Tether: a stinging tentacle shoots across the stage, then draws back
+      const out = t <= 12 ? (t - 5) / 7 : t <= 16 ? 1 : 1 - (t - 16) / 10;
+      const reach = 2700 * (1 - (1 - out) ** 2);
+      const x0 = v.sx(f.x) + dir * v.px(250);
+      const y0 = v.sy(f.y + 750);
+      const x1 = v.sx(f.x) + dir * v.px(250 + reach);
+      const y1 = v.sy(f.y + 900);
+      tentacle(g, x0, y0, x1, y1, v.px(120), this.time, '#6b2f8f', glow);
+      if (t >= 11 && t <= 18) {
+        const k = (t - 11) / 7;
+        starBurst(g, x1, y1, v.px(520), k, color, glow, i * 7);
+        lightning(g, x1, y1, x1 + dir * v.px(380), y1 - v.px(260), 1.4, this.time, color, t);
+      }
+    } else if ((id === 'jl_s1' || id === 'jl_charge') && t <= 14) {
+      // The tentacle tip gathers a spark before it flies
+      const k = Math.min(1, t / 12);
+      const cx = v.sx(f.x) + dir * v.px(620);
+      const cy = v.sy(f.y + 950);
+      const r = v.px(id === 'jl_charge' ? 420 : 280) * (0.3 + 0.7 * k);
+      const gr = g.createRadialGradient(cx, cy, 0, cx, cy, r);
+      gr.addColorStop(0, hexA('#ffffff', 0.9 * k));
+      gr.addColorStop(0.4, hexA(glow, 0.6 * k));
+      gr.addColorStop(1, hexA(color, 0));
+      g.fillStyle = gr;
+      g.beginPath();
+      g.arc(cx, cy, r, 0, Math.PI * 2);
+      g.fill();
+      lightning(g, cx - r, cy + r * 0.2, cx + r, cy - r * 0.3, 1, this.time, color, t);
+    } else if (id === 'jl_ult' && t < 100) {
+      // Calling the deep: the great eye blazes and the dark gathers round
+      const k = Math.min(1, t / 18) * (t > 88 ? Math.max(0, 1 - (t - 88) / 12) : 1);
+      const cx = v.sx(f.x);
+      const cy = v.sy(f.y + 1150);
+      const gr = g.createRadialGradient(cx, cy, 0, cx, cy, v.px(1400));
+      gr.addColorStop(0, hexA('#ffffff', 0.55 * k));
+      gr.addColorStop(0.2, hexA(color, 0.4 * k));
+      gr.addColorStop(1, hexA('#12062a', 0));
+      g.fillStyle = gr;
+      g.beginPath();
+      g.arc(cx, cy, v.px(1400), 0, Math.PI * 2);
+      g.fill();
+    } else if (id === 'mt_ult' && t < 96) {
+      // Wings beating in the empty sky: a ring of void wind turns round the mantis
+      const k = Math.min(1, t / 16) * (t > 84 ? Math.max(0, 1 - (t - 84) / 12) : 1);
+      const cx = v.sx(f.x);
+      const cy = v.sy(f.y + 1100);
+      g.save();
+      g.translate(cx, cy);
+      g.scale(1, 0.4);
+      g.rotate(this.time * 6);
+      g.globalAlpha = k;
+      g.strokeStyle = hexA(glow, 0.8);
+      g.lineWidth = 3;
+      for (let q = 0; q < 3; q++) {
+        g.beginPath();
+        g.arc(0, 0, v.px(1000 + q * 260), q * 2.1, q * 2.1 + 1.6);
+        g.stroke();
+      }
+      g.restore();
     } else if ((id === 're_s1' || id === 're_charge') && t >= 8 && t <= 18) {
       // Sword glints before the wave leaves
       const k = (t - 8) / 10;

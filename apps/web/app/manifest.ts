@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Iron Arena',
     short_name: 'Iron Arena',
-    description: 'Fantasy duels in your browser: twelve pixel-art heroes, online with rollback netcode.',
+    description: 'Fantasy duels in your browser: fourteen pixel-art heroes, online with rollback netcode.',
     start_url: '/',
     display: 'fullscreen',
     orientation: 'landscape',

@@ -459,3 +459,169 @@ export function miasma(
   }
   g.globalAlpha = 1;
 }
+
+/**
+ * A jagged bolt of lightning from (x0, y0) to (x1, y1): a glowing outer stroke and a white core.
+ * The kinks change a few times a second (`t`), seeded so two bolts never match.
+ */
+export function lightning(
+  g: CanvasRenderingContext2D,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  width: number,
+  t: number,
+  color: string,
+  seed = 0,
+) {
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const len = Math.hypot(dx, dy);
+  if (len < 2) return;
+  const nx = -dy / len;
+  const ny = dx / len;
+  const steps = Math.max(3, Math.min(14, Math.round(len / 18)));
+  const tick = Math.floor(t * 24);
+  const pts: [number, number][] = [[x0, y0]];
+  for (let i = 1; i < steps; i++) {
+    const k = i / steps;
+    const off = (hash(i * 7.3 + seed * 13.1 + tick) - 0.5) * len * 0.22 * Math.sin(k * Math.PI);
+    pts.push([x0 + dx * k + nx * off, y0 + dy * k + ny * off]);
+  }
+  pts.push([x1, y1]);
+  const stroke = (w: number, c: string) => {
+    g.strokeStyle = c;
+    g.lineWidth = w;
+    g.beginPath();
+    pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y)));
+    g.stroke();
+  };
+  g.save();
+  g.lineCap = 'round';
+  g.lineJoin = 'round';
+  stroke(width * 3, hexA(color, 0.35));
+  stroke(width * 1.6, hexA(color, 0.9));
+  stroke(Math.max(1, width * 0.6), '#ffffff');
+  g.restore();
+}
+
+/**
+ * The great eye of the abyss, seen from the front: an almond of dark flesh with a glowing iris,
+ * `r` px wide each side. `open` (0..1) parts the lids; the pupil narrows as it opens.
+ */
+export function abyssEye(
+  g: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r: number,
+  open: number,
+  t: number,
+  color: string,
+  glow: string,
+) {
+  if (open <= 0.01) return;
+  const h = r * 0.5 * open;
+  g.save();
+  g.translate(x, y);
+  // Lids
+  const lid = () => {
+    g.beginPath();
+    g.moveTo(-r, 0);
+    g.quadraticCurveTo(0, -h * 2, r, 0);
+    g.quadraticCurveTo(0, h * 2, -r, 0);
+    g.closePath();
+  };
+  const halo = g.createRadialGradient(0, 0, 0, 0, 0, r * 1.5);
+  halo.addColorStop(0, hexA(color, 0.45 * open));
+  halo.addColorStop(1, hexA(color, 0));
+  g.fillStyle = halo;
+  g.beginPath();
+  g.arc(0, 0, r * 1.5, 0, TAU);
+  g.fill();
+  g.fillStyle = '#12081c';
+  lid();
+  g.fill();
+  g.save();
+  lid();
+  g.clip();
+  // Iris: rings of violet with a light at the centre, drifting as it looks around
+  const lx = Math.sin(t * 1.3) * r * 0.12;
+  const ir = r * 0.42;
+  const iris = g.createRadialGradient(lx, 0, 0, lx, 0, ir);
+  iris.addColorStop(0, '#ffffff');
+  iris.addColorStop(0.25, glow);
+  iris.addColorStop(0.6, color);
+  iris.addColorStop(1, '#3a0f4a');
+  g.fillStyle = iris;
+  g.beginPath();
+  g.arc(lx, 0, ir, 0, TAU);
+  g.fill();
+  g.fillStyle = '#0a0410';
+  g.beginPath();
+  g.ellipse(lx, 0, ir * (0.32 - 0.14 * open), ir * 0.8, 0, 0, TAU);
+  g.fill();
+  g.restore();
+  g.strokeStyle = hexA(glow, 0.9);
+  g.lineWidth = Math.max(1.5, r * 0.035);
+  lid();
+  g.stroke();
+  g.restore();
+}
+
+/**
+ * A stinging tentacle from (x0, y0) to (x1, y1), `w` px thick at the root, tapering to the tip,
+ * rippling as it goes; a row of glowing barbs down its length.
+ */
+export function tentacle(
+  g: CanvasRenderingContext2D,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  w: number,
+  t: number,
+  color: string,
+  glow: string,
+) {
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const len = Math.hypot(dx, dy);
+  if (len < 4) return;
+  const nx = -dy / len;
+  const ny = dx / len;
+  const n = 18;
+  const at = (k: number): [number, number] => {
+    const wave = Math.sin(k * 9 - t * 14) * len * 0.05 * Math.sin(k * Math.PI);
+    return [x0 + dx * k + nx * wave, y0 + dy * k + ny * wave];
+  };
+  g.save();
+  g.lineCap = 'round';
+  for (let i = 0; i < n; i++) {
+    const k0 = i / n;
+    const k1 = (i + 1) / n;
+    const [ax, ay] = at(k0);
+    const [bx, by] = at(k1);
+    g.strokeStyle = color;
+    g.lineWidth = Math.max(1.5, w * (1 - k0 * 0.85));
+    g.beginPath();
+    g.moveTo(ax, ay);
+    g.lineTo(bx, by);
+    g.stroke();
+  }
+  g.fillStyle = glow;
+  for (let i = 2; i < n; i += 2) {
+    const k = i / n;
+    const [px, py] = at(k);
+    g.beginPath();
+    g.arc(
+      px + nx * w * 0.3 * (1 - k),
+      py + ny * w * 0.3 * (1 - k),
+      Math.max(1, w * 0.18 * (1 - k * 0.7)),
+      0,
+      TAU,
+    );
+    g.fill();
+  }
+  g.restore();
+}

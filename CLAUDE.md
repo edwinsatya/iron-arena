@@ -6,7 +6,7 @@ Game design: docs/GAME.md (current). Architecture and netcode: docs/PLAN.md (§2
 
 ## Layout
 - packages/sim — deterministic game logic (pure TS, zero runtime deps). Rules: .claude/rules/sim-determinism.md
-  - data/heroes — Benika, Lysa, Hyōga, Hyōshin, Akari, Reo, Kage, Homura, Gōkai, Yomi, Kuma, Karasu, training dummy (actions: strikes, projectiles, areas, skills, ultimates)
+  - data/heroes — Benika, Lysa, Hyōga, Hyōshin, Akari, Reo, Kage, Homura, Gōkai, Yomi, Kuma, Karasu, Kamakiri, Kurage, training dummy (actions: strikes, projectiles, areas, skills, ultimates, grabs)
   - side view: everything lives on z = 0 (step() flattens); input is left/right + jump
 - packages/netcode — rollback session (GGPO-style), binary input packets, links: loopback, WebRTC, WebSocket relay
 - packages/shared — input bits, lobby/control protocol (zod), constants (title, roster ids, stages)
@@ -31,6 +31,6 @@ pnpm check (typecheck + lint + test + synctest + soak) · pnpm lobby:smoke <url>
 - After any netcode change: pnpm soak must report 0 mismatches.
 - GameState is plain data; cloneState() and checksum() walk it generically, so new fields are covered automatically — keep them integers.
 - Pin exact dependency versions.
-- Sprite packs are licensed for use inside the game only: credit "elie automata", keep raw packs out of git.
+- Sprite packs are licensed for use inside the game only: credit "elie automata" (and the Void Mantis pack for Kamakiri, see CREDITS.md), keep raw packs out of git.
 - Player-facing text is English. Hero and skill names may use romanized Japanese words (Chiwari Shatter, Kōbō Aegis); decorative kana are fine.
 - Original IP only: no names, characters, art, music or audio from existing games.

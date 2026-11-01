@@ -13,7 +13,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Iron Arena — fantasy duels in your browser',
   description:
-    'A fantasy brawler in your browser. Pick one of twelve pixel-art heroes, each with three skills and an ultimate, and duel a friend online with rollback netcode.',
+    'A fantasy brawler in your browser. Pick one of fourteen pixel-art heroes, each with three skills and an ultimate, and duel a friend online with rollback netcode.',
   applicationName: 'Iron Arena',
   // Added to an iPhone's home screen it opens without Safari's bars
   appleWebApp: { capable: true, title: 'Iron Arena', statusBarStyle: 'black-translucent' },

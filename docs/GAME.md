@@ -78,6 +78,8 @@ locks the screen sideways where the browser allows it (Android).
 | **Yomi** "Faceless Reaper" | Knight (scythe) | 1060 | **Yamigiri Crescent**: piercing void crescent | **Soul Snatch**: long hook pulls the enemy in, stunned | **Grave Hands**: hands burst up under the enemy | **Yomi Gate**: teleports in, the underworld opens |
 | **Kuma** "Black Bear Bandit" | Berserker (claws) | 920 | **Grizzly Roar**: knock back and daze | **Frenzy Claws**: charging flurry with armour | **Hibernate**: heal, then armour | **Ōkuma Rampage**: pounce, maul, ground-shaking finish |
 | **Karasu** "Plague Doctor" | Mage (lantern) | 1040 | **Ekibyō Flask**: lobbed flask bursts into a poison cloud | **Kurobane Swarm**: crows pour from the lantern and hunt the enemy | **Miasma Veil**: poison burst, scatters into crows and re-forms further back | **Kokushibyō**: a storm of plague and crows, then a pillar of green fire |
+| **Kamakiri** "Void Mantis" | Assassin (scythe forelegs) | 1040 | **Kamaitachi**: two crescents of wind, one from each scythe | **Hanemai Dive**: leaps, blinks through the void above the enemy and dives | **Kamae Snare**: the forelegs snap shut — a grab through guard, two cuts and a kick | **Kokū Harvest**: a storm of void crescents, then one last cut |
+| **Kurage** "Abyssal Jelly" | Mage (stinging tentacles; takes 14% less damage) | 1100 | **Shiden Bolt**: piercing bolt of purple lightning | **Abyssal Tether**: a tentacle lashes across the stage, drags the enemy in and stings again | **Hakkō Pulse**: the bell flares, a ring of light that leaves anyone close reeling | **Shinkai Gaze**: the deep swallows the stage, lightning stings, the great eye bursts |
 
 Every hero also has a dash attack, an air attack and a charged attack. The in-game *Heroes &
 controls* page is generated from the data.
@@ -100,7 +102,8 @@ controls* page is generated from the data.
 ## Balance
 
 `pnpm balance [matches] [--detail]` plays CPU-vs-CPU for every pair and prints win rates, round
-endings, a win matrix and each hero's damage by move. Last run (10 matches per pair, hard CPU):
-Gōkai 60%, Benika 58%, Kuma 58%, Hyōga 56%, Akari 54%, Reo 53%, Kage 46%, Lysa 45%,
-Karasu 45%, Hyōshin 44%, Homura 43%, Yomi 38%. CPU play favours melee; tune with real players.
+endings, a win matrix and each hero's damage by move. Last run (20 matches per pair, hard CPU, with
+wake-up protection): Hyōshin 76%, Kage 68%, Lysa 64%, Karasu 57%, Homura 55%, Reo 54%,
+Benika 48%, Hyōga 48%, Kamakiri 46%, Kurage 42%, Gōkai 37%, Kuma 36%, Akari 35%, Yomi 33%.
+Tune with real players.
 The CPU keeps its distance only with heroes whose basic attack is a shot.

@@ -4,15 +4,16 @@ A fantasy 2D side-view brawler that runs in the browser. Pick a hero, send your 
 on a stage walled in at both ends: empty their health first. Online play uses
 GGPO-style **rollback netcode**, so it feels like you're in the same room.
 
-- **Heroes (12):** Benika (war axe), Lysa (bow), Hyōga (ice hammer), Hyōshin (ice heart),
+- **Heroes (14):** Benika (war axe), Lysa (bow), Hyōga (ice hammer), Hyōshin (ice heart),
   Akari (sword), Reo (sword and shield), Kage (daggers), Homura (fire magic), Gōkai (anchor and tides),
-  Yomi (void scythe), Kuma (bear claws), Karasu (plague lantern), each with a combo, dash, air and charged attacks, **3 skills and an ultimate** with a cut-in
+  Yomi (void scythe), Kuma (bear claws), Karasu (plague lantern), Kamakiri (mantis scythes),
+  Kurage (stinging tentacles), each with a combo, dash, air and charged attacks, **3 skills and an ultimate** with a cut-in
 - **Modes:** online room, versus CPU (3 levels), local versus (one keyboard or two gamepads),
   training with a sparring partner
 - **Stages:** Lantern Harbor (sunset) and Neon Rooftop (midnight), painted parallax backdrops
-- **Look:** pixel-art heroes and painted portraits from free packs by elie automata (see
+- **Look:** pixel-art heroes from free packs, nearly all by elie automata (see
   [docs/CHARACTERS.md](docs/CHARACTERS.md) and [CREDITS.md](CREDITS.md))
-- **Phones:** on-screen stick and buttons on touch screens
+- **Phones:** played sideways with a touch stick and an action-RPG button layout
 - **Cost:** everything is free (open-source libraries, free hosting tiers)
 
 Game design: [docs/GAME.md](docs/GAME.md). Architecture and netcode: [docs/PLAN.md](docs/PLAN.md).

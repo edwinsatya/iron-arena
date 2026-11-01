@@ -38,7 +38,7 @@ export interface HeroSelectProps {
   prompts?: [string, string];
 }
 
-const COLS = 6;
+const COLS = 7;
 
 /** Phones and tablets: tap wording, and skill art in place of keyboard keys. */
 export function useCoarsePointer(): boolean {

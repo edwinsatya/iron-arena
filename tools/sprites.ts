@@ -1,5 +1,5 @@
 /**
- * Converts the Elie Automata character packs (free, credit "elie automata") into game sprites.
+ * Converts the character packs (elie automata's free packs, and Void Mantis) into game sprites.
  *
  *   pnpm sprites      # reads assets-src/sprites/*.zip → apps/web/public/sprites/<hero>/
  *
@@ -39,6 +39,8 @@ interface AnimCfg {
   spin?: boolean;
   /** Recolour the fire (lantern glass, flames, sparks and the light they cast) sickly green. */
   plague?: boolean;
+  /** Not lifted by the hero's `hover` (falls that end on the floor). */
+  noHover?: boolean;
   /**
    * New poses made from existing frames: per output frame (array) or as a function of the frame
    * number, a tilt around the feet and a shift. See Xf.
@@ -80,6 +82,12 @@ interface HeroCfg {
   face?: { src: string; dir: string; frame: number };
   /** Packs with full art but no portrait board: square crop of Fullart_01 for the portrait. */
   faceFromArt?: { left: number; top: number; size: number };
+  /** Bust crop of the 3/4 frame (source px) when the automatic one misses the head. */
+  bust?: { left: number; top: number; size: number };
+  /** Floats this many source pixels above the floor (every animation without `noHover`). */
+  hover?: number;
+  /** Who drew the pack (default elie automata). */
+  credit?: string;
 }
 
 const HEROES: HeroCfg[] = [
@@ -336,6 +344,132 @@ const HEROES: HeroCfg[] = [
       },
       front: { src: 'Idle', dir: 'south', fps: 10, loop: true },
       win: { src: 'Basic_Attack', dir: 'south', pick: [0, 1, 2, 3, 4, 5, 6], plague: true },
+    },
+  },
+  {
+    // Void Mantis (a free pack, not elie automata's): a walk and one slash in 8 directions, and
+    // one-frame idle, flying and dead poses. Everything else is built from those frames.
+    id: 'kamakiri',
+    pack: 'Void_Mantis_Pixel_Art_v1.0',
+    animDir: 'Void_Mantis_Pixel_Art_v1.0',
+    height: 1.7,
+    credit: 'Void Mantis Pixel Art v1.0',
+    face: { src: 'Idle', dir: 'south-east', frame: 0 },
+    bust: { left: 100, top: 86, size: 92 },
+    anims: {
+      // The one-frame idle, breathing: rising and settling
+      idle: {
+        src: 'Idle',
+        pick: [0, 0, 0, 0],
+        fps: 4,
+        loop: true,
+        xf: [{}, { dy: -1 }, { dy: -2 }, { dy: -1 }],
+      },
+      walk: { src: 'Walk', fps: 12, loop: true },
+      run: { src: 'Walk', fps: 18, loop: true, xf: (k) => ({ rot: -6, dy: k % 7 < 3 ? -1 : 0 }) },
+      // Wings out: tail down on the way up, nose down on the way down
+      jump: { src: 'Flying', pick: [0, 0, 0, 0], xf: [{ rot: 8 }, { dy: -2 }, { rot: -6 }, { rot: -12 }] },
+      // Blades folded up in front of the face
+      guard: { src: 'Walk', pick: [3, 3] },
+      hurt: {
+        src: 'Idle',
+        pick: [0, 0, 0, 0, 0],
+        xf: (k) => ({ rot: [8, 16, 12, 6, 2][k], dx: [-3, -7, -5, -2, 0][k], ground: true }),
+      },
+      // Knocked off its feet: rears back, then crumples onto its belly (getting up = reversed)
+      death: {
+        src: 'Idle',
+        pick: [0, 0, 0, ['Dead', 0], ['Dead', 0], ['Dead', 0]],
+        xf: [
+          { rot: 10, dx: -4, ground: true },
+          { rot: 24, dx: -8, ground: true },
+          { rot: 34, dx: -10, ground: true },
+          { dx: -12, ground: true },
+          { dx: -12, dy: -3, ground: true },
+          { dx: -12, ground: true },
+        ],
+      },
+      attack: { src: 'Attack', hit: 3 },
+      // One scythe, then the other: the slash twice (the second wind blade lands on the second)
+      double: { src: 'Attack', pick: [0, 1, 2, 3, 4, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4], hit: 3 },
+      // The scythes whirl round in a full circle, seen from three quarters
+      spin: { src: 'Attack', dir: 'south-east', hit: 1 },
+      // Facing out: both blades raised, then brought down crossed
+      twin: { src: 'Attack', dir: 'south', hit: 4 },
+      // The forelegs shoot out and snap shut
+      snare: {
+        src: 'Walk',
+        pick: [3, 3, ['Attack', 4], ['Attack', 4], ['Attack', 0]],
+        xf: [{}, { rot: 4, dx: -3 }, { rot: -14, dx: 16 }, { rot: -8, dx: 10 }, {}],
+        hit: 2,
+      },
+      // Wings beating as it hovers
+      fly: {
+        src: 'Flying',
+        pick: [0, 0, 0, 0],
+        fps: 10,
+        loop: true,
+        xf: [{}, { dy: -3 }, { dy: -5 }, { dy: -3 }],
+      },
+      // Diving: nose down, the slash at the bottom of the dive
+      dive: {
+        src: 'Flying',
+        pick: [0, 0, ['Attack', 2], ['Attack', 3], ['Attack', 3], ['Attack', 4]],
+        xf: [{ rot: 6 }, { rot: -16 }, { rot: -28 }, { rot: -32 }, { rot: -24 }, { rot: -8 }],
+        hit: 3,
+      },
+      front: {
+        src: 'Idle',
+        dir: 'south',
+        pick: [0, 0, 0, 0],
+        fps: 4,
+        loop: true,
+        xf: [{}, { dy: -1 }, { dy: -2 }, { dy: -1 }],
+      },
+      // Facing out on the wing: the ultimate
+      hover: {
+        src: 'Flying',
+        dir: 'south',
+        pick: [0, 0, 0, 0],
+        fps: 10,
+        loop: true,
+        xf: [{}, { dy: -3 }, { dy: -5 }, { dy: -3 }],
+      },
+      win: { src: 'Attack', dir: 'south', pick: [0, 1, 2, 3], hit: 3 },
+    },
+  },
+  {
+    // Abyssal Jelly (free complete pack): idle, move, a tentacle lash and a death, 8 directions.
+    // It floats a little off the floor; the guard, the flinch, the pulse and the gaze come from
+    // those frames.
+    id: 'kurage',
+    pack: 'abyssal-jelly-COMPLETE-FREE',
+    height: 1.6,
+    hover: 12,
+    face: { src: 'Idle', dir: 'south-east', frame: 0 },
+    anims: {
+      idle: { src: 'Idle', fps: 10, loop: true },
+      walk: { src: 'Move', fps: 12, loop: true },
+      run: { src: 'Move', fps: 18, loop: true, xf: () => ({ rot: -6 }) },
+      // Shrinking into its bell
+      guard: { src: 'Death', pick: [15, 16] },
+      // A shudder, the eye flashing
+      hurt: { src: 'Death', pick: [1, 2, 3, 4, 5] },
+      // Collapses into a puddle on the floor (getting up = re-forming)
+      death: {
+        src: 'Death',
+        noHover: true,
+        xf: (k, n) => ({ dy: -Math.round(12 * (1 - k / (n - 1))), ground: true }),
+      },
+      attack: { src: 'Basic_Attack', hit: 8 },
+      // The lash seen from three quarters: a bigger spark at the tip
+      lash: { src: 'Basic_Attack', dir: 'south-east', hit: 10 },
+      // The bell swelling with light
+      pulse: { src: 'Idle', pick: [0, 1, 2, 3, 4, 4, 4, 3, 2, 1], hit: 4 },
+      // Facing out, the great eye open
+      front: { src: 'Idle', dir: 'south', fps: 10, loop: true },
+      gaze: { src: 'Basic_Attack', dir: 'south', hit: 10 },
+      win: { src: 'Idle', dir: 'south', fps: 10, loop: true },
     },
   },
   {
@@ -616,15 +750,25 @@ class Packer {
   }
 }
 
+/** The frames of an animation folder, in order. Packs with one-frame states (Void Mantis) keep
+ * those as `<State>/<facing>.png` instead of a folder. */
+function list(folder: string): string[] {
+  if (!existsSync(folder)) return existsSync(`${folder}.png`) ? [`${folder}.png`] : [];
+  return readdirSync(folder)
+    .filter((f) => f.endsWith('.png'))
+    .sort()
+    .map((f) => join(folder, f));
+}
+
 async function hero(cfg: HeroCfg) {
   const dir = unzip(cfg.pack);
   const out = join(OUT, cfg.id);
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
+  const anim = (src: string, facing: string) => list(join(dir, cfg.animDir ?? 'Animations', src, facing));
 
   // Feet anchor and scale from the first idle frame
-  const idleDir = join(dir, cfg.animDir ?? 'Animations', cfg.anims.idle!.src, 'east');
-  const idle0 = await load(join(idleDir, readdirSync(idleDir).sort()[0]!));
+  const idle0 = await load(anim(cfg.anims.idle!.src, 'east')[0]!);
   const ib = bbox(idle0)!;
   const footX = Math.round((ib[0] + ib[2]) / 2);
   const footY = ib[3] - 1;
@@ -633,30 +777,22 @@ async function hero(cfg: HeroCfg) {
   const packer = new Packer();
   const pieces: { img: Img; box: [number, number, number, number]; at: [number, number, number] }[] = [];
   const anims: Record<string, { frames: Frame[]; fps: number; loop?: boolean; hit: number }> = {};
-  const list = (folder: string) =>
-    readdirSync(folder)
-      .filter((f) => f.endsWith('.png'))
-      .sort()
-      .map((f) => join(folder, f));
   for (const [name, a] of Object.entries(cfg.anims)) {
     let files: string[];
     if (a.spin) {
       const at = typeof a.pick?.[0] === 'number' ? a.pick[0] : 0;
-      files = SPIN.map((d) => list(join(dir, cfg.animDir ?? 'Animations', a.src, d))[at]!);
+      files = SPIN.map((d) => anim(a.src, d)[at]!);
     } else {
-      files = list(join(dir, cfg.animDir ?? 'Animations', a.src, a.dir ?? 'east'));
+      files = anim(a.src, a.dir ?? 'east');
       if (a.range) files = files.slice(a.range[0], a.range[1] + 1);
       if (a.pick) {
         const all = files;
         files = a.pick
-          .map((i) =>
-            typeof i === 'number'
-              ? all[i]
-              : list(join(dir, cfg.animDir ?? 'Animations', i[0], a.dir ?? 'east'))[i[1]],
-          )
+          .map((i) => (typeof i === 'number' ? all[i] : anim(i[0], a.dir ?? 'east')[i[1]]))
           .filter((f): f is string => !!f);
       }
     }
+    if (!files.length) throw new Error(`${cfg.id}.${name}: no frames in ${a.src}`);
     if (a.reverse) files.reverse();
     const frames: Frame[] = [];
     let reach = -1;
@@ -667,15 +803,19 @@ async function hero(cfg: HeroCfg) {
     const first = await load(files[0]!);
     if (first.w !== idle0.w || first.h !== idle0.h) [fx, fy] = feet(first);
     const foot: [number, number] = [fx, fy];
-    if (a.xf) {
+    const lift = a.noHover ? 0 : (cfg.hover ?? 0);
+    const moved = !!a.xf || lift > 0;
+    if (moved) {
       fx += PAD;
       fy += PAD;
     }
     for (const [k, f] of files.entries()) {
       let img = await load(f);
       if (a.plague) img = plague(img);
-      if (a.xf)
-        img = transform(img, foot, (typeof a.xf === 'function' ? a.xf(k, files.length) : a.xf[k]) ?? {});
+      if (moved) {
+        const xf = (typeof a.xf === 'function' ? a.xf(k, files.length) : a.xf?.[k]) ?? {};
+        img = transform(img, foot, { ...xf, dy: (xf.dy ?? 0) - lift });
+      }
       const box = bbox(img) ?? [fx, fy, fx + 1, fy + 1];
       const w = box[2] - box[0];
       const h = box[3] - box[1];
@@ -722,10 +862,8 @@ async function hero(cfg: HeroCfg) {
   // Pixel bust for every hero (HUD, select grid): head and shoulders of the 3/4 idle frame,
   // centred on the upper body so a long weapon doesn't pull the crop sideways
   {
-    const bdir = join(dir, cfg.animDir ?? 'Animations', cfg.face?.src ?? cfg.anims.idle!.src, 'south-east');
-    const src = existsSync(bdir)
-      ? await load(join(bdir, readdirSync(bdir).sort()[cfg.face?.frame ?? 0]!))
-      : idle0;
+    const bfile = anim(cfg.face?.src ?? cfg.anims.idle!.src, 'south-east')[cfg.face?.frame ?? 0];
+    const src = bfile ? await load(bfile) : idle0;
     const b = bbox(src)!;
     const H = b[3] - b[1];
     const S = Math.round(H * 0.6);
@@ -738,16 +876,17 @@ async function hero(cfg: HeroCfg) {
           n++;
         }
     const cx = Math.round(n ? sum / n : (b[0] + b[2]) / 2);
-    const left = cx - Math.round(S / 2);
-    const top = b[1] - Math.round(S * 0.05);
+    const left = cfg.bust?.left ?? cx - Math.round(S / 2);
+    const top = cfg.bust?.top ?? b[1] - Math.round(S * 0.05);
+    const size = cfg.bust?.size ?? S;
     // Pad first so the crop can never leave the canvas
-    const pad = S;
+    const pad = size;
     const padded = await sharp(src.data, { raw: { width: src.w, height: src.h, channels: 4 } })
       .extend({ top: pad, bottom: pad, left: pad, right: pad, background: { r: 0, g: 0, b: 0, alpha: 0 } })
       .png()
       .toBuffer();
     await sharp(padded)
-      .extract({ left: left + pad, top: top + pad, width: S, height: S })
+      .extract({ left: left + pad, top: top + pad, width: size, height: size })
       .resize(96, 96, { kernel: 'nearest' })
       .webp({ lossless: true })
       .toFile(join(out, 'bust.webp'));
@@ -818,10 +957,7 @@ async function hero(cfg: HeroCfg) {
   if (!art.face) {
     // Head-and-shoulders from a sprite frame, scaled up crisply
     let src = idle0;
-    if (cfg.face) {
-      const fdir = join(dir, cfg.animDir ?? 'Animations', cfg.face.src, cfg.face.dir);
-      src = await load(join(fdir, readdirSync(fdir).sort()[cfg.face.frame]!));
-    }
+    if (cfg.face) src = await load(anim(cfg.face.src, cfg.face.dir)[cfg.face.frame]!);
     const fb = bbox(src)!;
     const size = Math.round((fb[3] - fb[1]) * 0.55);
     const cx = Math.round((fb[0] + fb[2]) / 2);
@@ -844,7 +980,7 @@ async function hero(cfg: HeroCfg) {
     facing: 1,
     anims,
     art,
-    credit: 'elie automata',
+    credit: cfg.credit ?? 'elie automata',
   };
   writeFileSync(join(out, 'atlas.json'), JSON.stringify(atlas));
   console.log(
