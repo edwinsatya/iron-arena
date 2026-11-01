@@ -10,8 +10,9 @@
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
-    "@fontsource/dela-gothic-one": "5.3.0",
-    "@fontsource/zen-kaku-gothic-new": "5.3.1",
+    "@fontsource/alegreya-sans": "5.3.0",
+    "@fontsource/grenze": "5.3.0",
+    "@fontsource/shippori-mincho-b1": "5.3.0",
     "@neonfist/netcode": "workspace:*",
     "@neonfist/shared": "workspace:*",
     "@neonfist/sim": "workspace:*",

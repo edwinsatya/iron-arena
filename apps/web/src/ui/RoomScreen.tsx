@@ -246,7 +246,7 @@ function RoomView({ controller }: { controller: RoomController }) {
         </p>
       )}
       {!other && (
-        <section className="invite panel" aria-label="Invite">
+        <section className="invite parchment" aria-label="Invite">
           <span className="invite-code">{v.code}</span>
           <div>
             <p>Send this link to your friend. Hero select opens as soon as they join.</p>
@@ -268,10 +268,7 @@ function RoomView({ controller }: { controller: RoomController }) {
         picks={picks}
         picking={v.phase === 'waiting' && !other ? you : me?.ready ? null : you}
         onPick={(id) => controller.select(id)}
-        sideLabels={[
-          you === 0 ? 'P1, you' : 'P1, your opponent',
-          you === 1 ? 'P2, you' : 'P2, your opponent',
-        ]}
+        sideLabels={[you === 0 ? 'Player 1, you' : 'Player 1', you === 1 ? 'Player 2, you' : 'Player 2']}
         names={[v.players[0]?.name ?? null, v.players[1]?.name ?? null]}
         ready={ready}
       >

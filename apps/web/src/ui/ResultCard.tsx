@@ -16,13 +16,14 @@ export function ResultCard({
   const w = state.matchWinner;
   const f = w >= 0 ? state.fighters[w]! : null;
   const hero = f ? ROSTER[f.char]! : null;
-  const color = hero ? LOOKS[hero.id]!.color : 'var(--hazard)';
+  const color = hero ? LOOKS[hero.id]!.color : 'var(--gold)';
+  const best = Math.max(state.fighters[0].bestCombo, state.fighters[1].bestCombo);
   return (
     <div className="overlay" role="dialog" aria-label="Match result">
       <div className="result panel" style={{ '--hero': color } as React.CSSProperties}>
-        <div className="result-art">{hero && <Portrait heroId={hero.id} kind="full" />}</div>
+        <div className="result-art">{hero && <Portrait heroId={hero.id} kind="win" />}</div>
         <div>
-          <h2>{w < 0 ? 'Draw' : `${names[w]!.toUpperCase()} WINS`}</h2>
+          <h2>{w < 0 ? 'A draw' : `${names[w]} wins`}</h2>
           <p className="sub">{hero ? `${hero.name}, ${hero.title}` : 'Nobody takes the stage today'}</p>
           <dl className="result-stats">
             <div>
@@ -33,7 +34,9 @@ export function ResultCard({
             </div>
             <div>
               <dt>Best chain</dt>
-              <dd>{Math.max(state.fighters[0].bestCombo, state.fighters[1].bestCombo)} hits</dd>
+              <dd>
+                {best} {best === 1 ? 'hit' : 'hits'}
+              </dd>
             </div>
             <div>
               <dt>{names[0]} dealt</dt>

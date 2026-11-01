@@ -86,7 +86,11 @@ function puppetPose(kind: Puppet, t: number, imp: number, total: number, time: n
       return { sx: 1.05, sy: 0.92, rot: -0.06 + Math.sin(time * 9) * 0.01 };
     case 'vanish': {
       const d = Math.abs(t - imp);
-      return { alpha: clamp(d / 6, 0, 1), sx: 1 - 0.3 * clamp(1 - d / 6, 0, 1), sy: 1 + 0.2 * clamp(1 - d / 6, 0, 1) };
+      return {
+        alpha: clamp(d / 6, 0, 1),
+        sx: 1 - 0.3 * clamp(1 - d / 6, 0, 1),
+        sy: 1 + 0.2 * clamp(1 - d / 6, 0, 1),
+      };
     }
     case 'spin':
       return { sy: 1 + Math.sin(time * 30) * 0.03 };
@@ -112,10 +116,14 @@ export function chooseSprite(atlas: Atlas, s: GameState, i: number, time: number
     ...extra,
   });
   const loop = (anim: AtlasAnim, t: number, rate = 1, extra: Partial<SpritePick> = {}) =>
-    pick(anim, (((t * anim.fps * rate) % anim.frames.length) + anim.frames.length) % anim.frames.length, extra);
+    pick(
+      anim,
+      (((t * anim.fps * rate) % anim.frames.length) + anim.frames.length) % anim.frames.length,
+      extra,
+    );
   /** Spread an animation over `frames` sim frames (0 → first frame, frames → last). */
   const over = (anim: AtlasAnim, t: number, frames: number, extra: Partial<SpritePick> = {}) =>
-    pick(anim, (clamp(t / Math.max(1, frames), 0, 1)) * (anim.frames.length - 1), extra);
+    pick(anim, clamp(t / Math.max(1, frames), 0, 1) * (anim.frames.length - 1), extra);
   const at = (anim: AtlasAnim, k: number, extra: Partial<SpritePick> = {}) =>
     pick(anim, k * (anim.frames.length - 1), extra);
   const walk = A.walk ?? idle;
@@ -153,12 +161,17 @@ export function chooseSprite(atlas: Atlas, s: GameState, i: number, time: number
       return up > 0 ? at(walk, 0.25, base) : at(walk, 0.75, base);
     }
     case FS.LAND:
-      if (A.land) return over(A.land, t, 6, { sx: 1.05 - Math.min(0.05, t * 0.01), sy: 0.94 + Math.min(0.06, t * 0.012) });
+      if (A.land)
+        return over(A.land, t, 6, {
+          sx: 1.05 - Math.min(0.05, t * 0.01),
+          sy: 0.94 + Math.min(0.06, t * 0.012),
+        });
       return pick(idle, 0, { sx: 1.1 - Math.min(0.1, t * 0.012), sy: 0.86 + Math.min(0.14, t * 0.018) });
     case FS.GUARD:
     case FS.BLOCKSTUN:
       // A guard pose when the pack has one (or one was made for it)
-      if (A.guard) return pick(A.guard, f.state === FS.BLOCKSTUN ? 1 : 0, { rot: f.state === FS.BLOCKSTUN ? 0.05 : 0 });
+      if (A.guard)
+        return pick(A.guard, f.state === FS.BLOCKSTUN ? 1 : 0, { rot: f.state === FS.BLOCKSTUN ? 0.05 : 0 });
       return pick(idle, 0, { sx: 0.97, sy: 0.98, rot: f.state === FS.BLOCKSTUN ? 0.06 : 0 });
     case FS.HITSTUN:
     case FS.GUARD_BREAK: {
@@ -174,7 +187,9 @@ export function chooseSprite(atlas: Atlas, s: GameState, i: number, time: number
       return death ? at(death, 0.2) : pick(idle, 0, { rot: 0.3 });
     case FS.LAUNCHED:
     case FS.FALLING:
-      return death ? over(death, t, 26, { rot: 0.15 }) : pick(idle, 0, { rot: Math.min(1.4, 0.3 + t * 0.06) });
+      return death
+        ? over(death, t, 26, { rot: 0.15 })
+        : pick(idle, 0, { rot: Math.min(1.4, 0.3 + t * 0.06) });
     case FS.DOWN:
       return death ? at(death, 1) : pick(idle, 0, { rot: Math.PI / 2, sy: 1 });
     case FS.GETUP:
@@ -206,7 +221,13 @@ export function chooseSprite(atlas: Atlas, s: GameState, i: number, time: number
 }
 
 /** Resolve an AnimRef for an action (or the win pose when `a` is null). */
-function fromRef(atlas: Atlas, ref: AnimRef, a: ActionData | null, t: number, time: number): SpritePick | null {
+function fromRef(
+  atlas: Atlas,
+  ref: AnimRef,
+  a: ActionData | null,
+  t: number,
+  time: number,
+): SpritePick | null {
   const r = typeof ref === 'string' ? { anim: ref } : ref;
   const anim = atlas.anims[r.anim] ?? atlas.anims.attack ?? atlas.anims.idle;
   if (!anim) return null;
@@ -257,7 +278,8 @@ function fromRef(atlas: Atlas, ref: AnimRef, a: ActionData | null, t: number, ti
   // Time-warp: frames before `hit` cover the startup, the rest the recovery
   const hit = Math.min(n - 1, anim.hit);
   const end = r.until ?? a.total;
-  const frame = t <= imp ? (hit * t) / Math.max(1, imp) : hit + ((n - 1 - hit) * (t - imp)) / Math.max(1, end - imp);
+  const frame =
+    t <= imp ? (hit * t) / Math.max(1, imp) : hit + ((n - 1 - hit) * (t - imp)) / Math.max(1, end - imp);
   return base(frame);
 }
 
@@ -337,7 +359,15 @@ export class SpriteHero {
   }
 
   /** Draw fighter `i` from the state. */
-  draw(g: CanvasRenderingContext2D, v: View2D, s: GameState, i: number, facing: number, time: number, opts: { flash?: number; alt?: boolean; alpha?: number }) {
+  draw(
+    g: CanvasRenderingContext2D,
+    v: View2D,
+    s: GameState,
+    i: number,
+    facing: number,
+    time: number,
+    opts: { flash?: number; alt?: boolean; alpha?: number },
+  ) {
     const p = chooseSprite(this.atlas, s, i, time);
     if (!p) return;
     const f = s.fighters[i]!;
@@ -407,7 +437,10 @@ export function loadSpriteHero(id: string): Promise<SpriteHero | null> {
 }
 
 /** Art URLs from the pack (portraits, skill cards, full art). */
-export function heroArt(id: string, key: 'face' | 'faceShout' | 'full' | 'cardS1' | 'cardS2' | 'cardS3' | 'cardUlt'): string | null {
+export function heroArt(
+  id: string,
+  key: 'face' | 'faceShout' | 'full' | 'cardS1' | 'cardS2' | 'cardS3' | 'cardUlt',
+): string | null {
   const files: Record<string, string> = {
     face: 'face.webp',
     faceShout: 'face-shout.webp',
@@ -417,7 +450,11 @@ export function heroArt(id: string, key: 'face' | 'faceShout' | 'full' | 'cardS1
     cardS3: 'card-s3.webp',
     cardUlt: 'card-ult.webp',
   };
-  return HAS_ART[id]?.includes(key) ? `/sprites/${id}/${files[key]}` : key === 'face' ? `/sprites/${id}/face.webp` : null;
+  return HAS_ART[id]?.includes(key)
+    ? `/sprites/${id}/${files[key]}`
+    : key === 'face'
+      ? `/sprites/${id}/face.webp`
+      : null;
 }
 
 /** Which heroes have painted art (complete packs). Others use sprite-made portraits. */

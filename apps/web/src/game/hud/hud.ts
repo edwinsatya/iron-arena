@@ -62,6 +62,11 @@ interface SideEls {
   char: number;
 }
 
+interface VersusEls {
+  root: HTMLElement;
+  sides: { img: HTMLImageElement; who: HTMLElement; name: HTMLElement; title: HTMLElement }[];
+}
+
 interface TrayEls {
   root: HTMLElement;
   owner: HTMLElement;
@@ -97,6 +102,7 @@ export class Hud {
   private cutinName: HTMLElement;
   private cutinBlurb: HTMLElement;
   private stats: { root: HTMLElement; dmg: HTMLElement; chain: HTMLElement } | null = null;
+  private versus: VersusEls;
   private net: HTMLElement;
   private frames: HTMLElement;
   private inputs: HTMLElement;
@@ -180,7 +186,7 @@ export class Hud {
     }
     const stage = STAGES.find((x) => x.id === o.stage) ?? STAGES[0];
     const st = el('hud-stage', this.root);
-    st.innerHTML = `${stage.name.toUpperCase()}<small>${stage.time}</small>`;
+    st.innerHTML = `${stage.name}<small>${stage.time}</small>`;
 
     this.banner = el('hud-banner', this.root);
     this.sub = el('hud-sub', this.root);
@@ -192,6 +198,24 @@ export class Hud {
     this.cutinWho = el('', txt, 'small');
     this.cutinName = el('', txt, 'b');
     this.cutinBlurb = el('', txt, 'span');
+    // Versus splash: both heroes face off while the match loads
+    const vs = el('vs-splash on', this.root);
+    const vsSides: VersusEls['sides'] = [];
+    for (let i = 0; i < 2; i++) {
+      const side = el(`vs-side ${i === 0 ? 'p1' : 'p2'}`, vs);
+      const img = el('', side, 'img');
+      img.alt = '';
+      const plate = el('vs-plate', side);
+      const who = el('vs-who', plate);
+      const name = el('vs-name', plate);
+      const title = el('vs-title', plate);
+      vsSides.push({ img, who, name, title });
+    }
+    el('', el('vs-mark', vs), 'span').textContent = 'VS';
+    const vsStage = el('vs-stage', vs);
+    vsStage.innerHTML = `${stage.name}<small>${stage.time}</small>`;
+    this.versus = { root: vs, sides: vsSides };
+
     this.net = el('hud-panel hud-net', this.root);
     this.frames = el('hud-panel hud-frames', this.root);
     this.inputs = el('hud-panel hud-inputs', this.root);
@@ -236,10 +260,20 @@ export class Hud {
     side.char = char;
     side.root.style.setProperty('--hero', look.color);
     side.combo.style.setProperty('--hero', look.color);
-    side.name.textContent = (i === 0 ? this.o.names.p1 : this.o.names.p2).toUpperCase();
+    side.name.textContent = i === 0 ? this.o.names.p1 : this.o.names.p2;
     const shown = (i === 0 ? this.o.names.p1 : this.o.names.p2).toLowerCase();
     side.tag.textContent = hero.name.toLowerCase().startsWith(shown) ? hero.title : hero.name;
     side.who.textContent = this.o.badges?.[i] ?? `P${i + 1}`;
+    const vs = this.versus.sides[i]!;
+    const player = i === 0 ? this.o.names.p1 : this.o.names.p2;
+    vs.who.textContent = player === hero.name ? (this.o.badges?.[i] ?? `Player ${i + 1}`) : player;
+    vs.name.textContent = hero.name;
+    vs.name.dataset.text = hero.name;
+    vs.title.textContent = hero.title;
+    vs.title.style.color = look.color;
+    void portrait(hero.id, 'vs')
+      .then((u) => (vs.img.src = u))
+      .catch(() => {});
     void portrait(hero.id, 'face')
       .then((u) => (side.face.src = u))
       .catch(() => {});
@@ -265,26 +299,26 @@ export class Hud {
   }
 
   private bannerFor(s: GameState): [string, string, boolean] {
-    const name = (i: number) => (i === 0 ? this.o.names.p1 : this.o.names.p2).toUpperCase();
+    const name = (i: number) => (i === 0 ? this.o.names.p1 : this.o.names.p2);
     const last =
       s.fighters[0].roundsWon === s.roundsToWin - 1 && s.fighters[1].roundsWon === s.roundsToWin - 1;
     switch (s.phase) {
       case PHASE.INTRO:
-        if (s.phaseFrame < 70) return [last ? 'FINAL ROUND' : `ROUND ${s.round}`, '', false];
-        return ['READY', '', false];
+        if (s.phaseFrame < 70) return [last ? 'Final round' : `Round ${s.round}`, '', false];
+        return ['Ready', '', false];
       case PHASE.FIGHT:
-        return s.phaseFrame < 45 ? ['FIGHT!', '', false] : ['', '', false];
+        return s.phaseFrame < 45 ? ['Fight!', '', false] : ['', '', false];
       case PHASE.KO:
-        if (s.endReason === END.TIME) return ['TIME', '', true];
-        if (s.endReason === END.DOUBLE_KO) return ['DOUBLE K.O.', '', true];
-        if (s.endReason === END.RING_OUT) return ['RING OUT!', '', true];
+        if (s.endReason === END.TIME) return ['Time', '', true];
+        if (s.endReason === END.DOUBLE_KO) return ['Double K.O.', '', true];
+        if (s.endReason === END.RING_OUT) return ['Ring out!', '', true];
         return ['K.O.', '', true];
       case PHASE.ROUND_END: {
-        if (s.endWinner < 0) return ['DRAW', '', true];
+        if (s.endWinner < 0) return ['Draw', '', true];
         const w = s.fighters[s.endWinner]!;
         const perfect = w.hp === ROSTER[w.char]!.hp;
         return [
-          perfect ? 'PERFECT' : `${name(s.endWinner)} WINS`,
+          perfect ? 'Perfect' : `${name(s.endWinner)} wins`,
           perfect ? `${name(s.endWinner)} wins the round` : '',
           true,
         ];
@@ -336,7 +370,8 @@ export class Hud {
       }
       const showCombo = this.now < c.until && c.hits >= 2;
       side.combo.classList.toggle('on', showCombo);
-      if (showCombo) side.combo.innerHTML = `<b>${c.hits}</b><span>HITS</span><small>${c.dmg} damage</small>`;
+      if (showCombo)
+        side.combo.innerHTML = `<b data-text="${c.hits}">${c.hits}</b><span>hits</span><small>${c.dmg} damage</small>`;
 
       // Skill tray
       const tray = this.trays[i];
@@ -359,7 +394,7 @@ export class Hud {
         });
         tray.ult.card.classList.toggle('ready', m >= 1);
         tray.ult.card.classList.toggle('locked', m < 1);
-        const pct = m >= 1 ? 'READY' : `${Math.floor(m * 100)}%`;
+        const pct = m >= 1 ? 'Ready' : `${Math.floor(m * 100)}%`;
         if (tray.ult.pct.textContent !== pct) tray.ult.pct.textContent = pct;
       }
     }
@@ -368,6 +403,8 @@ export class Hud {
       this.stats.dmg.textContent = String(a.totalDamage);
       this.stats.chain.textContent = String(a.bestCombo);
     }
+
+    this.versus.root.classList.toggle('on', s.frame === 0);
 
     const secs = String(Math.ceil(s.timer / 60));
     if (this.timer.textContent !== secs) this.timer.textContent = secs;
@@ -387,8 +424,9 @@ export class Hud {
         const hero = ROSTER[f.char]!;
         const ult = hero.actions[hero.ultIdx]!;
         this.cutin.style.setProperty('--hero', LOOKS[hero.id]!.color);
-        this.cutinWho.textContent = `${hero.name} — ultimate`;
-        this.cutinName.textContent = ult.name.toUpperCase();
+        this.cutinWho.textContent = `${hero.name}, ultimate`;
+        this.cutinName.textContent = ult.name;
+        this.cutinName.dataset.text = ult.name;
         this.cutinBlurb.textContent = ult.blurb ?? '';
         this.cutinImg.removeAttribute('src');
         void portrait(hero.id, 'cutin')
@@ -406,15 +444,15 @@ export class Hud {
     if (b !== this.lastBanner) {
       this.lastBanner = b;
       this.banner.textContent = b;
+      this.banner.dataset.text = b;
       this.banner.classList.remove('on');
       if (b) {
         void this.banner.offsetWidth;
         this.banner.classList.add('on');
         this.banner.dataset.kind =
-          b === 'FIGHT!' ? 'fight' : /K\.O\.|PERFECT|RING OUT/.test(b) ? 'ko' : 'info';
+          b === 'Fight!' ? 'fight' : /K\.O\.|Perfect|Ring out/.test(b) ? 'ko' : 'info';
         this.banner.dataset.hold = String(hold);
-        const spoken = b.replace(/K\.O\./, 'K. O.').replace('!', '');
-        this.onAnnounce?.(spoken.charAt(0) + spoken.slice(1).toLowerCase());
+        this.onAnnounce?.(b.replace(/K\.O\./, 'K. O.').replace('!', ''));
       }
     }
     if (this.sub.textContent !== sub) this.sub.textContent = sub;

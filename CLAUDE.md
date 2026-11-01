@@ -1,4 +1,6 @@
-# NEON FIST — browser 2D side-view brawler, 1v1 online with rollback netcode
+# IRON ARENA — browser 2D side-view fantasy brawler, 1v1 online with rollback netcode
+
+(Internal names keep the old project name: the `@neonfist/*` packages and the `neon-fist-lobby` Worker.)
 
 Game design: docs/GAME.md (current). Architecture and netcode: docs/PLAN.md (§2 game design there is the old fighter, superseded by GAME.md).
 
@@ -9,6 +11,7 @@ Game design: docs/GAME.md (current). Architecture and netcode: docs/PLAN.md (§2
 - packages/netcode — rollback session (GGPO-style), binary input packets, links: loopback, WebRTC, WebSocket relay
 - packages/shared — input bits, lobby/control protocol (zod), constants (title, roster ids, stages)
 - apps/web — Next.js app; game code in src/game (loop, input, render2d, hud, audio), UI in src/ui, online code in src/net
+  - app/globals.css — the design system, "the dusk tournament": iron plaques with gold corner brackets (choose), parchment (read), gules/azure heraldry for P1/P2; Grenze + Alegreya Sans, kana in Shippori Mincho B1. The UI is vector; only heroes and arenas are pixel art
   - render2d/ — canvas 2D renderer: stage2d (painted parallax), sprites (atlas, state → frame), effects2d
   - looks.ts — per-hero colours, sound family, sprite animation per action (render-only)
   - portraits.ts — HUD / select / skill-card pictures from the pack art (or drawn from sprites)

@@ -17,6 +17,7 @@ import {
 import { HeroSelect } from './HeroSelect';
 import { ResultCard } from './ResultCard';
 import { StagePicker } from './StagePicker';
+import { uiSound } from './uiSound';
 import { Steps, Topbar } from './Topbar';
 
 export type OfflineKind = 'cpu' | 'local' | 'training';
@@ -46,7 +47,7 @@ const COPY: Record<
     title: 'Select your hero',
     small: 'Versus computer',
     steps: ['Player', 'Rival', 'Arena'],
-    labels: ['P1, your hero', 'CPU, your rival'],
+    labels: ['Player 1', 'The CPU'],
     prompts: ['Pick your hero', 'Pick the CPU rival'],
     fight: 'Fight',
   },
@@ -176,7 +177,7 @@ export function OfflineMode({ kind }: { kind: OfflineKind }) {
           trays: kind === 'local' ? [KEY_HINTS.p1, KEY_HINTS.p2] : [KEY_HINTS.solo, null],
           stats: kind !== 'local',
           stage,
-          badges: kind === 'cpu' ? ['P1', 'CPU'] : kind === 'local' ? ['P1', 'P2'] : ['YOU', 'DUMMY'],
+          badges: kind === 'cpu' ? ['P1', 'CPU'] : kind === 'local' ? ['P1', 'P2'] : ['You', 'Dummy'],
         }}
         onFrame={onFrame}
         holdForAssets
@@ -258,6 +259,7 @@ export function OfflineMode({ kind }: { kind: OfflineKind }) {
         title={copy.title}
         small={copy.small}
         onBack={() => {
+          uiSound('back');
           if (step === 0) router.push('/');
           else setStep((s) => s - 1);
         }}
@@ -267,6 +269,7 @@ export function OfflineMode({ kind }: { kind: OfflineKind }) {
         picks={picks}
         picking={step <= 1 ? (step as 0 | 1) : null}
         onPick={pick}
+        ready={[step > 0, step > 1]}
         sideLabels={copy.labels}
         prompts={copy.prompts}
         keys={kind === 'local' ? (step === 1 ? KEY_HINTS.p2 : KEY_HINTS.p1) : KEY_HINTS.solo}
@@ -287,10 +290,22 @@ export function OfflineMode({ kind }: { kind: OfflineKind }) {
                 </div>
               )}
               <div className="picker-actions">
-                <button className="btn" onClick={start}>
+                <button
+                  className="btn"
+                  onClick={() => {
+                    uiSound('confirm');
+                    start();
+                  }}
+                >
                   {copy.fight}
                 </button>
-                <button className="btn ghost" onClick={() => setStep(0)}>
+                <button
+                  className="btn ghost"
+                  onClick={() => {
+                    uiSound('back');
+                    setStep(0);
+                  }}
+                >
                   Change heroes
                 </button>
               </div>
@@ -300,7 +315,13 @@ export function OfflineMode({ kind }: { kind: OfflineKind }) {
       >
         {step <= 1 && (
           <div className="picker-actions">
-            <button className="btn ghost" onClick={random}>
+            <button
+              className="btn ghost"
+              onClick={() => {
+                uiSound('stamp');
+                random();
+              }}
+            >
               Random hero
             </button>
           </div>

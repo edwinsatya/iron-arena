@@ -15,9 +15,17 @@ export function hash(n: number): number {
 
 /** Flame colours, outside → core. */
 export type FlamePalette = [string, string, string];
-export const FIRE: FlamePalette = ['rgba(255, 70, 30, 0.85)', 'rgba(255, 150, 40, 0.92)', 'rgba(255, 236, 160, 0.95)'];
+export const FIRE: FlamePalette = [
+  'rgba(255, 70, 30, 0.85)',
+  'rgba(255, 150, 40, 0.92)',
+  'rgba(255, 236, 160, 0.95)',
+];
 /** Plague fire: the Plague Doctor's lantern. */
-export const PLAGUE_FIRE: FlamePalette = ['rgba(40, 150, 70, 0.85)', 'rgba(120, 220, 80, 0.92)', 'rgba(228, 255, 180, 0.95)'];
+export const PLAGUE_FIRE: FlamePalette = [
+  'rgba(40, 150, 70, 0.85)',
+  'rgba(120, 220, 80, 0.92)',
+  'rgba(228, 255, 180, 0.95)',
+];
 
 /** One flickering flame tongue standing on (x, y), `w` wide and `h` tall (px). */
 export function flame(
@@ -67,7 +75,16 @@ export function flameWall(
     const k = (i + 0.5) / n;
     const mid = 1 - Math.abs(k - 0.5) * 1.4;
     const fx = x0 + (x1 - x0) * k;
-    flame(g, fx, y, (Math.abs(x1 - x0) / n) * 1.9, h * (0.55 + 0.45 * mid) * (0.8 + 0.2 * hash(i + seed)), t, i + seed, pal);
+    flame(
+      g,
+      fx,
+      y,
+      (Math.abs(x1 - x0) / n) * 1.9,
+      h * (0.55 + 0.45 * mid) * (0.8 + 0.2 * hash(i + seed)),
+      t,
+      i + seed,
+      pal,
+    );
   }
 }
 
@@ -95,7 +112,16 @@ export function embers(
 }
 
 /** Radial spikes with a bright core: impacts and bursts. k = 0 → 1 over its life. */
-export function starBurst(g: CanvasRenderingContext2D, x: number, y: number, r: number, k: number, color: string, glow: string, seed = 0) {
+export function starBurst(
+  g: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r: number,
+  k: number,
+  color: string,
+  glow: string,
+  seed = 0,
+) {
   const n = 14;
   const grow = 1 - (1 - Math.min(1, k * 2.5)) ** 3;
   g.save();
@@ -132,7 +158,14 @@ export function starBurst(g: CanvasRenderingContext2D, x: number, y: number, r: 
  * A crescent blade facing +x (rotate/scale the context first): outer arc radius R, thickness
  * `th` at the middle, tapering to points. Bright core with a coloured rim.
  */
-export function crescent(g: CanvasRenderingContext2D, R: number, th: number, rim: string, core: string, span = 2.2) {
+export function crescent(
+  g: CanvasRenderingContext2D,
+  R: number,
+  th: number,
+  rim: string,
+  core: string,
+  span = 2.2,
+) {
   const a0 = -span / 2;
   const a1 = span / 2;
   const path = (r: number, t: number) => {
@@ -150,7 +183,16 @@ export function crescent(g: CanvasRenderingContext2D, R: number, th: number, rim
 }
 
 /** Soft smoke puffs. */
-export function smoke(g: CanvasRenderingContext2D, x: number, y: number, r: number, t: number, n: number, color: string, seed = 0) {
+export function smoke(
+  g: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r: number,
+  t: number,
+  n: number,
+  color: string,
+  seed = 0,
+) {
   for (let i = 0; i < n; i++) {
     const life = (t * 0.8 + hash(i + seed)) % 1;
     const px = x + (hash(i * 3 + seed) - 0.5) * r * 2;
@@ -164,11 +206,19 @@ export function smoke(g: CanvasRenderingContext2D, x: number, y: number, r: numb
 }
 
 /** Light rays fanning up from (x, y). */
-export function rays(g: CanvasRenderingContext2D, x: number, y: number, len: number, n: number, t: number, color: string) {
+export function rays(
+  g: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  len: number,
+  n: number,
+  t: number,
+  color: string,
+) {
   g.save();
   g.translate(x, y);
   for (let i = 0; i < n; i++) {
-    const a = -Math.PI / 2 + ((i / (n - 1)) - 0.5) * 1.6 + Math.sin(t * 2 + i) * 0.04;
+    const a = -Math.PI / 2 + (i / (n - 1) - 0.5) * 1.6 + Math.sin(t * 2 + i) * 0.04;
     const w = len * 0.05 * (0.6 + hash(i) * 0.8);
     const l = len * (0.6 + hash(i * 3) * 0.4);
     const gr = g.createLinearGradient(0, 0, Math.cos(a) * l, Math.sin(a) * l);
@@ -210,7 +260,13 @@ export function waterCurl(g: CanvasRenderingContext2D, w: number, h: number, t: 
   for (let i = 0; i < 10; i++) {
     const k = (t * 1.5 + hash(i)) % 1;
     g.beginPath();
-    g.arc(w * 0.3 + k * w * 0.3 * hash(i * 2), -h * (0.9 - k * 0.6) - Math.sin(k * Math.PI) * h * 0.3, 2 + hash(i * 5) * 3, 0, TAU);
+    g.arc(
+      w * 0.3 + k * w * 0.3 * hash(i * 2),
+      -h * (0.9 - k * 0.6) - Math.sin(k * Math.PI) * h * 0.3,
+      2 + hash(i * 5) * 3,
+      0,
+      TAU,
+    );
     g.fill();
   }
 }
@@ -355,7 +411,15 @@ export function flask(g: CanvasRenderingContext2D, s: number, t: number) {
  * A cloud of plague: heaving puffs of sickly green with a dark core, bubbles and spores. Drawn
  * standing on (x, y), `r` px wide each side. `k`: 0 → 1 over its life (swells, then thins out).
  */
-export function miasma(g: CanvasRenderingContext2D, x: number, y: number, r: number, t: number, k: number, seed = 0) {
+export function miasma(
+  g: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r: number,
+  t: number,
+  k: number,
+  seed = 0,
+) {
   const swell = Math.min(1, k * 4);
   const fade = 1 - Math.max(0, k - 0.75) / 0.25;
   // Stain on the ground

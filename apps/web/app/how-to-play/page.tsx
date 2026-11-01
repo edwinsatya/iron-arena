@@ -4,7 +4,7 @@ import { LOOKS } from '../../src/game/looks';
 import { Topbar } from '../../src/ui/Topbar';
 import { Portrait } from '../../src/ui/usePortrait';
 
-export const metadata = { title: 'Heroes & controls — NEON FIST' };
+export const metadata = { title: 'Heroes & keys — IRON ARENA' };
 
 const K = KEY_HINTS.solo;
 
@@ -29,9 +29,9 @@ export default function HowToPlay() {
   ];
   return (
     <main className="screen">
-      <Topbar title="Heroes & controls" small="How to play" />
+      <Topbar title="Heroes & keys" small="The codex" />
 
-      <section className="controls-board" aria-label="Controls">
+      <section className="controls-board panel" aria-label="Controls">
         <div className="ctrl">
           <h3>Move</h3>
           <Keys keys={['A', 'D']} />
@@ -63,9 +63,8 @@ export default function HowToPlay() {
         <div className="ctrl">
           <h3>Win</h3>
           <p style={{ marginTop: 0 }}>
-            Empty their health. Walls close both ends of the stage: knock someone into one hard and they bounce off it,
-            open for more. First to two rounds
-            takes the match.
+            Empty their health. Walls close both ends of the stage: knock someone into one hard and they
+            bounce off it, open for more. First to two rounds takes the match.
           </p>
         </div>
         <div className="ctrl">
@@ -82,7 +81,7 @@ export default function HowToPlay() {
             <section
               key={h.id}
               id={h.id}
-              className="hero-row panel"
+              className="hero-row parchment"
               style={{ '--hero': look.color } as React.CSSProperties}
             >
               <div className="art">
@@ -146,7 +145,7 @@ export default function HowToPlay() {
         })}
       </div>
       <p className="muted" style={{ textAlign: 'center', margin: '28px 0 8px' }}>
-        Hero sprites, portraits and skill art by{' '}
+        Every hero is drawn by{' '}
         <a href="https://elie-automata.itch.io/" target="_blank" rel="noreferrer">
           elie automata
         </a>

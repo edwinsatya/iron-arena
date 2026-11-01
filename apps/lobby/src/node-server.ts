@@ -185,6 +185,6 @@ export function startLobbyServer(port: number): Promise<http.Server> {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const port = Number(process.env.PORT ?? DEFAULT_LOBBY_PORT);
   void startLobbyServer(port).then(() =>
-    console.log(`[lobby] NEON FIST lobby listening on http://localhost:${port}`),
+    console.log(`[lobby] IRON ARENA lobby listening on http://localhost:${port}`),
   );
 }

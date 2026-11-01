@@ -1,6 +1,6 @@
-# NEON FIST — game design (v3, side-view brawler)
+# IRON ARENA — game design (v3, side-view brawler)
 
-> Since 29 Oct 2026 NEON FIST is a **2D side-view brawler** with pixel-art heroes: move left and
+> Since 29 Oct 2026 IRON ARENA (first called NEON FIST) is a **2D side-view brawler** with pixel-art heroes: move left and
 > right, jump and double jump, three action buttons, skills on button chords, and walls at both
 > ends of the stage. It replaces the 3D arena version (v2). The architecture (deterministic sim, rollback
 > netcode, lobby, WebRTC) is unchanged; the sim keeps everything on the z = 0 line.

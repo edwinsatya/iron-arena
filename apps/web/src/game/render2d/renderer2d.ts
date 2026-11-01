@@ -33,7 +33,7 @@ export interface RendererOptions {
   showcase?: boolean;
 }
 
-export const PLAYER_COLORS = { p1: '#ff4b3e', p2: '#3d8bff' } as const;
+export const PLAYER_COLORS = { p1: '#e0453a', p2: '#3f7be0' } as const;
 
 interface Ambient {
   x: number;
@@ -270,7 +270,12 @@ export class GameRenderer {
     const sprite = this.heroes.get(hero.id);
     const trail = this.trails[i]!;
     // Vanish for a moment when teleporting
-    if (s.freeze === 0 && f.state === FS.ACTION && a?.teleport && Math.abs(f.actionFrame - a.teleport.frame) <= 2) {
+    if (
+      s.freeze === 0 &&
+      f.state === FS.ACTION &&
+      a?.teleport &&
+      Math.abs(f.actionFrame - a.teleport.frame) <= 2
+    ) {
       trail.length = 0;
       return;
     }
@@ -279,7 +284,8 @@ export class GameRenderer {
     const flash = (this.flashT[i]! / 0.12) * 0.75;
 
     // Aura: ultimate, charging, buffs
-    const isUlt = (f.state === FS.ACTION && f.action === hero.ultIdx) || (s.freeze > 0 && s.freezeOwner === i);
+    const isUlt =
+      (f.state === FS.ACTION && f.action === hero.ultIdx) || (s.freeze > 0 && s.freezeOwner === i);
     let aura = 0;
     let auraColor = look.color;
     if (isUlt) aura = 0.75 + Math.sin(this.time * 18) * 0.15;
@@ -319,13 +325,22 @@ export class GameRenderer {
     } else if (trail.length) trail.pop();
     for (let k = trail.length - 1; k >= 1; k -= 2) {
       const t = trail[k]!;
-      sprite.drawPick(g, t.pick, v.sx(t.x), v.sy(t.y), scale, t.facing, { alt, alpha: 0.28 * (1 - k / 7), flash: 1 });
+      sprite.drawPick(g, t.pick, v.sx(t.x), v.sy(t.y), scale, t.facing, {
+        alt,
+        alpha: 0.28 * (1 - k / 7),
+        flash: 1,
+      });
     }
 
     // Guard: a hexagonal barrier in front
     const guarding = f.state === FS.GUARD || f.state === FS.BLOCKSTUN;
-    const countering = f.state === FS.ACTION && a?.counter && f.actionFrame >= a.counter.frames[0] && f.actionFrame <= a.counter.frames[1];
-    if (guarding || countering) this.barrier(g, f.x, f.y, facing, countering ? look.glow : look.color, f.state === FS.BLOCKSTUN);
+    const countering =
+      f.state === FS.ACTION &&
+      a?.counter &&
+      f.actionFrame >= a.counter.frames[0] &&
+      f.actionFrame <= a.counter.frames[1];
+    if (guarding || countering)
+      this.barrier(g, f.x, f.y, facing, countering ? look.glow : look.color, f.state === FS.BLOCKSTUN);
 
     // Hit shake
     const shake = f.state === FS.HITSTUN && f.stateFrame < 8 ? Math.sin(f.stateFrame * 3) * v.px(40) : 0;
@@ -349,7 +364,7 @@ export class GameRenderer {
       g.closePath();
       g.fill();
       g.stroke();
-      g.font = '700 12px "Zen Kaku Gothic New", sans-serif';
+      g.font = '800 13px "Alegreya Sans", sans-serif';
       g.textAlign = 'center';
       g.textBaseline = 'bottom';
       g.lineWidth = 3;
@@ -358,7 +373,14 @@ export class GameRenderer {
     }
   }
 
-  private barrier(g: CanvasRenderingContext2D, x: number, y: number, facing: number, color: string, hit: boolean) {
+  private barrier(
+    g: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    facing: number,
+    color: string,
+    hit: boolean,
+  ) {
     const v = this.v;
     const cx = v.sx(x) + facing * v.px(420);
     const cy = v.sy(y + 950);
@@ -397,7 +419,15 @@ export class GameRenderer {
   }
 
   /** Code-drawn extras for moves the sprite packs don't illustrate. */
-  private overlay(g: CanvasRenderingContext2D, s: GameState, i: number, id: string, t: number, color: string, glow: string) {
+  private overlay(
+    g: CanvasRenderingContext2D,
+    s: GameState,
+    i: number,
+    id: string,
+    t: number,
+    color: string,
+    glow: string,
+  ) {
     const v = this.v;
     const f = s.fighters[i]!;
     const o = s.fighters[1 - i]!;
@@ -625,7 +655,13 @@ export class GameRenderer {
         if (p.y < 0) p.y += 1;
         g.fillStyle = `rgba(255, ${180 + Math.round(p.s * 40)}, 120, ${0.35 * p.s})`;
         g.beginPath();
-        g.arc((((p.x * v.w - v.camX * v.scale * 0.6 * v.flip) % v.w) + v.w) % v.w, p.y * v.h * 0.85, 1.5 * p.s, 0, Math.PI * 2);
+        g.arc(
+          (((p.x * v.w - v.camX * v.scale * 0.6 * v.flip) % v.w) + v.w) % v.w,
+          p.y * v.h * 0.85,
+          1.5 * p.s,
+          0,
+          Math.PI * 2,
+        );
         g.fill();
       } else {
         p.y += dt * 1.6 * p.s;

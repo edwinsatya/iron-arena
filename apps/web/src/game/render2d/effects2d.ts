@@ -35,7 +35,11 @@ export interface EffectCallbacks {
 }
 
 /** A one-shot effect in world millimetres; returns false when finished. */
-type Fx = { age: number; life: number; draw: (g: CanvasRenderingContext2D, v: View2D, k: number, dt: number) => void };
+type Fx = {
+  age: number;
+  life: number;
+  draw: (g: CanvasRenderingContext2D, v: View2D, k: number, dt: number) => void;
+};
 
 const TAU = Math.PI * 2;
 
@@ -343,7 +347,7 @@ export class Effects2D {
     this.add(0.85, (g, v, k) => {
       const pop = k < 0.12 ? 0.6 + (k / 0.12) * 0.6 : 1.2 - Math.min(0.2, (k - 0.12) * 0.8);
       const px = Math.round(size * pop * Math.min(1.25, Math.max(0.8, v.h / 720)));
-      g.font = `${px}px "Dela Gothic One", "Arial Black", sans-serif`;
+      g.font = `900 ${Math.round(px * 1.2)}px "Grenze", Georgia, serif`;
       g.textAlign = 'center';
       g.textBaseline = 'middle';
       g.lineJoin = 'round';
@@ -435,7 +439,16 @@ export class Effects2D {
           g.rotate(ang);
           g.save();
           g.rotate(Math.PI / 2);
-          for (let q = 0; q < 3; q++) flame(g, (q - 1) * r * 0.35, r * 0.4, r * 1.3, r * (4.2 - Math.abs(q - 1)), this.time + q, p.age + q);
+          for (let q = 0; q < 3; q++)
+            flame(
+              g,
+              (q - 1) * r * 0.35,
+              r * 0.4,
+              r * 1.3,
+              r * (4.2 - Math.abs(q - 1)),
+              this.time + q,
+              p.age + q,
+            );
           g.restore();
           const core = g.createRadialGradient(0, 0, 0, 0, 0, r * 1.2);
           core.addColorStop(0, '#fffbe8');
@@ -511,7 +524,9 @@ export class Effects2D {
       case 'grenade': {
         const armed = p.age >= (spec.armAfter ?? 0) && spec.armAfter !== 999;
         const blink =
-          spec.kind === 'grenade' ? Math.sin(p.age * (0.3 + p.age / 60)) > 0 : armed && Math.sin(p.age * 0.25) > 0;
+          spec.kind === 'grenade'
+            ? Math.sin(p.age * (0.3 + p.age / 60)) > 0
+            : armed && Math.sin(p.age * 0.25) > 0;
         const R = v.px(spec.kind === 'mine' ? 260 : 140);
         g.fillStyle = '#2e2a3d';
         g.strokeStyle = '#140f1e';
@@ -582,7 +597,13 @@ export class Effects2D {
         for (let q = 1; q <= 5; q++) {
           g.fillStyle = hexA('#8fe05a', 0.55 - q * 0.09);
           g.beginPath();
-          g.arc((-p.vx * q * 0.9 * v.px(1)) * v.flip, p.vy * q * 0.9 * v.px(1), Math.max(1.5, r * (0.32 - q * 0.04)), 0, TAU);
+          g.arc(
+            -p.vx * q * 0.9 * v.px(1) * v.flip,
+            p.vy * q * 0.9 * v.px(1),
+            Math.max(1.5, r * (0.32 - q * 0.04)),
+            0,
+            TAU,
+          );
           g.fill();
         }
         g.rotate(p.age * 0.32 * dir);
@@ -658,7 +679,8 @@ export class Effects2D {
       case 'thunder':
       case 'storm': {
         for (let b = 0; b < (spec.kind === 'storm' ? 3 : 1); b++) {
-          const bx = x + (b - 1) * rx * 0.6 * (spec.kind === 'storm' ? 1 : 0) + Math.sin(this.time * 40 + b) * 4;
+          const bx =
+            x + (b - 1) * rx * 0.6 * (spec.kind === 'storm' ? 1 : 0) + Math.sin(this.time * 40 + b) * 4;
           g.strokeStyle = '#ffffff';
           g.lineWidth = 6;
           g.shadowColor = '#9ad8ff';
@@ -865,7 +887,15 @@ export class Effects2D {
         g.lineWidth = 3;
         for (let n = 0; n < 3; n++) {
           g.beginPath();
-          g.ellipse(x, y0, rx * (0.3 + n * 0.25), rx * 0.2 * (0.3 + n * 0.25), 0, a.age * 0.15 + n, a.age * 0.15 + n + 4);
+          g.ellipse(
+            x,
+            y0,
+            rx * (0.3 + n * 0.25),
+            rx * 0.2 * (0.3 + n * 0.25),
+            0,
+            a.age * 0.15 + n,
+            a.age * 0.15 + n + 4,
+          );
           g.stroke();
         }
         const rise = Math.sin(Math.min(1, k * 2.5) * Math.PI * 0.5);
@@ -976,7 +1006,13 @@ export class Effects2D {
         for (let n = 0; n < 7; n++) {
           const a2 = (n / 7) * TAU + a.age * 0.05;
           g.beginPath();
-          g.arc(x + Math.cos(a2) * rx * 0.5 * (0.6 + k), y0 - rx * 0.6 + Math.sin(a2) * rx * 0.35, rx * 0.4, 0, TAU);
+          g.arc(
+            x + Math.cos(a2) * rx * 0.5 * (0.6 + k),
+            y0 - rx * 0.6 + Math.sin(a2) * rx * 0.35,
+            rx * 0.4,
+            0,
+            TAU,
+          );
           g.fill();
         }
         break;
@@ -998,8 +1034,18 @@ export class Effects2D {
       case 'burst':
       default: {
         // A star-shaped blast in the hero's colours
-        starBurst(g, x, y0 - v.px(900), rx * 1.1, Math.min(1, k * 1.4), look.color, look.glow, a.age + a.action);
-        if (look.weapon === 'fire') flameWall(g, x - rx * 0.7, x + rx * 0.7, y0, v.px(1400) * (1 - k), this.time, a.age);
+        starBurst(
+          g,
+          x,
+          y0 - v.px(900),
+          rx * 1.1,
+          Math.min(1, k * 1.4),
+          look.color,
+          look.glow,
+          a.age + a.action,
+        );
+        if (look.weapon === 'fire')
+          flameWall(g, x - rx * 0.7, x + rx * 0.7, y0, v.px(1400) * (1 - k), this.time, a.age);
         else embers(g, x, y0 - v.px(400), rx * 1.6, v.px(1600), this.time, 14, look.glow, a.age);
         break;
       }

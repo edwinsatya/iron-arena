@@ -39,7 +39,15 @@ function layer(draw: (g: CanvasRenderingContext2D) => void): HTMLCanvasElement {
   return c;
 }
 
-function blob(g: CanvasRenderingContext2D, x: number, y: number, rx: number, ry: number, color: string, a: number) {
+function blob(
+  g: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  rx: number,
+  ry: number,
+  color: string,
+  a: number,
+) {
   const r = g.createRadialGradient(x, y, 0, x, y, rx);
   r.addColorStop(0, hexA(color, a));
   r.addColorStop(1, hexA(color, 0));
@@ -55,7 +63,15 @@ function blob(g: CanvasRenderingContext2D, x: number, y: number, rx: number, ry:
 }
 
 /** A soft painted cloud: many overlapping blobs, lit from one side. */
-function cloud(g: CanvasRenderingContext2D, rnd: () => number, x: number, y: number, w: number, lit: string, shade: string) {
+function cloud(
+  g: CanvasRenderingContext2D,
+  rnd: () => number,
+  x: number,
+  y: number,
+  w: number,
+  lit: string,
+  shade: string,
+) {
   for (let i = 0; i < 16; i++) {
     const t = i / 15;
     const bx = x + (t - 0.5) * w + (rnd() - 0.5) * w * 0.15;
@@ -66,7 +82,14 @@ function cloud(g: CanvasRenderingContext2D, rnd: () => number, x: number, y: num
   }
 }
 
-function ridge(g: CanvasRenderingContext2D, rnd: () => number, base: number, amp: number, color: string, step = 60) {
+function ridge(
+  g: CanvasRenderingContext2D,
+  rnd: () => number,
+  base: number,
+  amp: number,
+  color: string,
+  step = 60,
+) {
   g.fillStyle = color;
   g.beginPath();
   g.moveTo(0, REF_H);
@@ -101,7 +124,15 @@ function harbor(): Stage2D {
     g.arc(820, 600, 58, 0, Math.PI * 2);
     g.fill();
     for (let i = 0; i < 9; i++)
-      cloud(g, rnd, rnd() * REF_W, 120 + rnd() * 330, 260 + rnd() * 420, i % 2 ? '#ffd2b8' : '#ffc9a8', '#8a6aa0');
+      cloud(
+        g,
+        rnd,
+        rnd() * REF_W,
+        120 + rnd() * 330,
+        260 + rnd() * 420,
+        i % 2 ? '#ffd2b8' : '#ffc9a8',
+        '#8a6aa0',
+      );
   });
   const far = layer((g) => {
     // Sea
@@ -331,9 +362,18 @@ function rooftop(): Stage2D {
       g.arc(1900 + dx, 230 + dy, r, 0, Math.PI * 2);
       g.fill();
     }
-    for (let i = 0; i < 5; i++) cloud(g, rnd, rnd() * REF_W, 380 + rnd() * 160, 400 + rnd() * 400, '#4d3a86', '#1c1640');
+    for (let i = 0; i < 5; i++)
+      cloud(g, rnd, rnd() * REF_W, 380 + rnd() * 160, 400 + rnd() * 400, '#4d3a86', '#1c1640');
   });
-  const skyline = (g: CanvasRenderingContext2D, base: number, minH: number, maxH: number, body: string, win: string, density: number) => {
+  const skyline = (
+    g: CanvasRenderingContext2D,
+    base: number,
+    minH: number,
+    maxH: number,
+    body: string,
+    win: string,
+    density: number,
+  ) => {
     let x = -20;
     while (x < REF_W) {
       const w = 70 + rnd() * 150;
@@ -549,7 +589,11 @@ function drawFloor(g: CanvasRenderingContext2D, v: View2D, st: FloorStyle) {
       g.stroke();
       if (st.wall.bricks) {
         const bw = v.px(700);
-        for (let x = xTop + ((r % 2) * bw) / 2 * sgn * v.flip; Math.abs(x - xTop) < Math.abs(outer - xTop) + bw; x += bw * sgn * v.flip) {
+        for (
+          let x = xTop + (((r % 2) * bw) / 2) * sgn * v.flip;
+          Math.abs(x - xTop) < Math.abs(outer - xTop) + bw;
+          x += bw * sgn * v.flip
+        ) {
           g.beginPath();
           g.moveTo(x, y);
           g.lineTo(x, y - (yTop - wallTop) / rows);

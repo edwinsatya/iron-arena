@@ -301,7 +301,12 @@ const HEROES: HeroCfg[] = [
       // Throwing a flask: the swing without its fire arc
       toss: { src: 'Basic_Attack', pick: [1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15], hit: 5 },
       // Holding the green lantern out while crows pour from it
-      present: { src: 'Basic_Attack', pick: [2, 3, 4, 5, 8, 9, 8, 9, 8, 9, 10, 11, 12, 13, 14, 15], hit: 4, plague: true },
+      present: {
+        src: 'Basic_Attack',
+        pick: [2, 3, 4, 5, 8, 9, 8, 9, 8, 9, 10, 11, 12, 13, 14, 15],
+        hit: 4,
+        plague: true,
+      },
       // Pulling the cloak around and sinking into it
       veil: { src: 'Jump', pick: [4, 5, 6, 7, 8, 8, 9, 10], hit: 4 },
       // Ultimate: fist raised, the lantern burning green and trembling with power, then the smash
@@ -309,7 +314,24 @@ const HEROES: HeroCfg[] = [
         src: 'Basic_Attack',
         dir: 'south',
         plague: true,
-        pick: [0, 1, 2, 3, 4, 5, 6, ...[5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5], 7, 8, 8, 9, 10, 11, 13, 15],
+        pick: [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          ...[5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5],
+          7,
+          8,
+          8,
+          9,
+          10,
+          11,
+          13,
+          15,
+        ],
         hit: 6,
       },
       front: { src: 'Idle', dir: 'south', fps: 10, loop: true },
@@ -390,7 +412,17 @@ function fromHsv(h: number, s: number, v: number): [number, number, number] {
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
   const m = v - c;
   const [r, g, b] =
-    h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+    h < 60
+      ? [c, x, 0]
+      : h < 120
+        ? [x, c, 0]
+        : h < 180
+          ? [0, c, x]
+          : h < 240
+            ? [0, x, c]
+            : h < 300
+              ? [x, 0, c]
+              : [c, 0, x];
   return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
 }
 
@@ -414,9 +446,11 @@ function fireMask(im: Img): Uint8Array {
     const [h, s, v] = hsv(data[i * 4]!, data[i * 4 + 1]!, data[i * 4 + 2]!);
     const red = h <= 15 || h >= 345;
     if ((h <= 62 || h >= 350) && s >= 0.5 && v >= 0.55) warm[i] = 1;
-    if ((h <= 68 || h >= 340) && ((v >= 0.75 && s >= 0.12) || (red && s >= 0.45 && v >= 0.28))) fireish[i] = 1;
+    if ((h <= 68 || h >= 340) && ((v >= 0.75 && s >= 0.12) || (red && s >= 0.45 && v >= 0.28)))
+      fireish[i] = 1;
     if ((h <= 45 || h >= 340) && s >= 0.45 && v >= 0.35) loose[i] = 1;
-    if ((h >= 5 && h <= 28 && s >= 0.82 && v >= 0.85) || (h >= 35 && h <= 58 && s >= 0.78 && v >= 0.95)) hot[i] = 1;
+    if ((h >= 5 && h <= 28 && s >= 0.82 && v >= 0.85) || (h >= 35 && h <= 58 && s >= 0.78 && v >= 0.95))
+      hot[i] = 1;
   }
   const around = (i: number, f: (j: number) => void) => {
     const x = i % W;
@@ -615,7 +649,11 @@ async function hero(cfg: HeroCfg) {
       if (a.pick) {
         const all = files;
         files = a.pick
-          .map((i) => (typeof i === 'number' ? all[i] : list(join(dir, cfg.animDir ?? 'Animations', i[0], a.dir ?? 'east'))[i[1]]))
+          .map((i) =>
+            typeof i === 'number'
+              ? all[i]
+              : list(join(dir, cfg.animDir ?? 'Animations', i[0], a.dir ?? 'east'))[i[1]],
+          )
           .filter((f): f is string => !!f);
       }
     }
@@ -636,7 +674,8 @@ async function hero(cfg: HeroCfg) {
     for (const [k, f] of files.entries()) {
       let img = await load(f);
       if (a.plague) img = plague(img);
-      if (a.xf) img = transform(img, foot, (typeof a.xf === 'function' ? a.xf(k, files.length) : a.xf[k]) ?? {});
+      if (a.xf)
+        img = transform(img, foot, (typeof a.xf === 'function' ? a.xf(k, files.length) : a.xf[k]) ?? {});
       const box = bbox(img) ?? [fx, fy, fx + 1, fy + 1];
       const w = box[2] - box[0];
       const h = box[3] - box[1];
@@ -679,6 +718,41 @@ async function hero(cfg: HeroCfg) {
 
   // Art: portraits, skill cards, full art (complete packs); partial packs get a sprite portrait
   const art: Record<string, string> = {};
+
+  // Pixel bust for every hero (HUD, select grid): head and shoulders of the 3/4 idle frame,
+  // centred on the upper body so a long weapon doesn't pull the crop sideways
+  {
+    const bdir = join(dir, cfg.animDir ?? 'Animations', cfg.face?.src ?? cfg.anims.idle!.src, 'south-east');
+    const src = existsSync(bdir)
+      ? await load(join(bdir, readdirSync(bdir).sort()[cfg.face?.frame ?? 0]!))
+      : idle0;
+    const b = bbox(src)!;
+    const H = b[3] - b[1];
+    const S = Math.round(H * 0.6);
+    let sum = 0;
+    let n = 0;
+    for (let y = b[1]; y < b[1] + H * 0.45; y++)
+      for (let x = b[0]; x < b[2]; x++)
+        if (src.data[(y * src.w + x) * 4 + 3]! > 8) {
+          sum += x;
+          n++;
+        }
+    const cx = Math.round(n ? sum / n : (b[0] + b[2]) / 2);
+    const left = cx - Math.round(S / 2);
+    const top = b[1] - Math.round(S * 0.05);
+    // Pad first so the crop can never leave the canvas
+    const pad = S;
+    const padded = await sharp(src.data, { raw: { width: src.w, height: src.h, channels: 4 } })
+      .extend({ top: pad, bottom: pad, left: pad, right: pad, background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .png()
+      .toBuffer();
+    await sharp(padded)
+      .extract({ left: left + pad, top: top + pad, width: S, height: S })
+      .resize(96, 96, { kernel: 'nearest' })
+      .webp({ lossless: true })
+      .toFile(join(out, 'bust.webp'));
+    art.bust = 'bust.webp';
+  }
   const artDir = join(dir, 'Art');
   if (cfg.art && existsSync(artDir)) {
     const files = readdirSync(artDir);
@@ -727,7 +801,8 @@ async function hero(cfg: HeroCfg) {
         art[k === 3 ? 'cardUlt' : `cardS${k + 1}`] = name;
       }
     }
-    const actions = cfg.actionCards && files.find((f) => f.startsWith(cfg.art!) && f.endsWith(cfg.actionCards!.file));
+    const actions =
+      cfg.actionCards && files.find((f) => f.startsWith(cfg.art!) && f.endsWith(cfg.actionCards!.file));
     if (actions && cfg.actionCards) {
       for (const [k, [left, top, size]] of cfg.actionCards.rects.entries()) {
         const name = k === 3 ? 'card-ult.webp' : `card-s${k + 1}.webp`;
@@ -751,14 +826,26 @@ async function hero(cfg: HeroCfg) {
     const size = Math.round((fb[3] - fb[1]) * 0.55);
     const cx = Math.round((fb[0] + fb[2]) / 2);
     await sharp(src.data, { raw: { width: src.w, height: src.h, channels: 4 } })
-      .extract({ left: Math.max(0, cx - Math.round(size / 2)), top: Math.max(0, fb[1] - 4), width: size, height: size })
+      .extract({
+        left: Math.max(0, cx - Math.round(size / 2)),
+        top: Math.max(0, fb[1] - 4),
+        width: size,
+        height: size,
+      })
       .resize(256, 256, { kernel: 'nearest' })
       .webp({ lossless: true })
       .toFile(join(out, 'face.webp'));
     art.face = 'face.webp';
   }
 
-  const atlas = { sheets, pxPerM: Math.round(pxPerM * 100) / 100, facing: 1, anims, art, credit: 'elie automata' };
+  const atlas = {
+    sheets,
+    pxPerM: Math.round(pxPerM * 100) / 100,
+    facing: 1,
+    anims,
+    art,
+    credit: 'elie automata',
+  };
   writeFileSync(join(out, 'atlas.json'), JSON.stringify(atlas));
   console.log(
     `${cfg.id.padEnd(8)} ${sheets.length} sheet(s), ${Object.keys(anims)

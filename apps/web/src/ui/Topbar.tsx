@@ -13,7 +13,6 @@ export function Topbar({
   back?: string;
   onBack?: () => void;
 }) {
-  const [a, b] = GAME_TITLE.split(' ');
   return (
     <header className="topbar">
       {onBack ? (
@@ -29,21 +28,23 @@ export function Topbar({
         {small && <small>{small}</small>}
         <h1>{title}</h1>
       </div>
-      <div className="brand" aria-hidden="true">
-        {a}
-        <b>{b}</b>
-      </div>
+      <Link className="brand" href="/" aria-label={`${GAME_TITLE}, main menu`}>
+        Iron Arena
+      </Link>
     </header>
   );
 }
 
-/** The 01 / 02 / 03 flow indicator. */
+/** Where you are in the flow (hero → rival → arena): numbered discs, a tick once done. */
 export function Steps({ steps, at }: { steps: string[]; at: number }) {
   return (
     <ol className="steps">
       {steps.map((s, i) => (
-        <li key={s} data-on={i === at} data-done={i < at}>
-          <span className="num">{String(i + 1).padStart(2, '0')}</span> {s}
+        <li key={s} data-on={i === at} data-done={i < at} aria-current={i === at ? 'step' : undefined}>
+          <span className="num" aria-hidden="true">
+            {i < at ? '✓' : i + 1}
+          </span>
+          {s}
         </li>
       ))}
     </ol>

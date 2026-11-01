@@ -1,8 +1,8 @@
-# NEON FIST — Real-Time 3D Fighting Game for the Browser
+# IRON ARENA — Real-Time 3D Fighting Game for the Browser
 
 > **Working title.** A Tekken-style 1v1 3D fighter you play with a friend, each in your own browser, in real time. (A small itch.io project already uses a similar name, so pick a final title before any public release — it's a single constant in the code.)
 >
-> **Status:** Plan v1.1 · 28 Oct 2026 · Owner: Edwin · Repo: `iron-arena` (game title NEON FIST)
+> **Status:** Plan v1.1 · 28 Oct 2026 · Owner: Edwin · Repo: `iron-arena` (game title IRON ARENA)
 >
 > **Update (29 Oct 2026): the game is now a 3D arena brawler** — free movement on a round rooftop, attack/guard/jump with skill chords, four heroes with 3 skills + 1 ultimate each, ring-outs. See **docs/GAME.md**; §2 below describes the original fighter and is kept for reference. Sections 4–12 (architecture, rollback netcode, lobby, transport, tooling) still apply unchanged.
 >
@@ -75,7 +75,7 @@ Send a link, your friend opens it, you both pick a fighter and fight — and it 
 | Accounts | None (display name only) | Optional login, stats | Payments |
 
 ### 1.4 Original IP only
-Genre mechanics (four limb buttons, frame data, sidestep) are free to use. Tekken's names, characters, move names, UI, music, voice lines and models are not. NEON FIST uses only original characters, names and art, plus assets whose licenses allow game use (§3.2), all listed in `CREDITS.md`.
+Genre mechanics (four limb buttons, frame data, sidestep) are free to use. Tekken's names, characters, move names, UI, music, voice lines and models are not. IRON ARENA uses only original characters, names and art, plus assets whose licenses allow game use (§3.2), all listed in `CREDITS.md`.
 
 ---
 
@@ -364,7 +364,7 @@ flowchart LR
 | Server-authoritative | Server simulates; clients predict and reconcile | Needs servers near both players; reconciling two fighters' animations is hard | Not for 1v1 fighters |
 | **Rollback (GGPO-style)** | Both sides simulate; predict the remote input; on a wrong guess rewind and re-simulate | 1–2 frames of fixed delay; small, rare corrections | ✅ Chosen |
 
-Rollback runs the game immediately with your own inputs and never stops to wait for the opponent; when the real input arrives, it rewinds, applies it and re-simulates within the same frame. Your own inputs are never undone. The catch: a game can use rollback only if it is deterministic, can save and load its state, and can simulate several frames within one 16.6 ms frame — and retrofitting that is expensive (one AAA studio estimated two engineer-years just for serialization). That's why NEON FIST is built rollback-first.
+Rollback runs the game immediately with your own inputs and never stops to wait for the opponent; when the real input arrives, it rewinds, applies it and re-simulates within the same frame. Your own inputs are never undone. The catch: a game can use rollback only if it is deterministic, can save and load its state, and can simulate several frames within one 16.6 ms frame — and retrofitting that is expensive (one AAA studio estimated two engineer-years just for serialization). That's why IRON ARENA is built rollback-first.
 
 ### 4.3 The golden rule: simulation ≠ presentation
 
@@ -935,7 +935,7 @@ Claude Code loads a project `CLAUDE.md` at the start of every session; the docs 
 **`CLAUDE.md`**
 
 ```markdown
-# NEON FIST — browser 3D fighting game (Tekken-style), 1v1 online with rollback netcode
+# IRON ARENA — browser 3D fighting game (Tekken-style), 1v1 online with rollback netcode
 
 Full plan: docs/PLAN.md. Before each task, read the sections of the plan that the task names.
 

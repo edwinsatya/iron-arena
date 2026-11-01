@@ -95,9 +95,11 @@ export function GameView({
     let ready = noRender || !holdForAssets;
     if (!ready) {
       const timeout = new Promise<void>((r) => setTimeout(r, 6000));
-      void Promise.race([
-        Promise.all([renderer!.whenReady(driver.state), portraitsReady(ids)]),
-        timeout,
+      // The versus splash stays up for a moment even when everything is cached
+      const splash = new Promise<void>((r) => setTimeout(r, 1500));
+      void Promise.all([
+        Promise.race([Promise.all([renderer!.whenReady(driver.state), portraitsReady(ids)]), timeout]),
+        splash,
       ]).then(() => (ready = true));
     }
     const loop = new FixedStepLoop(

@@ -1,6 +1,6 @@
-# NEON FIST
+# IRON ARENA
 
-A 2D side-view brawler that runs in the browser. Pick a hero, send your friend a link, and fight
+A fantasy 2D side-view brawler that runs in the browser. Pick a hero, send your friend a link, and fight
 on a stage walled in at both ends: empty their health first. Online play uses
 GGPO-style **rollback netcode**, so it feels like you're in the same room.
 

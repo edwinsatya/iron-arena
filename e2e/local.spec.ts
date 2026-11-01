@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test('landing page shows the title, the online box and the live exhibition fight', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'NEON FIST' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Iron Arena' })).toBeVisible();
   await expect(page.locator('canvas').first()).toBeVisible();
   await expect(page.getByRole('button', { name: 'Create a room' })).toBeVisible();
 });

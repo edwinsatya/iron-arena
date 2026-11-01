@@ -1,5 +1,5 @@
 /** Working title — rename the whole game here. */
-export const GAME_TITLE = 'NEON FIST';
+export const GAME_TITLE = 'IRON ARENA';
 export const TOURNAMENT_NAME = 'The Skyline Crown';
 
 /** Room codes: 6 characters without look-alikes (no O/0/I/1/L). */

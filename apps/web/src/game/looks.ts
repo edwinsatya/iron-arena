@@ -11,7 +11,14 @@
  */
 export type AnimRef =
   | string
-  | { anim: string; until?: number; after?: string; cycle?: [number, number]; hold?: number; puppet?: Puppet };
+  | {
+      anim: string;
+      until?: number;
+      after?: string;
+      cycle?: [number, number];
+      hold?: number;
+      puppet?: Puppet;
+    };
 
 /**
  * Body motion added on top of the frames, for packs that lack an animation: the sprite is
@@ -28,7 +35,19 @@ export interface Look {
   /** Second colour for gradients and effects. */
   glow: string;
   /** Sound family for hits and swings. */
-  weapon: 'axe' | 'bow' | 'hammer' | 'sword' | 'dagger' | 'fire' | 'ice' | 'anchor' | 'scythe' | 'claw' | 'lantern' | 'none';
+  weapon:
+    | 'axe'
+    | 'bow'
+    | 'hammer'
+    | 'sword'
+    | 'dagger'
+    | 'fire'
+    | 'ice'
+    | 'anchor'
+    | 'scythe'
+    | 'claw'
+    | 'lantern'
+    | 'none';
   /** Sprite animation per action id. */
   actions: Record<string, AnimRef>;
   /** Victory pose. */

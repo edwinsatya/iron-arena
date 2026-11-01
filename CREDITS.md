@@ -1,6 +1,6 @@
 # Credits
 
-Game design, code, stages, effects and hero names/skill names in NEON FIST are original. The arena-brawler conventions (three action buttons, skill chords, ring-outs) are shared genre mechanics, not anyone's assets.
+Game design, code, stages, effects and hero names/skill names in IRON ARENA are original. The arena-brawler conventions (three action buttons, skill chords, ring-outs) are shared genre mechanics, not anyone's assets.
 
 ## Character sprites and art — elie automata
 
