@@ -1,8 +1,9 @@
 import type { HeroData } from '../../src/types';
 
 /**
- * Homura — "Ember Witch". A fire mage: fireballs at range, a pillar under the enemy's feet,
- * a burning ward when cornered and a meteor shower. Sprites: Fire Witch by elie automata.
+ * Homura — "Ember Witch". A fire mage: fireballs at range, pillars of fire under the enemy's
+ * feet, a ring of fire swept around her when cornered and a meteor shower. Sprites: Fire Witch
+ * by elie automata (free idle frames; her casting is drawn in code).
  */
 export const homura: HeroData = {
   id: 'homura',
@@ -30,7 +31,7 @@ export const homura: HeroData = {
       total: 24,
       lockOn: 12000,
       projectiles: [
-        { frame: 9, kind: 'orb', at: [500, 1200, 0], speed: 200, life: 44, r: 270, hit: { damage: 37, hitstun: 24, kb: 22 } },
+        { frame: 9, kind: 'fireball', at: [500, 1200, 0], speed: 200, life: 44, r: 270, hit: { damage: 37, hitstun: 24, kb: 22 } },
       ],
       chain: { from: 10, to: 23, into: 'hm_b2' },
       cancelFrom: 12,
@@ -41,7 +42,7 @@ export const homura: HeroData = {
       total: 24,
       lockOn: 12000,
       projectiles: [
-        { frame: 9, kind: 'orb', at: [500, 1200, 0], speed: 200, life: 44, r: 270, hit: { damage: 37, hitstun: 24, kb: 22 } },
+        { frame: 9, kind: 'fireball', at: [500, 1200, 0], speed: 200, life: 44, r: 270, hit: { damage: 37, hitstun: 24, kb: 22 } },
       ],
       chain: { from: 10, to: 23, into: 'hm_b3' },
       cancelFrom: 12,
@@ -54,7 +55,7 @@ export const homura: HeroData = {
       areas: [
         {
           frame: 12,
-          kind: 'blast',
+          kind: 'pillar',
           forward: 2600,
           r: 850,
           delay: 4,
@@ -70,7 +71,7 @@ export const homura: HeroData = {
       total: 30,
       invuln: [4, 12],
       teleport: { frame: 8, distance: 2600 },
-      areas: [{ frame: 9, kind: 'burst', forward: 0, r: 700, delay: 0, active: 4, hit: { damage: 40, kb: 44, knockdown: true } }],
+      areas: [{ frame: 9, kind: 'firering', forward: 0, r: 700, delay: 0, active: 4, hit: { damage: 40, kb: 44, knockdown: true } }],
       cancelFrom: 20,
     },
     {
@@ -81,7 +82,7 @@ export const homura: HeroData = {
       projectiles: [
         {
           frame: 10,
-          kind: 'orb',
+          kind: 'fireball',
           at: [300, 700, 0],
           angles: [-45],
           speed: 190,
@@ -101,7 +102,7 @@ export const homura: HeroData = {
       projectiles: [
         {
           frame: 16,
-          kind: 'orb',
+          kind: 'fireball',
           at: [550, 1200, 0],
           speed: 150,
           life: 60,
@@ -114,14 +115,14 @@ export const homura: HeroData = {
     {
       id: 'hm_s1',
       name: 'Kaen Pillar',
-      blurb: 'A pillar of fire erupts under the enemy',
+      blurb: 'The ground under the enemy burns, then erupts in pillars of fire',
       total: 40,
       cooldown: 360,
       lockOn: 12000,
       areas: [
         {
           frame: 12,
-          kind: 'blast',
+          kind: 'pillar',
           forward: 3000,
           onTarget: 9000,
           r: 900,
@@ -142,7 +143,7 @@ export const homura: HeroData = {
       projectiles: [
         {
           frame: 14,
-          kind: 'wave',
+          kind: 'flamewall',
           at: [600, 0, 0],
           speed: 120,
           life: 60,
@@ -156,12 +157,12 @@ export const homura: HeroData = {
     {
       id: 'hm_s3',
       name: 'Hōen Ward',
-      blurb: 'Burst into flame: hurls attackers away, then +20% damage',
+      blurb: 'She whirls her staff and a ring of fire bursts out around her: hurls attackers away, then +20% damage',
       total: 40,
       cooldown: 480,
       invuln: [4, 16],
       areas: [
-        { frame: 8, kind: 'burst', forward: 0, r: 1300, delay: 0, active: 6, hit: { damage: 40, kb: 76, hitstun: 26 } },
+        { frame: 8, kind: 'firering', forward: 0, r: 1300, delay: 0, active: 6, hit: { damage: 40, kb: 76, hitstun: 26 } },
       ],
       buff: { frame: 10, frames: 360, damagePct: 20 },
       cancelFrom: 28,

@@ -27,6 +27,7 @@ import {
   starBurst,
   waterCurl,
 } from './fxdraw';
+import { fireball, fireColumn, fireDome, firePool, fireRing, meteorRock, rocks, shockRing } from './fire';
 import { hexA, type View2D } from './view';
 
 export interface EffectCallbacks {
@@ -56,6 +57,8 @@ export class Effects2D {
   private time = 0;
   shake = 0;
   flash = 0;
+  /** Areas seen last frame, so the fire can linger after one ends (see trackAreas). */
+  private areaSeen = new Map<string, GameState['areas'][number]>();
 
   constructor(private cb: EffectCallbacks = {}) {}
 
@@ -78,6 +81,7 @@ export class Effects2D {
         this.shown.delete(key);
       } else if (!inWindow && state.frame - s.frame > 120) this.shown.delete(key);
     }
+    this.trackAreas(state);
   }
 
   private color(state: GameState, i: number): string {
@@ -371,8 +375,17 @@ export class Effects2D {
   drawBack(g: CanvasRenderingContext2D, s: GameState, v: View2D): void {
     for (const a of s.areas) {
       const spec = areaSpec(a.char, a.action, a.spec);
-      if (a.age >= spec.delay) continue;
+      const seed = a.action * 7 + a.spec;
+      if (a.age >= spec.delay) {
+        // Homura's ring of fire: the far half burns behind the heroes
+        if (spec.kind === 'firering') this.flameRing(g, v, a.x, spec.r, a.age - spec.delay, 'back', seed);
+        continue;
+      }
       const k = a.age / Math.max(1, spec.delay);
+      if (spec.kind === 'pillar' || spec.kind === 'meteor') {
+        this.scorch(g, v, a.x, spec.r, k, seed);
+        continue;
+      }
       const color = LOOKS[ROSTER[a.char]!.id]?.color ?? '#ffffff';
       const rx = v.px(spec.r);
       g.fillStyle = hexA(color, 0.15 + 0.15 * k);
@@ -686,6 +699,37 @@ export class Effects2D {
         g.fill();
         break;
       }
+      case 'fireball': {
+        g.rotate(ang);
+        const big = spec.r >= 400;
+        fireball(g, r * 1.1, this.time, p.owner * 11 + p.action * 3 + p.spec, 1, big ? 1.4 : 1);
+        if (big) embers(g, -r * 2.5, 0, r * 3, r * 2.5, this.time, 10, '#ffd27a', p.spec);
+        break;
+      }
+      case 'flamewall': {
+        const dir = (p.vx >= 0 ? 1 : -1) * v.flip;
+        g.scale(dir, 1);
+        const seed = p.owner * 11 + p.action * 3 + p.spec;
+        const H = v.px(2000);
+        // Fire left burning on the ground it has rolled over
+        const crossed = Math.min(v.px(spec.speed * p.age), r * 4);
+        for (let q = 1; q <= 4; q++) {
+          const back = (q / 4) * crossed;
+          if (back < r * 0.6) continue;
+          const kk = 1 - q / 5;
+          fireColumn(g, -back, 0, r * 0.6 * kk, H * 0.32 * kk, this.time, seed + q * 5, 0.8 * kk);
+        }
+        firePool(g, -r * 0.3, 0, r * 1.5, this.time, 0.85, seed, 0);
+        // The wall itself, leaning into its roll
+        g.save();
+        g.transform(1, 0, -0.2, 1, 0, 0);
+        fireColumn(g, -r * 0.85, 0, r * 0.9, H * 0.62, this.time, seed + 1);
+        fireColumn(g, r * 0.45, 0, r * 0.85, H * 0.78, this.time, seed + 2);
+        fireColumn(g, -r * 0.15, 0, r * 1.15, H, this.time, seed + 3);
+        g.restore();
+        embers(g, 0, -H * 0.3, r * 2.4, H, this.time, 14, '#ffd27a', seed);
+        break;
+      }
       case 'wave': {
         const dir = (p.vx >= 0 ? 1 : -1) * v.flip;
         g.scale(dir, 1);
@@ -732,6 +776,9 @@ export class Effects2D {
     const spec = areaSpec(a.char, a.action, a.spec);
     if (a.age < spec.delay) {
       if (spec.kind === 'meteor') this.fallingMeteor(g, v, a.x, a.age / Math.max(1, spec.delay), spec.r);
+      // Kaen Pillar bursts out of the ground just before it can hit, so it's up when it does
+      else if (spec.kind === 'pillar' && a.age >= spec.delay - 3)
+        this.firePillar(g, v, a.x, spec.r, a.age - spec.delay, a.action * 7 + a.spec);
       return;
     }
     const k = (a.age - spec.delay) / Math.max(1, spec.active);
@@ -743,6 +790,14 @@ export class Effects2D {
     g.save();
     g.globalAlpha = Math.max(0, fade);
     switch (spec.kind) {
+      case 'pillar':
+        g.globalAlpha = 1;
+        this.firePillar(g, v, a.x, spec.r, a.age - spec.delay, a.action * 7 + a.spec);
+        break;
+      case 'firering':
+        g.globalAlpha = 1;
+        this.flameRing(g, v, a.x, spec.r, a.age - spec.delay, 'front', a.action * 7 + a.spec);
+        break;
       case 'thunder':
       case 'storm': {
         for (let b = 0; b < (spec.kind === 'storm' ? 3 : 1); b++) {
@@ -921,29 +976,10 @@ export class Effects2D {
         embers(g, x, y0, rx * 1.6, v.px(500), this.time, 10, look.glow, a.age);
         break;
       }
-      case 'meteor': {
-        // Impact: a fireball crater with flames shooting up
-        const R = rx * (0.6 + 0.6 * Math.min(1, k * 3));
-        const gr = g.createRadialGradient(x, y0 - R * 0.3, 0, x, y0 - R * 0.3, R);
-        gr.addColorStop(0, '#fff6d0');
-        gr.addColorStop(0.35, '#ffb43a');
-        gr.addColorStop(0.7, hexA('#ff4a1a', 0.8));
-        gr.addColorStop(1, hexA('#ff4a1a', 0));
-        g.fillStyle = gr;
-        g.beginPath();
-        g.arc(x, y0 - R * 0.3, R, 0, TAU);
-        g.fill();
-        g.fillStyle = hexA('#ffd27a', 0.9);
-        for (let n = -3; n <= 3; n++) {
-          const fx = x + (n / 3) * rx * 0.8;
-          const h = v.px(500 + (3 - Math.abs(n)) * 280) * Math.sin(Math.min(1, k * 2) * Math.PI);
-          g.beginPath();
-          g.moveTo(fx - v.px(110), y0);
-          g.quadraticCurveTo(fx, y0 - h * 1.1, fx + v.px(110), y0);
-          g.fill();
-        }
+      case 'meteor':
+        g.globalAlpha = 1;
+        this.meteorBlast(g, v, a.x, spec.r, a.age - spec.delay, a.action * 7 + a.spec);
         break;
-      }
       case 'tide': {
         // A whirlpool with water spouts and tentacles curling up
         g.fillStyle = hexA('#1d6f8f', 0.55);
@@ -1239,36 +1275,197 @@ export class Effects2D {
     g.restore();
   }
 
-  /** A burning rock streaking down onto x (k: 0 → 1 as it lands). */
+  /* ------------------------------------------------------------ Homura's fire (see fire.ts) */
+
+  /** Kaen Pillar and Flare Burst: `u` frames since the ground erupted (cooled off by 36). */
+  private firePillar(g: CanvasRenderingContext2D, v: View2D, wx: number, r: number, u: number, seed: number) {
+    const die = Math.min(1, Math.max(0, (u - 14) / 22));
+    if (die >= 1) return;
+    const x = v.sx(wx);
+    const y0 = v.sy(0);
+    const rx = v.px(r);
+    const big = r >= 880;
+    const a = 1 - die;
+    const rise = 1 - (1 - Math.min(1, Math.max(0, (u + 3) / 4))) ** 3;
+    const H = v.px(big ? 3600 : 2500) * rise * (1 - die * 0.7);
+    firePool(g, x, y0, rx * 1.15, this.time, a, seed);
+    fireColumn(g, x - rx * 0.55, y0, rx * 0.62, H * 0.66, this.time, seed + 1, a);
+    fireColumn(g, x + rx * 0.55, y0, rx * 0.62, H * 0.74, this.time, seed + 2, a);
+    fireColumn(g, x, y0, rx * 0.95, H, this.time, seed + 3, a);
+    rocks(g, x, y0, rx * 1.5, v.px(big ? 2600 : 1800), v.px(big ? 80 : 60), u / 30, big ? 9 : 6, seed);
+    embers(g, x, y0 - v.px(300), rx * 2, v.px(3000), this.time, 16, '#ffd27a', seed);
+    if (die > 0) smoke(g, x, y0 - H * 0.85, rx * 0.7, this.time, 5, '#3a2622', seed);
+    // The ground bursting open: a flash of fire at the root
+    if (u >= -1 && u < 12) fireDome(g, x, y0, rx * 1.25, (u + 1) / 13);
+  }
+
+  /** Hōen Ward and Blaze Step: a ring of fire bursting out around her; `u` frames since. */
+  private flameRing(
+    g: CanvasRenderingContext2D,
+    v: View2D,
+    wx: number,
+    r: number,
+    u: number,
+    part: 'back' | 'front' | 'all',
+    seed: number,
+  ) {
+    const die = Math.min(1, Math.max(0, (u - 6) / 14));
+    if (die >= 1) return;
+    const x = v.sx(wx);
+    const grow = 1 - (1 - Math.min(1, u / 10)) ** 2;
+    const R = v.px(r) * (0.5 + 0.55 * grow);
+    // Born at her waist where the staff swept it, it drops to the floor as it spreads
+    const cy = v.sy(0) - v.px(700) * (1 - grow);
+    const h = v.px(900) * (1 - 0.4 * grow) * (1 - die);
+    fireRing(g, x, cy, R, R * 0.22, 0, TAU, h, this.time, seed, part, 1 - die);
+    if (part === 'back') return;
+    shockRing(g, x, v.sy(0), v.px(r) * 1.1, Math.min(1, u / 16));
+    embers(g, x, cy, R * 2, v.px(1600), this.time, 12, '#ffd27a', seed);
+  }
+
+  /** A meteor strike: `u` frames since it hit (the big one burns longer). */
+  private meteorBlast(
+    g: CanvasRenderingContext2D,
+    v: View2D,
+    wx: number,
+    r: number,
+    u: number,
+    seed: number,
+  ) {
+    const big = r >= 1500;
+    const hold = big ? 12 : 6;
+    const end = big ? 50 : 30;
+    const die = Math.min(1, Math.max(0, (u - hold) / (end - hold)));
+    if (die >= 1) return;
+    const x = v.sx(wx);
+    const y0 = v.sy(0);
+    const rx = v.px(r);
+    const a = 1 - die;
+    const rise = 1 - (1 - Math.min(1, (u + 2) / 5)) ** 3;
+    const H = v.px(big ? 4200 : 2400) * rise * (1 - die * 0.75);
+    firePool(g, x, y0, rx * 1.1, this.time, a, seed);
+    fireDome(g, x, y0, rx * (big ? 1.5 : 1.1), Math.min(1, (u + 2) / (big ? 28 : 18)));
+    if (big) {
+      fireColumn(g, x - rx * 0.5, y0, rx * 0.5, H * 0.62, this.time, seed + 1, a);
+      fireColumn(g, x + rx * 0.5, y0, rx * 0.5, H * 0.7, this.time, seed + 2, a);
+    }
+    fireColumn(g, x, y0, rx * (big ? 0.85 : 0.75), H, this.time, seed + 3, a);
+    shockRing(g, x, y0, rx * (big ? 1.6 : 1.3), Math.min(1, u / (big ? 22 : 16)));
+    rocks(
+      g,
+      x,
+      y0,
+      rx * 1.6,
+      v.px(big ? 3200 : 1800),
+      v.px(big ? 110 : 70),
+      u / (big ? 40 : 26),
+      big ? 12 : 6,
+      seed,
+    );
+    embers(
+      g,
+      x,
+      y0 - v.px(300),
+      rx * 2.2,
+      v.px(big ? 4000 : 2600),
+      this.time,
+      big ? 24 : 12,
+      '#ffd27a',
+      seed,
+    );
+    if (die > 0) smoke(g, x, y0 - H * 0.8, rx * 0.8, this.time, big ? 8 : 4, '#3a2622', seed);
+  }
+
+  /** The ground heating up before Kaen Pillar erupts or a meteor lands: k = 0 → 1. */
+  private scorch(g: CanvasRenderingContext2D, v: View2D, wx: number, r: number, k: number, seed: number) {
+    const x = v.sx(wx);
+    const y0 = v.sy(0);
+    const rx = v.px(r);
+    firePool(g, x, y0, rx * (0.4 + 0.7 * k), this.time, 0.35 + 0.6 * k, seed, k);
+    g.save();
+    g.translate(x, y0);
+    g.scale(1, 0.2);
+    g.rotate(this.time * (1 + 2 * k));
+    g.strokeStyle = `rgba(255, 120, 40, ${0.45 + 0.5 * k})`;
+    g.lineWidth = 5;
+    g.beginPath();
+    g.arc(0, 0, rx, 0, TAU);
+    for (let q = 0; q < 10; q++) {
+      const ang = (q / 10) * TAU;
+      g.moveTo(Math.cos(ang) * rx * 0.84, Math.sin(ang) * rx * 0.84);
+      g.lineTo(Math.cos(ang + 0.12) * rx, Math.sin(ang + 0.12) * rx);
+    }
+    g.stroke();
+    g.restore();
+    // A bright ring closing in: it erupts when the ring meets the middle
+    g.strokeStyle = `rgba(255, 240, 200, ${0.4 + 0.5 * k})`;
+    g.lineWidth = 2;
+    g.beginPath();
+    g.ellipse(x, y0, Math.max(1, rx * (1 - k)), Math.max(1, rx * (1 - k) * 0.2), 0, 0, TAU);
+    g.stroke();
+    embers(g, x, y0, rx * 1.4, v.px(900), this.time, 8, '#ffb347', seed);
+  }
+
+  /** Track areas between frames: when one of Homura's ends, its fire burns on for a moment. */
+  private trackAreas(s: GameState) {
+    const live = new Set<string>();
+    for (const a of s.areas) {
+      const key = `${a.owner}:${a.char}:${a.action}:${a.spec}:${a.x}`;
+      live.add(key);
+      this.areaSeen.set(key, { ...a });
+    }
+    for (const [key, a] of this.areaSeen) {
+      if (live.has(key)) continue;
+      this.areaSeen.delete(key);
+      const spec = areaSpec(a.char, a.action, a.spec);
+      // Cut short (a rollback took it back): nothing to linger
+      if (a.age + 3 < spec.delay + spec.active) continue;
+      this.remnant(a, spec);
+    }
+  }
+
+  private remnant(a: GameState['areas'][number], spec: ReturnType<typeof areaSpec>) {
+    const seed = a.action * 7 + a.spec;
+    const from = spec.active;
+    const to =
+      spec.kind === 'pillar'
+        ? 36
+        : spec.kind === 'firering'
+          ? 20
+          : spec.kind === 'meteor'
+            ? spec.r >= 1500
+              ? 50
+              : 30
+            : 0;
+    if (to <= from) return;
+    this.fx.push({
+      age: 0,
+      life: (to - from) / 60,
+      draw: (g, v, k) => {
+        const u = from + k * (to - from);
+        if (spec.kind === 'pillar') this.firePillar(g, v, a.x, spec.r, u, seed);
+        else if (spec.kind === 'firering') this.flameRing(g, v, a.x, spec.r, u, 'all', seed);
+        else this.meteorBlast(g, v, a.x, spec.r, u, seed);
+      },
+    });
+  }
+
+  /** A burning rock streaking down onto x (k: 0 → 1 as it lands), trailing smoke. */
   private fallingMeteor(g: CanvasRenderingContext2D, v: View2D, x: number, k: number, r: number) {
     const sx = v.sx(x + (1 - k) * 4500 * v.flip);
     const sy = v.sy((1 - k) * 9000);
-    const R = Math.max(8, v.px(r * 0.32));
+    const R = Math.max(8, v.px(r * 0.3));
     const ang = Math.atan2(v.px(9000), -v.px(4500) * v.flip);
     g.save();
     g.translate(sx, sy);
     g.rotate(ang);
-    const tail = g.createLinearGradient(-R * 7, 0, 0, 0);
-    tail.addColorStop(0, 'rgba(255, 90, 30, 0)');
-    tail.addColorStop(1, 'rgba(255, 170, 60, 0.85)');
-    g.fillStyle = tail;
-    g.beginPath();
-    g.moveTo(0, -R);
-    g.lineTo(-R * 7, 0);
-    g.lineTo(0, R);
-    g.fill();
-    const core = g.createRadialGradient(0, 0, 0, 0, 0, R * 1.4);
-    core.addColorStop(0, '#fff3c8');
-    core.addColorStop(0.45, '#ff9a3a');
-    core.addColorStop(1, 'rgba(255, 60, 20, 0)');
-    g.fillStyle = core;
-    g.beginPath();
-    g.arc(0, 0, R * 1.4, 0, TAU);
-    g.fill();
-    g.fillStyle = '#5a2a1e';
-    g.beginPath();
-    g.arc(0, 0, R * 0.6, 0, TAU);
-    g.fill();
+    for (let q = 1; q <= 5; q++) {
+      g.fillStyle = `rgba(48, 30, 30, ${0.32 * (1 - q / 6)})`;
+      g.beginPath();
+      g.arc(-R * (2 + q * 1.5), Math.sin(this.time * 6 + q) * R * 0.3, R * (0.6 + q * 0.18), 0, TAU);
+      g.fill();
+    }
+    meteorRock(g, R, this.time, Math.abs(x) % 97);
     g.restore();
   }
 

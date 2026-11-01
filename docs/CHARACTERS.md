@@ -34,7 +34,14 @@ the sim decides the speed of every animation.
 | Portraits for packs without art | Cropped from a front-facing sprite frame, scaled up crisply |
 
 Packs that only include an idle animation can still become casters: their spells are drawn in
-code, so the body barely needs to move.
+code, so the body barely needs to move. Homura (Fire Witch, free pack: idle only) is built this
+way. In `looks.ts` her body moves around each spell's impact frame (`puppet`: thrust, slam,
+whirl through the eight facings, levitate). `swap` turns her in the middle of a move: the
+three-quarter view with the staff raised, then profile as the fireball flies. `staffTip` holds
+where the flame on her staff is in every frame (measured from the pack), so every spell flares
+from it. `glide` gives her quick light steps over the idle frames instead of a walk cycle. Her
+fire (pillars, the ring, fireballs, meteors) is drawn in `render2d/fire.ts`. The paid Full pack
+has real Fireball, Fire Ring, Fire Pillar and Death animations that could replace the puppetry.
 
 ### Building missing moves from a pack's own frames
 
@@ -75,7 +82,7 @@ catch the enemy through guard, hold them, cut and kick them away.
 - **Akari, Dawn Blade** (Young Swordswoman): Shōten Rising, Senkō Flash, Kabuto-wari; ultimate Reimei Sky Blade
 - **Reo, Aegis Knight** (Shield Knight): Hakō Wave, Shōryū Rising, Kōbō Aegis; ultimate Akatsuki Daybreak
 - **Kage, Hooded Shadow** (Black Assassin): Senbon Fan, Shunpo Behind, Utsusemi Decoy; ultimate Senjin Thousand Cuts
-- **Homura, Ember Witch** (Fire Witch, idle only + puppet motion): Kaen Pillar, Homura Wave, Hōen Ward; ultimate Ryūsei Meteor
+- **Homura, Ember Witch** (Fire Witch, free pack: idle only; her casting is drawn in code): Kaen Pillar, Homura Wave, Hōen Ward; ultimate Ryūsei Meteor
 - **Gōkai, Drowned Admiral** (Tentaclebeard Admiral): Uzushio Maelstrom, Tsunami Wall, Barnacle Hide; ultimate Daikaishō Leviathan
 - **Yomi, Faceless Reaper** (Faceless Void Reaper): Yamigiri Crescent, Soul Snatch, Grave Hands; ultimate Yomi Gate
 - **Kuma, Black Bear Bandit** (Black Bear Bandit): Grizzly Roar, Frenzy Claws, Hibernate; ultimate Ōkuma Rampage

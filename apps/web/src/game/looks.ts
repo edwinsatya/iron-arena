@@ -8,6 +8,7 @@
  * A sprite animation for an action. The animation's contact frame lands on the action's impact
  * frame. `until`: switch to `after` from this action frame on (vanishes, stances).
  * `cycle`: from action frame `[0]` on, loop the animation every `[1]` frames (volleys, flurries).
+ * `swap`: from action frame `[0]` on, show animation `[1]` instead (a turn in the middle of a move).
  */
 export type AnimRef =
   | string
@@ -18,6 +19,7 @@ export type AnimRef =
       cycle?: [number, number];
       hold?: number;
       puppet?: Puppet;
+      swap?: [number, string];
     };
 
 /**
@@ -25,9 +27,12 @@ export type AnimRef =
  * leaned, pushed, squashed and stretched around the action's impact frame.
  * lunge = wind back, then thrust forward · cast = raise, then push out a spell · raise = rear up
  * (shouts, buffs) · guard = crouch behind the weapon · spin = loop the whole animation (turns)
- * · vanish = fade out into the impact and back in.
+ * · vanish = fade out into the impact and back in · thrust = draw back, then drive a spell out
+ * with the whole body · slam = rise on the toes, then strike the ground · whirl = one full turn
+ * through the facings, ending on the impact · levitate = float up and hover through the move.
  */
-export type Puppet = 'lunge' | 'cast' | 'raise' | 'guard' | 'spin' | 'vanish';
+export type Puppet =
+  'lunge' | 'cast' | 'raise' | 'guard' | 'spin' | 'vanish' | 'thrust' | 'slam' | 'whirl' | 'levitate';
 
 export interface Look {
   /** Signature colour (UI, slashes, aura). */
@@ -55,6 +60,13 @@ export interface Look {
   win: AnimRef;
   /** Hue shift (degrees) for the second costume when both players pick this hero. */
   altHue: number;
+  /** The pack has no walk cycle: lean and bob over the idle frames while moving. */
+  glide?: boolean;
+  /**
+   * Where the staff's flame is in each animation, in metres from the feet (right, up in the
+   * art): one point, or one per frame. Spell flares are drawn on it.
+   */
+  staffTip?: Record<string, [number, number] | [number, number][]>;
 }
 
 export const LOOKS: Record<string, Look> = {
@@ -198,17 +210,67 @@ export const LOOKS: Record<string, Look> = {
     weapon: 'fire',
     altHue: 210,
     win: 'front',
+    glide: true,
     actions: {
-      hm_b1: { anim: 'idle', puppet: 'cast' },
-      hm_b2: { anim: 'idle', puppet: 'cast' },
-      hm_b3: { anim: 'idle', puppet: 'cast' },
+      // Fireballs: turned to the viewer with the staff up, then a snap into profile as it flies
+      hm_b1: { anim: 'cast', puppet: 'thrust', swap: [9, 'idle'] },
+      hm_b2: { anim: 'cast', puppet: 'thrust', swap: [9, 'idle'] },
+      hm_b3: { anim: 'cast', puppet: 'thrust', swap: [12, 'idle'] },
       hm_dash: { anim: 'idle', puppet: 'vanish' },
-      hm_air: { anim: 'idle', puppet: 'cast' },
-      hm_charge: { anim: 'idle', puppet: 'cast' },
-      hm_s1: { anim: 'front', puppet: 'raise' },
-      hm_s2: { anim: 'idle', puppet: 'cast' },
-      hm_s3: { anim: 'turn', puppet: 'spin' },
-      hm_ult: { anim: 'front', puppet: 'raise' },
+      hm_air: { anim: 'idle', puppet: 'thrust' },
+      hm_charge: { anim: 'cast', puppet: 'thrust', swap: [16, 'idle'] },
+      // Kaen Pillar: faces the viewer, rises on her toes and drives the staff down
+      hm_s1: { anim: 'front', puppet: 'slam' },
+      // Homura Wave: the staff strikes the ground and the fire rolls out from it
+      hm_s2: { anim: 'idle', puppet: 'slam' },
+      // Hōen Ward: one full turn, the staff tracing the ring of fire around her
+      hm_s3: { anim: 'turn', puppet: 'whirl' },
+      // Ryūsei Meteor: she floats up off the ground and calls the sky down
+      hm_ult: { anim: 'front', puppet: 'levitate' },
+    },
+    // Measured from the free pack's frames (the bright flame on top of the staff)
+    staffTip: {
+      idle: [
+        [0.12, 1.17],
+        [0.11, 1.18],
+        [0.12, 1.18],
+        [0.13, 1.19],
+        [0.16, 1.19],
+        [0.16, 1.21],
+        [0.17, 1.22],
+        [0.17, 1.22],
+        [0.15, 1.21],
+        [0.14, 1.21],
+        [0.1, 1.16],
+        [0.07, 1.13],
+        [0.11, 1.15],
+      ],
+      cast: [
+        [0.45, 1.27],
+        [0.43, 1.28],
+        [0.45, 1.3],
+        [0.36, 1.24],
+        [0.3, 1.24],
+        [0.29, 1.26],
+        [0.27, 1.23],
+        [0.3, 1.27],
+        [0.33, 1.28],
+        [0.33, 1.25],
+        [0.41, 1.27],
+        [0.42, 1.25],
+        [0.44, 1.28],
+      ],
+      front: [0.29, 1.23],
+      turn: [
+        [0.11, 1.13],
+        [0.45, 1.27],
+        [0.29, 1.22],
+        [-0.41, 1.27],
+        [-0.07, 1.13],
+        [-0.05, 1.32],
+        [-0.39, 1.35],
+        [0.09, 1.32],
+      ],
     },
   },
   gokai: {

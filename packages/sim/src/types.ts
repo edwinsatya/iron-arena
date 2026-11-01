@@ -52,7 +52,9 @@ export type ProjectileKind =
   | 'flask'
   | 'crow'
   | 'spark'
-  | 'bolt';
+  | 'bolt'
+  | 'fireball'
+  | 'flamewall';
 
 export interface ProjectileSpec {
   frame: number;
@@ -100,7 +102,9 @@ export type AreaKind =
   | 'pyre'
   | 'reap'
   | 'pulse'
-  | 'abyss';
+  | 'abyss'
+  | 'pillar'
+  | 'firering';
 
 /** A ground circle that hits everyone inside after a telegraph. */
 export interface AreaSpec {

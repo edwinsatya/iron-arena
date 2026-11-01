@@ -63,6 +63,8 @@ export interface SpritePick {
 }
 
 const ease = (k: number) => 1 - (1 - k) * (1 - k);
+/** Smoothstep: the whirl's turn (renderer2d draws the ring it sweeps with the same curve). */
+export const smooth = (k: number) => k * k * (3 - 2 * k);
 
 /** Puppet motion at action frame t, impact at `imp`, action length `total` (see looks.ts). */
 function puppetPose(kind: Puppet, t: number, imp: number, total: number, time: number): Partial<SpritePick> {
@@ -94,6 +96,30 @@ function puppetPose(kind: Puppet, t: number, imp: number, total: number, time: n
     }
     case 'spin':
       return { sy: 1 + Math.sin(time * 30) * 0.03 };
+    case 'thrust':
+      // Draw back with the staff raised, then drive the spell out with the whole body
+      return t < imp
+        ? { rot: 0.13 * ease(pre), sx: 1 - 0.04 * pre, sy: 1 + 0.04 * pre, dx: -5 * ease(pre) }
+        : { rot: -0.17 * hitK, sx: 1 + 0.07 * hitK, sy: 1 - 0.05 * hitK, dx: 9 * hitK };
+    case 'slam':
+      // Rise on the toes, then bring the staff down hard
+      return t < imp
+        ? { sy: 1 + 0.07 * ease(pre), sx: 1 - 0.04 * pre, dy: -7 * ease(pre), rot: 0.05 * pre }
+        : { sy: 1 - 0.09 * hitK, sx: 1 + 0.07 * hitK, rot: -0.1 * hitK, dx: 4 * hitK };
+    case 'whirl': {
+      // Crouch into the turn (the frames themselves turn through the facings, see fromRef)
+      const s = Math.sin(clamp(t / Math.max(1, imp), 0, 1) * Math.PI);
+      return { sy: 1 - 0.05 * s, sx: 1 + 0.03 * s, dy: -3 * s };
+    }
+    case 'levitate': {
+      // Float up off the ground and hang there, bobbing, then settle
+      const up = clamp(t / 14, 0, 1) * clamp((total - t) / 14, 0, 1);
+      return {
+        dy: -16 * ease(up) + Math.sin(time * 5) * 2 * up,
+        sy: 1 + 0.03 * up,
+        rot: Math.sin(time * 3) * 0.02 * up,
+      };
+    }
   }
 }
 
@@ -135,8 +161,14 @@ export function chooseSprite(atlas: Atlas, s: GameState, i: number, time: number
     case FS.IDLE:
       return loop(idle, time + i * 0.37);
     case FS.RUN:
+      if (look.glide && !A.walk) {
+        // No walk cycle: quick light steps under the robe, leaning into the run
+        const b = Math.abs(Math.sin(time * 10 + i));
+        return loop(idle, time + i * 0.21, 1.6, { rot: -0.08, dy: -2.5 * b, sy: 1 + 0.02 * b });
+      }
       return A.run ? loop(run, time + i * 0.21) : loop(walk, time + i * 0.21, Math.max(0.8, hero.speed / 62));
     case FS.DASH:
+      if (look.glide && !A.walk) return loop(idle, time, 2, { rot: -0.16, dy: -3, sx: 1.05, sy: 0.96 });
       return A.run ? loop(run, time, 1.5) : loop(walk, time, 2.2, { sx: 1.04, sy: 0.97 });
     case FS.JUMP_SQUAT:
       return jump ? at(jump, 0.1) : pick(idle, 0, { sx: 1.08, sy: 0.88 });
@@ -179,9 +211,13 @@ export function chooseSprite(atlas: Atlas, s: GameState, i: number, time: number
       const back = 0.22 * (1 - Math.max(0, (t - 8) / 14));
       // A real flinch animation when the pack has one
       if (A.hurt) return over(A.hurt, t, 20, { rot: Math.max(0, back) * 0.3 });
-      return death
-        ? at(death, 0.12 + 0.06 * k, { rot: Math.max(0, back) * 0.5 })
-        : pick(idle, 0, { rot: Math.max(0, back) });
+      if (death) return at(death, 0.12 + 0.06 * k, { rot: Math.max(0, back) * 0.5 });
+      if (look.glide) {
+        // Thrown back on her heels, then catching herself
+        const r = Math.max(0, back) / 0.22;
+        return pick(idle, 0, { rot: 0.24 * r, dx: -9 * r * k, sy: 1 - 0.04 * r, sx: 1 + 0.03 * r });
+      }
+      return pick(idle, 0, { rot: Math.max(0, back) });
     }
     case FS.HELD:
       return death ? at(death, 0.2) : pick(idle, 0, { rot: 0.3 });
@@ -191,13 +227,16 @@ export function chooseSprite(atlas: Atlas, s: GameState, i: number, time: number
         ? over(death, t, 26, { rot: 0.15 })
         : pick(idle, 0, { rot: Math.min(1.4, 0.3 + t * 0.06) });
     case FS.DOWN:
-      return death ? at(death, 1) : pick(idle, 0, { rot: Math.PI / 2, sy: 1 });
+      if (death) return at(death, 1);
+      return look.glide ? knocked(idle, 99, pick) : pick(idle, 0, { rot: Math.PI / 2, sy: 1 });
     case FS.GETUP:
-      return death
-        ? pick(death, (death.frames.length - 1) * (1 - clamp(t / 20, 0, 1)))
-        : pick(idle, 0, { rot: (Math.PI / 2) * (1 - clamp(t / 20, 0, 1)) });
+      if (death) return pick(death, (death.frames.length - 1) * (1 - clamp(t / 20, 0, 1)));
+      // Up again: the fall played backwards, quicker
+      if (look.glide) return knocked(idle, 22 * (1 - clamp(t / 18, 0, 1)), pick);
+      return pick(idle, 0, { rot: (Math.PI / 2) * (1 - clamp(t / 20, 0, 1)) });
     case FS.KO:
-      return death ? over(death, t, 46) : pick(idle, 0, { rot: Math.min(Math.PI / 2, t * 0.08) });
+      if (death) return over(death, t, 46);
+      return look.glide ? knocked(idle, t, pick) : pick(idle, 0, { rot: Math.min(Math.PI / 2, t * 0.08) });
     case FS.DIZZY:
       return loop(idle, time, 0.5, { rot: Math.sin(time * 6) * 0.08 });
     case FS.WIN:
@@ -220,6 +259,25 @@ export function chooseSprite(atlas: Atlas, s: GameState, i: number, time: number
   return loop(idle, time);
 }
 
+/**
+ * Falling flat without a death animation (`t` frames into the fall): rocked back, then down
+ * faster and faster, one small bounce, still. Held up a little so the cape stays above the floor.
+ */
+function knocked(
+  idle: AtlasAnim,
+  t: number,
+  pick: (anim: AtlasAnim, frame: number, extra?: Partial<SpritePick>) => SpritePick,
+): SpritePick {
+  const k = clamp(t / 22, 0, 1);
+  const bounce = t > 22 && t < 32 ? 0.14 * Math.sin(((t - 22) / 10) * Math.PI) : 0;
+  return pick(idle, 0, {
+    rot: (Math.PI / 2) * k * k - bounce,
+    dx: -8 * k,
+    dy: -7 * Math.sin((k * Math.PI) / 2),
+    sy: 1 - 0.03 * k,
+  });
+}
+
 /** Resolve an AnimRef for an action (or the win pose when `a` is null). */
 function fromRef(
   atlas: Atlas,
@@ -229,7 +287,8 @@ function fromRef(
   time: number,
 ): SpritePick | null {
   const r = typeof ref === 'string' ? { anim: ref } : ref;
-  const anim = atlas.anims[r.anim] ?? atlas.anims.attack ?? atlas.anims.idle;
+  const name = a && r.swap && t >= r.swap[0] ? r.swap[1] : r.anim;
+  const anim = atlas.anims[name] ?? atlas.anims.attack ?? atlas.anims.idle;
   if (!anim) return null;
   const base = (frame: number): SpritePick => ({
     anim,
@@ -260,11 +319,13 @@ function fromRef(
   if (r.puppet) {
     const extra = puppetPose(r.puppet, t, imp, a.total, time);
     const frame =
-      r.puppet === 'spin' || anim.loop
-        ? (time * anim.fps * (r.puppet === 'spin' ? 1.4 : 1)) % n
-        : t <= imp
-          ? (Math.min(n - 1, anim.hit) * t) / Math.max(1, imp)
-          : anim.hit + ((n - 1 - anim.hit) * (t - imp)) / Math.max(1, a.total - imp);
+      r.puppet === 'whirl'
+        ? (smooth(clamp(t / Math.max(1, imp), 0, 1)) * n) % n
+        : r.puppet === 'spin' || anim.loop
+          ? (time * anim.fps * (r.puppet === 'spin' ? 1.4 : 1)) % n
+          : t <= imp
+            ? (Math.min(n - 1, anim.hit) * t) / Math.max(1, imp)
+            : anim.hit + ((n - 1 - anim.hit) * (t - imp)) / Math.max(1, a.total - imp);
     return { ...base(frame), ...extra };
   }
   if (anim.loop) return base((time * anim.fps) % n);
@@ -289,12 +350,40 @@ export class SpriteHero {
   /** Sheets in the second costume (hue-shifted), made on first use. */
   private alt: HTMLCanvasElement[] | null = null;
   private flashBuf: HTMLCanvasElement | null = null;
+  /** Name of each animation (per-animation data in looks.ts, such as the staff tip). */
+  readonly names: Map<AtlasAnim, string>;
 
   constructor(
     readonly id: string,
     readonly atlas: Atlas,
     private sheets: HTMLImageElement[],
-  ) {}
+  ) {
+    this.names = new Map(Object.entries(atlas.anims).map(([k, a]) => [a, k]));
+  }
+
+  /**
+   * Where a point of the art lands on the canvas for a pick drawn by drawPick(): `ax` metres
+   * right and `ay` metres up from the feet in the art, through the pick's lean, squash and shift.
+   */
+  pointOf(
+    p: SpritePick,
+    x: number,
+    y: number,
+    scale: number,
+    facing: number,
+    ax: number,
+    ay: number,
+  ): [number, number] {
+    const dir = facing * this.atlas.facing;
+    const k = this.atlas.pxPerM;
+    const piv = p.pivot ? p.pivot * k * 1.75 * scale : 0;
+    const lx = ax * k * scale * dir * p.sx;
+    const ly = -ay * k * scale * p.sy + piv;
+    const ang = -p.rot * dir;
+    const c = Math.cos(ang);
+    const s = Math.sin(ang);
+    return [x + (p.dx ?? 0) * scale * dir + lx * c - ly * s, y + (p.dy ?? 0) * scale + lx * s + ly * c - piv];
+  }
 
   private altSheets(): HTMLCanvasElement[] {
     if (this.alt) return this.alt;

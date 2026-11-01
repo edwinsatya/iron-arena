@@ -15,8 +15,16 @@ import {
 } from '@neonfist/sim';
 import { lookFor } from '../looks';
 import { Effects2D } from './effects2d';
+import { burningSky, firePool, fireRing, flare } from './fire';
 import { crow, lightning, starBurst, tentacle } from './fxdraw';
-import { chooseSprite, impactFrame, loadSpriteHero, type SpritePick, type SpriteHero } from './sprites';
+import {
+  chooseSprite,
+  impactFrame,
+  loadSpriteHero,
+  smooth,
+  type SpritePick,
+  type SpriteHero,
+} from './sprites';
 import { buildStage2D, drawBackdrop, GROUND, type Stage2D } from './stage2d';
 import { hexA, View2D } from './view';
 
@@ -61,6 +69,8 @@ export class GameRenderer {
   private heroes = new Map<string, SpriteHero | null>();
   private loading = new Map<string, Promise<void>>();
   private flashT = [0, 0];
+  /** Canvas position of each hero's staff flame this frame (heroes with a staffTip in looks.ts). */
+  private tips: ([number, number] | null)[] = [null, null];
   private camX = 0;
   private viewW = 12000;
   private ambient: Ambient[] = [];
@@ -227,6 +237,9 @@ export class GameRenderer {
       g.fillRect(0, 0, v.w, v.h);
       this.speedLines(g, s, freezeK);
     }
+    // Ryūsei Meteor: the sky catches fire
+    const sky = this.skyFire(s);
+    if (sky > 0) burningSky(g, v.w, v.h, sky, this.time);
 
     // Shadows, then heroes (the one acting drawn last, on top)
     for (const f of s.fighters) this.shadow(g, f);
@@ -346,10 +359,28 @@ export class GameRenderer {
     const shake = f.state === FS.HITSTUN && f.stateFrame < 8 ? Math.sin(f.stateFrame * 3) * v.px(40) : 0;
     // Wake-up protection: the hero blinks (from the sim frame, so a rollback redraws it the same)
     const blink = f.wakeup > 0 && ((s.frame >> 2) & 1) === 1 ? 0.3 : 1;
+    // Where the staff's flame is in this frame (spell flares are drawn on it)
+    const tipAt = look.staffTip?.[sprite.names.get(pick.anim) ?? ''];
+    const tipPt = tipAt
+      ? Array.isArray(tipAt[0])
+        ? (tipAt as [number, number][])[pick.frame % tipAt.length]
+        : (tipAt as [number, number])
+      : undefined;
+    this.tips[i] = tipPt ? sprite.pointOf(pick, x + shake, y, scale, facing, tipPt[0], tipPt[1]) : null;
+    // Fire heroes: while a damage buff burns, flames lick around the feet
+    if (f.buffFrames > 0 && f.buffDamagePct > 0 && look.weapon === 'fire' && f.y < 300)
+      firePool(g, x, v.sy(0), v.px(560), this.time, 0.55 + 0.1 * Math.sin(this.time * 7), i * 13, 0.9);
+    if (f.state === FS.ACTION && a) this.underlay(g, f, i, a.id, f.actionFrame, facing);
     sprite.drawPick(g, pick, x + shake, y, scale, facing, { flash, alt, alpha: blink });
 
     // Skill-specific overlays drawn in code (the packs have no art for these moves)
     if (f.state === FS.ACTION && a) this.overlay(g, s, i, a.id, f.actionFrame, look.color, look.glow);
+    // Holding a charge: the fire gathers on the staff
+    const tip = this.tips[i];
+    if (f.state === FS.CHARGE && look.weapon === 'fire' && tip) {
+      const k = Math.min(1, f.stateFrame / 24);
+      flare(g, tip[0], tip[1], v.px(150 + 230 * k), this.time, 0.5 + 0.5 * k, i * 7);
+    }
 
     // Player tag over the head
     if (!this.opts.showcase && s.phase !== PHASE.MATCH_END && f.state !== FS.FALLING) {
@@ -418,6 +449,115 @@ export class GameRenderer {
       g.stroke();
     }
     g.restore();
+  }
+
+  /** Homura's casting: rune circles, the staff's flame swelling and bursting, her ring of fire. */
+  private witchCast(
+    g: CanvasRenderingContext2D,
+    f: GameState['fighters'][number],
+    i: number,
+    id: string,
+    t: number,
+    dir: number,
+    color: string,
+    glow: string,
+  ) {
+    const v = this.v;
+    const a = ROSTER[f.char]!.actions.find((x) => x.id === id)!;
+    const imp = impactFrame(a).at;
+    const tip = this.tips[i];
+    const big = id === 'hm_ult' || id === 'hm_s1';
+    if (t <= imp + 8 && id !== 'hm_s3') {
+      // A rune circle turning faster as the spell gathers: flat on the ground under her for the
+      // big spells, upright in front of the staff for the fireballs
+      const k = Math.min(1, t / Math.max(1, imp));
+      const cx = big || !tip ? v.sx(f.x) : tip[0] + dir * v.px(170);
+      const cy = big || !tip ? v.sy(0) : tip[1];
+      const r = v.px(big ? (id === 'hm_ult' ? 1150 : 850) : 260) * (0.45 + 0.55 * k);
+      g.save();
+      g.translate(cx, cy);
+      g.scale(big ? 1 : 0.4, big ? 0.22 : 1);
+      g.rotate(this.time * (2 + 4 * k));
+      g.globalAlpha = t > imp ? Math.max(0, 1 - (t - imp) / 8) : 0.35 + 0.6 * k;
+      g.strokeStyle = glow;
+      g.shadowColor = color;
+      g.shadowBlur = 14;
+      g.lineWidth = big ? 3 : 2;
+      g.beginPath();
+      g.arc(0, 0, r, 0, Math.PI * 2);
+      g.moveTo(r * 0.78, 0);
+      g.arc(0, 0, r * 0.78, 0, Math.PI * 2);
+      for (let q = 0; q < 6; q++) {
+        const a1 = (q / 6) * Math.PI * 2;
+        const a2 = a1 + (Math.PI * 2 * 2) / 6;
+        g.moveTo(Math.cos(a1) * r * 0.78, Math.sin(a1) * r * 0.78);
+        g.lineTo(Math.cos(a2) * r * 0.78, Math.sin(a2) * r * 0.78);
+      }
+      g.stroke();
+      g.restore();
+    }
+    // The staff's flame swells while the spell gathers, then bursts as it goes
+    if (tip && t <= imp + 8) {
+      const k = t <= imp ? 0.25 + 0.75 * (t / Math.max(1, imp)) : 1 - (t - imp) / 8;
+      flare(g, tip[0], tip[1], v.px(big ? 250 : 190) * (0.6 + 0.5 * k), this.time, k, i * 5);
+    }
+    if (id === 'hm_s3') this.witchSweep(g, f, i, t, imp, dir, 'front');
+  }
+
+  /** Hōen Ward: as she turns, the staff traces a ring of fire around her waist. */
+  private witchSweep(
+    g: CanvasRenderingContext2D,
+    f: GameState['fighters'][number],
+    i: number,
+    t: number,
+    imp: number,
+    dir: number,
+    part: 'back' | 'front',
+  ) {
+    if (t > imp + 1) return;
+    const v = this.v;
+    const A = smooth(Math.min(1, t / Math.max(1, imp))) * Math.PI * 2;
+    const rx = v.px(650);
+    fireRing(
+      g,
+      v.sx(f.x),
+      v.sy(f.y + 700),
+      rx,
+      rx * 0.23,
+      Math.max(0, A - 2.6),
+      A,
+      v.px(520),
+      this.time,
+      i * 9,
+      part,
+      1,
+      dir,
+    );
+  }
+
+  /** Drawn before the hero's sprite: the far side of whatever surrounds her. */
+  private underlay(
+    g: CanvasRenderingContext2D,
+    f: GameState['fighters'][number],
+    i: number,
+    id: string,
+    t: number,
+    dir: number,
+  ) {
+    if (id !== 'hm_s3') return;
+    const a = ROSTER[f.char]!.actions.find((x) => x.id === id)!;
+    this.witchSweep(g, f, i, t, impactFrame(a).at, dir, 'back');
+  }
+
+  /** How strongly the sky burns: Homura's ultimate, in and out over the move. */
+  private skyFire(s: GameState): number {
+    let k = 0;
+    for (const f of s.fighters) {
+      const a = f.state === FS.ACTION ? actionOf(f) : null;
+      if (!a || a.id !== 'hm_ult') continue;
+      k = Math.max(k, Math.min(1, f.actionFrame / 14, (a.total - f.actionFrame) / 18));
+    }
+    return k;
   }
 
   /** Code-drawn extras for moves the sprite packs don't illustrate. */
@@ -522,37 +662,7 @@ export class GameRenderer {
       }
       g.restore();
     } else if (id.startsWith('hm_') && id !== 'hm_dash') {
-      // Spell circle at the staff while casting, burning brighter until it fires
-      const a = ROSTER[f.char]!.actions.find((x) => x.id === id)!;
-      const imp = impactFrame(a).at;
-      if (t <= imp + 6) {
-        const k = Math.min(1, t / Math.max(1, imp));
-        const big = id === 'hm_ult' || id === 'hm_s1';
-        const cx = v.sx(f.x) + (big ? 0 : dir * v.px(520));
-        const cy = v.sy(f.y + (big ? 2300 : 1250));
-        const r = v.px(big ? 700 : 300) * (0.4 + 0.6 * k);
-        g.save();
-        g.translate(cx, cy);
-        g.scale(big ? 1 : 0.45, big ? 0.35 : 1);
-        g.rotate(this.time * 3);
-        g.globalAlpha = t > imp ? 1 - (t - imp) / 6 : 0.9;
-        g.strokeStyle = glow;
-        g.shadowColor = color;
-        g.shadowBlur = 14;
-        g.lineWidth = 3;
-        g.beginPath();
-        g.arc(0, 0, r, 0, Math.PI * 2);
-        g.stroke();
-        g.beginPath();
-        for (let q = 0; q < 6; q++) {
-          const a1 = (q / 6) * Math.PI * 2;
-          const a2 = a1 + (Math.PI * 2 * 2) / 6;
-          g.moveTo(Math.cos(a1) * r, Math.sin(a1) * r);
-          g.lineTo(Math.cos(a2) * r, Math.sin(a2) * r);
-        }
-        g.stroke();
-        g.restore();
-      }
+      this.witchCast(g, f, i, id, t, dir, color, glow);
     } else if (id === 'kr_s2' && t <= 34) {
       // The lantern flares green as the crows pour out of it
       const k = Math.min(1, t / 14) * (t > 26 ? Math.max(0, 1 - (t - 26) / 8) : 1);
