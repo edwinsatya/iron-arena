@@ -3,14 +3,15 @@
 import { checksum, EV, ROSTER, type GameState } from '@neonfist/sim';
 import { WEAPON_OF } from './looks';
 import { portraitsReady } from './portraits';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Sfx } from './audio/sfx';
 import type { MatchDriver } from './driver';
 import { Hud, type HudOptions } from './hud/hud';
 import { FixedStepLoop } from './loop';
 import { GameRenderer, type Quality } from './render2d/renderer2d';
 import { loadSettings } from '../ui/settings';
-import { TouchControls } from '../ui/TouchControls';
+import { FullscreenButton } from '../ui/FullscreenButton';
+import { TouchPad } from './hud/touchPad';
 
 export interface GameViewProps {
   driver: MatchDriver;
@@ -19,6 +20,10 @@ export interface GameViewProps {
   mirrored?: boolean;
   /** Show the on-screen stick and buttons on touch screens. */
   touch?: boolean;
+  /** Whose skills and meter the touch buttons show (online: your side). */
+  localPlayer?: 0 | 1;
+  /** Buttons for the match menu (pause…); a full-screen toggle joins them on touch screens. */
+  menu?: React.ReactNode;
   /** Wait for models and portraits before the first tick (local modes). */
   holdForAssets?: boolean;
   /** Called after every render with the newest state (results detection, training panels). */
@@ -40,10 +45,13 @@ export function GameView({
   mirrored,
   holdForAssets = false,
   touch = false,
+  localPlayer = 0,
+  menu,
   onFrame,
   children,
 }: GameViewProps) {
   const hostRef = useRef<HTMLDivElement>(null);
+  const [touchUi, setTouchUi] = useState(false);
   const onFrameRef = useRef(onFrame);
   const hudRef0 = useRef(hudOptions);
   const hudRef = useRef<Hud | null>(null);
@@ -89,6 +97,22 @@ export function GameView({
         });
     hud.root.parentElement?.appendChild(hud.root); // HUD above the canvas
 
+    // Touch controls: on phones and tablets from the start, elsewhere after the first touch
+    let pad: TouchPad | null = null;
+    const startPad = () => {
+      if (pad || !touch) return;
+      pad = new TouchPad(host, localPlayer, settings.haptics);
+      host.classList.add('touch-ui');
+      setTouchUi(true);
+    };
+    const onFirstTouch = (e: PointerEvent) => {
+      if (e.pointerType === 'touch') startPad();
+    };
+    if (touch) {
+      if (window.matchMedia('(pointer: coarse)').matches) startPad();
+      else host.addEventListener('pointerdown', onFirstTouch);
+    }
+
     // Hold the first tick until the heroes and their portraits are loaded (max 6 s), so the
     // round intro never stutters. Online play is unaffected: the session waits for both sides.
     const ids = driver.state.fighters.map((f) => ROSTER[f.char]!.id);
@@ -110,6 +134,7 @@ export function GameView({
         const s = driver.state;
         renderer?.render(s, dt);
         hud.update(s, dt, { net: driver.netStats(), fps: loop.fps, inputs: driver.lastInputs });
+        pad?.update(s);
         onFrameRef.current?.(s);
       },
     );
@@ -129,6 +154,9 @@ export function GameView({
     return () => {
       loop.stop();
       window.removeEventListener('keydown', onKey);
+      host.removeEventListener('pointerdown', onFirstTouch);
+      pad?.dispose();
+      host.classList.remove('touch-ui');
       renderer?.dispose();
       hud.dispose();
       sfx.dispose();
@@ -138,9 +166,21 @@ export function GameView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driver, mirrored]);
 
+  // While a match is up the page itself never scrolls or bounces (phones)
+  useEffect(() => {
+    const html = document.documentElement;
+    html.classList.add('in-game');
+    return () => html.classList.remove('in-game');
+  }, []);
+
   return (
     <div className="game-view" ref={hostRef}>
-      {touch && <TouchControls />}
+      {(menu || touchUi) && (
+        <div className="corner-menu game-menu">
+          {menu}
+          {touchUi && <FullscreenButton />}
+        </div>
+      )}
       {children}
     </div>
   );

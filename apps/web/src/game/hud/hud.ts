@@ -355,8 +355,9 @@ export class Hud {
       const pipsKey = `${s.roundsToWin}:${f.roundsWon}`;
       if (side.pips.dataset.k !== pipsKey) {
         side.pips.dataset.k = pipsKey;
+        // Training plays endless rounds: no pips
         side.pips.innerHTML = Array.from(
-          { length: s.roundsToWin },
+          { length: s.roundsToWin > 9 ? 0 : s.roundsToWin },
           (_, k) => `<i class="${k < f.roundsWon ? 'won' : ''}"></i>`,
         ).join('');
       }
@@ -410,7 +411,8 @@ export class Hud {
     if (this.timer.textContent !== secs) this.timer.textContent = secs;
     this.timer.classList.toggle('low', s.timer < 600 && s.phase === PHASE.FIGHT);
     const maxRounds = s.roundsToWin * 2 - 1;
-    const roundText = `Round ${Math.min(s.round, maxRounds)} / ${maxRounds}`;
+    // Training plays endless rounds: no count to show
+    const roundText = s.roundsToWin > 9 ? 'Practice' : `Round ${Math.min(s.round, maxRounds)} / ${maxRounds}`;
     if (this.round.textContent !== roundText) this.round.textContent = roundText;
     const score = `${s.fighters[0].roundsWon} — ${s.fighters[1].roundsWon}`;
     if (this.score.textContent !== score) this.score.textContent = score;

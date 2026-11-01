@@ -14,6 +14,7 @@ import {
   FRICTION_PCT,
   FS,
   GETUP_FRAMES,
+  WAKEUP_INVULN,
   GRAVITY,
   JUMP_SQUAT,
   LAND_FRAMES,
@@ -60,7 +61,7 @@ function free(f: FighterState): boolean {
 }
 
 export function isInvulnerable(f: FighterState): boolean {
-  if (f.invulnFrames > 0) return true;
+  if (f.invulnFrames > 0 || f.wakeup > 0) return true;
   if (
     f.state === FS.DOWN ||
     f.state === FS.GETUP ||
@@ -105,6 +106,8 @@ export function startAction(s: GameState, i: number, actionIdx: number, dir: num
   faceDir(f, dir);
   if (a.lockOn) lockOnto(f, o, a.lockOn, dir);
   setState(f, FS.ACTION);
+  // Attacking out of a knockdown ends the wake-up protection
+  f.wakeup = 0;
   f.action = actionIdx;
   f.actionFrame = 0;
   f.hitMask = 0;
@@ -189,7 +192,7 @@ function tryRequest(s: GameState, i: number, req: number, dir: number): boolean 
   }
   if (req === REQ.JUMP) {
     if (inAir) {
-      // Double jump: a second, slightly smaller jump that can change direction
+      // Double jump: a second, bigger jump that can change direction
       if (f.state !== FS.AIR || f.airJumps >= AIR_JUMPS) return false;
       f.airJumps++;
       f.vy = pct(h.jumpVy, AIR_JUMP_PCT);
@@ -390,6 +393,7 @@ export function updateFighter(s: GameState, i: number, it: Intent, ctrl: boolean
   const f = s.fighters[i]!;
   f.stateFrame++;
   if (f.invulnFrames > 0) f.invulnFrames--;
+  if (f.wakeup > 0) f.wakeup--;
   if (f.buffFrames > 0) f.buffFrames--;
   for (let k = 0; k < 3; k++) if (f.cd[k]! > 0) f.cd[k]!--;
 
@@ -422,8 +426,9 @@ export function updateFighter(s: GameState, i: number, it: Intent, ctrl: boolean
       if (ctrl && it.req !== REQ.NONE) {
         if (tryRequest(s, i, it.req, it.dir)) break;
       }
-      // Let go of Jump early while rising fast: a short hop
-      if (!it.jumpHeld && f.vy > heroOf(f).jumpVy >> 1) f.vy = heroOf(f).jumpVy >> 1;
+      // Let go of Jump early while rising fast: a short hop (first jump only; a tapped double
+      // jump still goes all the way up)
+      if (f.airJumps === 0 && !it.jumpHeld && f.vy > heroOf(f).jumpVy >> 1) f.vy = heroOf(f).jumpVy >> 1;
       if (it.dir >= 0) {
         const [dx, dz] = DIR8[it.dir]!;
         const sp = runSpeed(f);
@@ -480,7 +485,7 @@ export function updateFighter(s: GameState, i: number, it: Intent, ctrl: boolean
     case FS.GETUP:
       if (f.stateFrame >= GETUP_FRAMES) {
         setState(f, FS.IDLE);
-        f.invulnFrames = 6;
+        f.wakeup = WAKEUP_INVULN;
       }
       break;
     case FS.HELD:

@@ -71,6 +71,14 @@ export default function HowToPlay() {
           <h3>Gamepad</h3>
           <p style={{ marginTop: 0 }}>X attack, B guard, A jump, LB / RB / Y skills, RT ultimate.</p>
         </div>
+        <div className="ctrl">
+          <h3>Phone or tablet</h3>
+          <p style={{ marginTop: 0 }}>
+            Hold it sideways. Put your left thumb anywhere on the left half to walk. The big sword attacks;
+            jump, dash and guard sit around it, your three skills and the ultimate above. Skills count down
+            their cooldown, and the ultimate&apos;s rim fills as you fight.
+          </p>
+        </div>
       </section>
 
       <div className="heroes">

@@ -10,6 +10,8 @@ export interface Settings {
   alwaysLeft: boolean;
   /** Override the automatic input delay (0 = automatic). */
   inputDelay: number;
+  /** Touch buttons give a short buzz (phones that can vibrate). */
+  haptics: boolean;
 }
 
 const DEFAULTS: Settings = {
@@ -19,6 +21,7 @@ const DEFAULTS: Settings = {
   announcer: true,
   alwaysLeft: true,
   inputDelay: 0,
+  haptics: true,
 };
 
 const KEY = 'neonfist.settings.v1';

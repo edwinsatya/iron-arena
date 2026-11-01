@@ -9,8 +9,12 @@ test('landing page shows the title, the online box and the live exhibition fight
 
 test('local versus: a fight starts and inputs move the fighters', async ({ page }) => {
   await page.goto('/local?render=0');
-  await page.getByRole('button', { name: 'Benika' }).click();
-  await page.getByRole('button', { name: 'Hyōga' }).click();
+  // Clicking a portrait only shows the hero; the confirm button picks them
+  await page.getByRole('button', { name: 'Benika', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Choose Benika' })).toBeVisible();
+  await page.getByRole('button', { name: 'Choose Benika' }).click();
+  await page.getByRole('button', { name: 'Hyōga', exact: true }).click();
+  await page.getByRole('button', { name: 'Choose Hyōga' }).click();
   await page.getByRole('button', { name: 'Fight' }).click();
   await page.waitForFunction(() => window.__neonfist?.state().phase === 1, null, { timeout: 60_000 });
   const x0 = await page.evaluate(() => window.__neonfist!.state().fighters[0].x);
@@ -32,8 +36,10 @@ test('heroes page lists every hero with their skills', async ({ page }) => {
 
 test('versus CPU: pick heroes and an arena, the CPU fights back', async ({ page }) => {
   await page.goto('/versus?render=0');
-  await page.getByRole('button', { name: 'Lysa' }).click();
-  await page.getByRole('button', { name: 'Reo' }).click();
+  // A second click on the same portrait picks it too
+  await page.getByRole('button', { name: 'Lysa', exact: true }).click();
+  await page.getByRole('button', { name: 'Lysa', exact: true }).click();
+  await page.getByRole('button', { name: 'Reo', exact: true }).dblclick();
   await page.getByRole('button', { name: 'Midnight' }).click();
   await page.getByRole('button', { name: 'Fight' }).click();
   await page.waitForFunction(() => window.__neonfist?.state().phase === 1, null, { timeout: 60_000 });

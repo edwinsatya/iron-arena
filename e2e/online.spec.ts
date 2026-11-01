@@ -48,15 +48,18 @@ async function playOnline(browser: Browser, query: string) {
   const code = host.url().split('/room/')[1]!.slice(0, 6);
   await host.goto(`/room/${code}${query}`);
   await expect(host.getByText('Invite your friend')).toBeVisible();
+  // While waiting, the room owner can look through the heroes without being thrown out
+  await host.getByRole('button', { name: 'Kuma', exact: true }).click();
+  await expect(host.getByRole('button', { name: 'Lock in Kuma' })).toBeVisible();
 
   await guest.goto(`/room/${code}${query}`);
   await expect(guest.getByText('Choose your fighter')).toBeVisible();
   await expect(host.getByText('Choose your fighter')).toBeVisible();
 
-  await host.getByRole('button', { name: 'Benika' }).click();
-  await guest.getByRole('button', { name: 'Reo' }).click();
-  await host.getByRole('button', { name: 'Ready' }).click();
-  await guest.getByRole('button', { name: 'Ready' }).click();
+  await host.getByRole('button', { name: 'Benika', exact: true }).click();
+  await guest.getByRole('button', { name: 'Reo', exact: true }).click();
+  await host.getByRole('button', { name: 'Lock in Benika' }).click();
+  await guest.getByRole('button', { name: 'Lock in Reo' }).click();
 
   // Both fight screens are up once the session exists
   for (const p of [host, guest])

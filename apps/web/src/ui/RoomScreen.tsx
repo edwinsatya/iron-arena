@@ -5,6 +5,7 @@ import { checksum, getCharacter, PHASE, type GameState } from '@neonfist/sim';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { GameView } from '../game/GameView';
+import { playFullscreen } from './FullscreenButton';
 import { KEY_HINTS } from '../game/input/bindings';
 import { RoomController } from '../net/room';
 import { HeroSelect } from './HeroSelect';
@@ -149,9 +150,16 @@ function RoomView({ controller }: { controller: RoomController }) {
   if ((v.status === 'fighting' || v.status === 'results') && v.driver) {
     const state = v.driver.state;
     return (
-      <GameView driver={v.driver} hud={hud} mirrored={!!v.config?.viewMirrored[you]} onFrame={onFrame} touch>
+      <GameView
+        driver={v.driver}
+        hud={hud}
+        mirrored={!!v.config?.viewMirrored[you]}
+        onFrame={onFrame}
+        touch
+        localPlayer={you as 0 | 1}
+      >
         {v.peerPaused && (
-          <div className="corner-menu left" style={{ top: 'auto', bottom: 140 }}>
+          <div className="peer-paused">
             <span className="notice">
               Your opponent switched away from the game. The fight waits for them.
             </span>
@@ -266,20 +274,33 @@ function RoomView({ controller }: { controller: RoomController }) {
       )}
       <HeroSelect
         picks={picks}
-        picking={v.phase === 'waiting' && !other ? you : me?.ready ? null : you}
-        onPick={(id) => controller.select(id)}
+        picking={me?.ready ? null : you}
+        onPick={(id) => {
+          playFullscreen();
+          controller.lockIn(id);
+        }}
+        confirmLabel={(n) => `Lock in ${n}`}
         sideLabels={[you === 0 ? 'Player 1, you' : 'Player 1', you === 1 ? 'Player 2, you' : 'Player 2']}
         names={[v.players[0]?.name ?? null, v.players[1]?.name ?? null]}
         ready={ready}
-      >
-        {other && (
-          <div className="picker-actions">
-            <button className="btn" disabled={!me?.fighter} onClick={() => controller.ready(!me?.ready)}>
-              {me?.ready ? 'Cancel ready' : 'Ready'}
+        onChange={() => controller.ready(false)}
+        changeable={you === 0 ? [true, false] : [false, true]}
+        locked={
+          <div className="lock-note panel">
+            <p>
+              <b>{me?.fighter ? getCharacter(me.fighter).name : 'Your hero'} is locked in.</b>{' '}
+              {!other
+                ? 'Waiting for your friend to join. You can still change your mind.'
+                : other.ready
+                  ? 'Both locked in. The fight is about to start.'
+                  : `Waiting for ${other.name} to lock in.`}
+            </p>
+            <button className="btn ghost" onClick={() => controller.ready(false)}>
+              Change hero
             </button>
           </div>
-        )}
-      </HeroSelect>
+        }
+      />
     </main>
   );
 }

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { LocalDriver } from '../game/driver';
 import { GameView } from '../game/GameView';
+import { ICONS } from '../game/hud/touchPad';
 import { KEY_HINTS, P1_KEYS, P2_KEYS, SOLO_KEYS } from '../game/input/bindings';
 import {
   createCpuInput,
@@ -14,6 +15,7 @@ import {
   createScriptedInput,
   type InputSource,
 } from '../game/input/sampler';
+import { playFullscreen } from './FullscreenButton';
 import { HeroSelect } from './HeroSelect';
 import { ResultCard } from './ResultCard';
 import { StagePicker } from './StagePicker';
@@ -88,10 +90,12 @@ export function OfflineMode({ kind }: { kind: OfflineKind }) {
     dummyRef.current = dummy;
   }, [dummy]);
 
+  // Choosing a hero moves on to the next side still open (or the arena when both are set)
   const pick = (id: string) => {
     if (step > 1) return;
-    setPicks((cur) => (step === 0 ? [id, cur[1]] : [cur[0], id]));
-    setStep((s) => Math.min(2, s + 1));
+    const next: [string | null, string | null] = step === 0 ? [id, picks[1]] : [picks[0], id];
+    setPicks(next);
+    setStep(!next[0] ? 0 : !next[1] ? 1 : 2);
   };
 
   const start = useCallback(() => {
@@ -182,19 +186,19 @@ export function OfflineMode({ kind }: { kind: OfflineKind }) {
         onFrame={onFrame}
         holdForAssets
         touch={kind !== 'local'}
-      >
-        <div className="corner-menu">
+        menu={
           <button
-            className="btn ghost small"
-            style={{ pointerEvents: 'auto' }}
+            className="btn ghost small menu-btn"
             onClick={() => {
               driver.paused = true;
               setPaused(true);
             }}
           >
-            Pause
+            <span className="ico" aria-hidden="true" dangerouslySetInnerHTML={{ __html: ICONS.pause }} />
+            <span className="label">Pause</span>
           </button>
-        </div>
+        }
+      >
         {kind === 'training' && (
           <div className="training-panel">
             <h3>Partner</h3>
@@ -215,7 +219,7 @@ export function OfflineMode({ kind }: { kind: OfflineKind }) {
           <div className="overlay" role="dialog" aria-label="Paused">
             <div className="card panel">
               <h2>Paused</h2>
-              <p className="muted">Press Esc to keep fighting.</p>
+              <p className="muted">Press Esc or Resume to keep fighting.</p>
               <div className="actions">
                 <button
                   className="btn"
@@ -269,9 +273,22 @@ export function OfflineMode({ kind }: { kind: OfflineKind }) {
         picks={picks}
         picking={step <= 1 ? (step as 0 | 1) : null}
         onPick={pick}
-        ready={[step > 0, step > 1]}
+        ready={[!!picks[0] && step !== 0, !!picks[1] && step !== 1]}
         sideLabels={copy.labels}
         prompts={copy.prompts}
+        onChange={(side) => setStep(side)}
+        actions={
+          <button
+            type="button"
+            className="btn ghost"
+            onClick={() => {
+              uiSound('stamp');
+              random();
+            }}
+          >
+            Random
+          </button>
+        }
         keys={kind === 'local' ? (step === 1 ? KEY_HINTS.p2 : KEY_HINTS.p1) : KEY_HINTS.solo}
         arena={
           step <= 1 ? undefined : (
@@ -289,11 +306,12 @@ export function OfflineMode({ kind }: { kind: OfflineKind }) {
                   </div>
                 </div>
               )}
-              <div className="picker-actions">
+              <div className="picker-actions confirm-row">
                 <button
                   className="btn"
                   onClick={() => {
                     uiSound('confirm');
+                    playFullscreen();
                     start();
                   }}
                 >
@@ -312,21 +330,7 @@ export function OfflineMode({ kind }: { kind: OfflineKind }) {
             </>
           )
         }
-      >
-        {step <= 1 && (
-          <div className="picker-actions">
-            <button
-              className="btn ghost"
-              onClick={() => {
-                uiSound('stamp');
-                random();
-              }}
-            >
-              Random hero
-            </button>
-          </div>
-        )}
-      </HeroSelect>
+      />
     </main>
   );
 }

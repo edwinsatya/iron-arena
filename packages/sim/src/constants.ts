@@ -100,9 +100,12 @@ export const FALL_GRAVITY = 8;
 export const MAX_FALL = 160;
 export const JUMP_SQUAT = 3;
 export const AIR_CONTROL = 7;
-/** Extra jumps in the air (double jump) and their strength (% of the hero's jump). */
+/**
+ * Extra jumps in the air (double jump) and their strength (% of the hero's jump). The second jump
+ * is the bigger one, and always full height: only the first jump has a short-hop version.
+ */
 export const AIR_JUMPS = 1;
-export const AIR_JUMP_PCT = 100;
+export const AIR_JUMP_PCT = 125;
 export const DASH_FRAMES = 14;
 export const DASH_TAP_WINDOW = 12;
 export const LAND_FRAMES = 6;
@@ -129,6 +132,11 @@ export const GUARD_BREAK_FRAMES = 46;
 export const GUARD_BREAK_DAMAGE_PCT = 50;
 export const DOWN_FRAMES = 38;
 export const GETUP_FRAMES = 18;
+/**
+ * Wake-up protection: after getting up from a knockdown the fighter can't be hit for this long
+ * (they blink). Attacking ends it early, so it can't be used to hit someone for free.
+ */
+export const WAKEUP_INVULN = 45;
 /** Air hits allowed before the victim drops out of the juggle (invulnerable fall). */
 export const JUGGLE_LIMIT = 7;
 /** Launch height falls off with each extra air hit (% per hit). */

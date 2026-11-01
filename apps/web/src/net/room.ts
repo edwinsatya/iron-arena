@@ -134,6 +134,13 @@ export class RoomController {
     this.lobby.send({ t: 'ready', ready, viewMirrored: this.view.you === 1 && s.alwaysLeft });
   }
 
+  /** Choose a hero and lock it in, in one go (the room owner may do it before the friend joins). */
+  lockIn(fighter: string) {
+    this.set({ notice: null });
+    this.select(fighter);
+    this.ready(true);
+  }
+
   rematch() {
     this.lobby.send({ t: 'rematch' });
   }
@@ -196,6 +203,11 @@ export class RoomController {
         this.closeLink();
         break;
       case 'error':
+        // A refused request (wrong moment, bad input) isn't the end of the room: say so and carry on
+        if (m.code === 'BAD_STATE' || m.code === 'BAD_MESSAGE') {
+          if (this.view.status === 'lobby') this.set({ notice: "That didn't go through. Try again in a moment." });
+          break;
+        }
         this.set({ status: 'error', error: m.message });
         break;
     }

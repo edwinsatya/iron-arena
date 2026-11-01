@@ -19,8 +19,9 @@
 A 16.4 m long floor with a **wall at each end**: nobody leaves the stage. A hard knockback into a
 wall bounces the victim back off it (WALL!), open for a follow-up; projectiles break on the walls.
 Jumping: hold Jump for a full jump, tap it for a short hop, press it again in the air for a
-**double jump** (one per jump, refreshed on landing). **Lantern Harbor** (sunset pier, stone walls) and **Neon
-Rooftop** (midnight, neon-lit barriers). Backdrops are painted in code with parallax layers.
+**double jump** (one per jump, refreshed on landing). The double jump always goes the full height,
+a quarter higher than the first jump (`AIR_JUMP_PCT`), however briefly it is tapped.
+**Lantern Harbor** (sunset pier, stone walls) and **Neon Rooftop** (midnight, neon-lit barriers). Backdrops are painted in code with parallax layers.
 
 ## Controls
 
@@ -34,7 +35,15 @@ Rooftop** (midnight, neon-lit barriers). Backdrops are painted in code with para
 | Ultimate | P | V | Num0 or ' | RT |
 
 **Chords** (pressed within 4 frames): Attack+Guard = skill 1, Attack+Jump = skill 2,
-Guard+Jump = skill 3, all three = ultimate. Phones and tablets get an on-screen stick and buttons.
+Guard+Jump = skill 3, all three = ultimate.
+
+**Phones and tablets** play sideways, laid out like a mobile action RPG (`src/game/hud/touchPad.ts`):
+a floating stick wherever the left thumb lands (left and right only), and under the right thumb a
+big Attack button ringed by Jump, Dash, Guard, the three skills (their art, cooldown sweep and
+seconds) and the ultimate (its charge round the rim, glowing when ready). The Dash button plays a
+double tap toward the stick, or the way the hero faces. A phone held upright gets the match turned
+sideways by CSS, so it works with the rotation lock on; starting a fight asks for full screen and
+locks the screen sideways where the browser allows it (Android).
 
 - **Double-tap** a direction to dash; attack during the dash for a dash attack.
 - **Tap Attack** for the hero's combo (2–3 hits). **Hold Attack** to charge a guard-breaking attack.
@@ -44,6 +53,9 @@ Guard+Jump = skill 3, all three = ultimate. Phones and tablets get an on-screen 
 ## Rules (numbers in `packages/sim/src/constants.ts`)
 
 - Hits: flinch, knockback, launch (juggle), knockdown, stun (dizzy).
+- **Wake-up protection**: getting up after a knockdown gives 0.75 s (`WAKEUP_INVULN`) in which
+  nothing can hit you; the fighter blinks. Attacking or using a skill ends it early. The CPU keeps
+  its skills and ultimate for when it can land them.
 - Juggles: up to 7 air hits, each relaunch lower; then the victim drops out invulnerable.
 - Damage scales down within a combo (100% → 40%).
 - **Super armor** on some moves: take the hit (70% damage) without flinching.

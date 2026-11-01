@@ -49,6 +49,13 @@
 * {
   box-sizing: border-box;
 }
+a,
+button,
+input,
+label,
+.tile {
+  touch-action: manipulation;
+}
 
 html {
   font-size: 16px;
@@ -435,7 +442,8 @@ input[type='range'] {
 .screen {
   position: relative;
   min-height: 100dvh;
-  padding: 22px clamp(16px, 3vw, 40px) 40px;
+  padding: max(22px, env(safe-area-inset-top)) max(clamp(16px, 3vw, 40px), env(safe-area-inset-right))
+    max(40px, env(safe-area-inset-bottom)) max(clamp(16px, 3vw, 40px), env(safe-area-inset-left));
   background:
     radial-gradient(70% 45% at 50% -8%, rgba(255, 140, 60, 0.16), transparent 70%),
     radial-gradient(60% 40% at 50% 108%, rgba(90, 70, 160, 0.16), transparent 70%),
@@ -1241,6 +1249,22 @@ li + li .menu-item {
 .skill-list li.ult b {
   color: var(--ink-red);
 }
+.skill-list .skill-ico {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow:
+    0 0 0 1px rgba(110, 80, 40, 0.55),
+    0 0 0 3px var(--parch),
+    0 0 0 4px rgba(110, 80, 40, 0.3);
+}
+.skill-list .skill-ico.ult {
+  box-shadow:
+    0 0 0 2px var(--ink-red),
+    0 0 0 4px var(--parch),
+    0 0 0 5px rgba(150, 40, 29, 0.35);
+}
 .picker-actions {
   display: flex;
   gap: 10px;
@@ -1411,10 +1435,45 @@ li + li .menu-item {
 /* ———————————————————————————————————— game view + HUD */
 
 .game-view {
+  /* safe areas (notch, home bar) in the view's own frame; swapped round when it is turned */
+  --sa-t: env(safe-area-inset-top, 0px);
+  --sa-r: env(safe-area-inset-right, 0px);
+  --sa-b: env(safe-area-inset-bottom, 0px);
+  --sa-l: env(safe-area-inset-left, 0px);
   position: fixed;
   inset: 0;
   overflow: hidden;
   background: #000;
+  /* the HUD sizes itself by the view (cqw, cqh, @container), which stays right when it is turned */
+  container: game / size;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+/*
+ * A phone held upright: the match turns sideways so it is always landscape, even with the screen's
+ * rotation lock on. Same query as SIDEWAYS_QUERY in touchPad.ts.
+ */
+@media (pointer: coarse) and (orientation: portrait) {
+  .game-view {
+    --sa-t: env(safe-area-inset-right, 0px);
+    --sa-r: env(safe-area-inset-bottom, 0px);
+    --sa-b: env(safe-area-inset-left, 0px);
+    --sa-l: env(safe-area-inset-top, 0px);
+    inset: 0 auto auto 0;
+    width: 100vh;
+    width: 100dvh;
+    height: 100vw;
+    transform-origin: 0 0;
+    transform: translateX(100vw) rotate(90deg);
+  }
+}
+html.in-game,
+html.in-game body {
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 .screen-flash {
   position: absolute;
@@ -1451,9 +1510,9 @@ li + li .menu-item {
 }
 .hud-top {
   position: absolute;
-  top: 14px;
-  left: 18px;
-  right: 18px;
+  top: max(14px, var(--sa-t));
+  left: max(18px, var(--sa-l));
+  right: max(18px, var(--sa-r));
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   gap: 18px;
@@ -1729,10 +1788,10 @@ li + li .menu-item {
   gap: 10px;
 }
 .hud-tray.p1 {
-  left: 18px;
+  left: max(18px, var(--sa-l));
 }
 .hud-tray.p2 {
-  right: 18px;
+  right: max(18px, var(--sa-r));
   flex-direction: row-reverse;
 }
 .hud-tray .owner {
@@ -1950,7 +2009,7 @@ li + li .menu-item {
   inset: 40% 0 auto;
   transform: translateY(-50%);
   text-align: center;
-  font: 900 clamp(4.5rem, 13vw, 10rem) / 1 var(--display);
+  font: 900 clamp(4.5rem, 13cqw, 10rem) / 1 var(--display);
   letter-spacing: 0.01em;
   opacity: 0;
 }
@@ -2006,7 +2065,7 @@ li + li .menu-item {
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(40% + clamp(3.4rem, 8.5vw, 6.6rem));
+  top: calc(40% + clamp(3.4rem, 8.5cqw, 6.6rem));
   text-align: center;
   font: 700 1.5rem var(--display);
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
@@ -2103,7 +2162,7 @@ li + li .menu-item {
 }
 .cutin-text b {
   display: block;
-  font: 900 clamp(3.4rem, 7.5vw, 6.5rem) / 0.9 var(--display);
+  font: 900 clamp(3.4rem, 7.5cqw, 6.5rem) / 0.9 var(--display);
 }
 .cutin-text span {
   display: block;
@@ -2192,13 +2251,36 @@ li + li .menu-item {
   position: absolute;
   z-index: 5;
   top: 150px;
-  right: 18px;
+  right: max(18px, var(--sa-r, 0px));
   display: flex;
   gap: 8px;
 }
 .corner-menu.left {
   right: auto;
-  left: 18px;
+  left: max(18px, var(--sa-l, 0px));
+}
+.game-menu .btn,
+.game-menu .icon-btn {
+  pointer-events: auto;
+}
+.menu-btn .ico {
+  display: grid;
+  width: 18px;
+  height: 18px;
+}
+.menu-btn svg,
+.icon-btn svg {
+  width: 100%;
+  height: 100%;
+}
+.peer-paused {
+  position: absolute;
+  z-index: 5;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: min(90%, 460px);
+  text-align: center;
 }
 .overlay {
   position: absolute;
@@ -2206,7 +2288,11 @@ li + li .menu-item {
   z-index: 10;
   display: grid;
   place-items: center;
-  padding: 20px;
+  place-items: safe center;
+  padding: max(20px, var(--sa-t, 0px)) max(20px, var(--sa-r, 0px)) max(20px, var(--sa-b, 0px))
+    max(20px, var(--sa-l, 0px));
+  overflow-y: auto;
+  touch-action: pan-y;
   background: radial-gradient(120% 100% at 50% 50%, rgba(8, 5, 12, 0.55), rgba(8, 5, 12, 0.85));
   animation: fadein 0.2s ease-out both;
 }
@@ -2273,7 +2359,7 @@ li + li .menu-item {
 }
 .result h2 {
   margin: 0;
-  font: 900 clamp(3rem, 6vw, 4.5rem) / 0.9 var(--display);
+  font: 900 clamp(3rem, 6cqw, 4.5rem) / 0.9 var(--display);
   color: var(--gold);
   text-shadow:
     0 2px 0 #3a2410,
@@ -2522,117 +2608,379 @@ li + li .menu-item {
   font-size: 0.9375rem;
 }
 
-/* ———————————————————————————————————— touch controls */
+/* ———————————————————————————————————— touch controls (touchPad.ts) */
 
-.touch {
+/*
+ * Laid out like a mobile action RPG: a floating stick under the left thumb, a big Attack button
+ * ringed by the rest under the right. One unit, --k, scales the whole pad with the view (1px on a
+ * 390px-tall phone), so it fits small phones and tablets alike.
+ */
+.tp {
+  --k: 1px;
   position: absolute;
-  inset: auto 0 0 0;
-  z-index: 6;
-  height: 46%;
+  inset: 0;
+  z-index: 4;
   pointer-events: none;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
 }
-.touch-stick {
+@supports (width: 1cqh) {
+  .tp {
+    --k: clamp(0.74px, min(0.2564cqh, 0.15cqw), 1.3px);
+  }
+}
+.tp-zone {
   position: absolute;
-  left: 4%;
-  bottom: 12%;
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(34, 30, 43, 0.35), rgba(14, 11, 22, 0.55));
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.7),
-    inset 0 0 0 3px rgba(226, 180, 88, 0.35);
+  inset: 0 auto 0 0;
+  width: 46%;
   pointer-events: auto;
-  touch-action: none;
 }
-.touch-knob {
+/* The stick: a faint ghost where it rests, solid wherever the thumb lands */
+.tp-stick {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 62px;
-  height: 62px;
-  margin: -31px 0 0 -31px;
+  left: calc(max(12px, var(--sa-l)) + 80 * var(--k));
+  top: calc(100% - max(10px, var(--sa-b)) - 86 * var(--k));
+  width: 0;
+  height: 0;
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.tp-stick.on {
+  opacity: 1;
+  transition: none;
+}
+.tp-base {
+  position: absolute;
+  left: calc(-62 * var(--k));
+  top: calc(-62 * var(--k));
+  width: calc(124 * var(--k));
+  height: calc(124 * var(--k));
   border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, #fff6dc, #d9c9a4);
+  background: radial-gradient(circle, rgba(24, 20, 32, 0.16) 30%, rgba(12, 9, 18, 0.55) 72%);
   box-shadow:
-    inset 0 -4px 0 rgba(0, 0, 0, 0.18),
-    0 4px 10px rgba(0, 0, 0, 0.5);
+    inset 0 0 0 1.5px rgba(226, 180, 88, 0.5),
+    inset 0 0 0 4px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(0, 0, 0, 0.45);
+}
+/* two arrowheads: the stick walks left and right */
+.tp-base::before,
+.tp-base::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: calc(9 * var(--k));
+  height: calc(14 * var(--k));
+  margin-top: calc(-7 * var(--k));
+  background: rgba(226, 180, 88, 0.75);
+}
+.tp-base::before {
+  left: calc(11 * var(--k));
+  clip-path: polygon(0 50%, 100% 0, 100% 100%);
+}
+.tp-base::after {
+  right: calc(11 * var(--k));
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+.tp-knob {
+  position: absolute;
+  left: calc(-27 * var(--k));
+  top: calc(-27 * var(--k));
+  width: calc(54 * var(--k));
+  height: calc(54 * var(--k));
+  border-radius: 50%;
+  background: radial-gradient(circle at 42% 34%, #fff7de, #e8d6ac 55%, #b99a62);
+  box-shadow:
+    inset 0 -3px 0 rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(60, 40, 12, 0.6),
+    0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* The buttons. --x and --y place a button's centre from the pad's right and bottom edges. */
+.tp-pad {
+  position: absolute;
+  right: max(10px, var(--sa-r));
+  bottom: max(8px, var(--sa-b));
+  width: calc(292 * var(--k));
+  height: calc(290 * var(--k));
   pointer-events: none;
 }
-.touch-buttons {
+.tp-btn {
   position: absolute;
-  right: 3%;
-  bottom: 10%;
-  width: 230px;
-  height: 210px;
-  pointer-events: none;
-}
-.touch-btn {
-  position: absolute;
+  right: calc((var(--x) - var(--d) / 2) * var(--k));
+  bottom: calc((var(--y) - var(--d) / 2) * var(--k));
   display: grid;
   place-items: center;
+  width: calc(var(--d) * var(--k));
+  height: calc(var(--d) * var(--k));
+  padding: 0;
   border: 0;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 35%, rgba(58, 52, 71, 0.75), rgba(20, 17, 27, 0.75));
+  background: radial-gradient(circle at 50% 30%, rgba(56, 50, 70, 0.74), rgba(16, 13, 22, 0.8) 70%);
   box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.7),
-    inset 0 0 0 2px rgba(226, 180, 88, 0.45),
-    0 4px 10px rgba(0, 0, 0, 0.45);
+    inset 0 0 0 1.5px rgba(226, 180, 88, 0.55),
+    inset 0 0 0 4px rgba(0, 0, 0, 0.32),
+    0 3px 10px rgba(0, 0, 0, 0.45);
   color: var(--bone);
-  font: 800 0.8125rem var(--ui);
   pointer-events: auto;
   touch-action: none;
+  transition: transform 0.08s ease-out;
 }
-.touch-btn:active {
-  background: radial-gradient(circle at 50% 35%, #f7d78d, var(--gold));
+.tp-btn svg {
+  width: 46%;
+  height: 46%;
+  pointer-events: none;
+}
+.tp-btn.on {
+  transform: scale(0.9);
+  background: radial-gradient(circle at 50% 35%, #fbe3a2, var(--gold) 60%, #a8742a);
   color: var(--gold-ink);
 }
-.touch-btn.big {
-  width: 70px;
-  height: 70px;
+.tp-btn.atk {
+  --x: 142;
+  --y: 92;
+  --d: 86;
+  box-shadow:
+    inset 0 0 0 2.5px rgba(226, 180, 88, 0.85),
+    inset 0 0 0 6px rgba(0, 0, 0, 0.3),
+    0 0 0 calc(5 * var(--k)) rgba(226, 180, 88, 0.14),
+    0 4px 14px rgba(0, 0, 0, 0.5);
 }
-.touch-btn.atk {
-  right: 0;
-  bottom: 40px;
-  width: 84px;
-  height: 84px;
+.tp-btn.atk svg {
+  width: 52%;
+  height: 52%;
 }
-.touch-btn.grd {
-  right: 92px;
-  bottom: 0;
+.tp-btn.jump {
+  --x: 52;
+  --y: 152;
+  --d: 62;
 }
-.touch-btn.jmp {
-  right: 96px;
-  bottom: 84px;
+.tp-btn.dash {
+  --x: 48;
+  --y: 62;
+  --d: 56;
 }
-.touch-btn.s1,
-.touch-btn.s2,
-.touch-btn.s3,
-.touch-btn.ult {
-  width: 48px;
-  height: 48px;
+.tp-btn.dash.left svg {
+  transform: scaleX(-1);
 }
-.touch-btn.s1 {
-  right: 176px;
-  bottom: 14px;
+.tp-btn.guard {
+  --x: 238;
+  --y: 56;
+  --d: 60;
 }
-.touch-btn.s2 {
-  right: 176px;
-  bottom: 72px;
+.tp-btn.s1 {
+  --x: 250;
+  --y: 142;
+  --d: 56;
 }
-.touch-btn.s3 {
-  right: 168px;
-  bottom: 132px;
+.tp-btn.s2 {
+  --x: 212;
+  --y: 212;
+  --d: 56;
 }
-.touch-btn.ult {
-  right: 10px;
-  bottom: 146px;
-  width: 58px;
-  height: 58px;
-  background: radial-gradient(circle at 50% 35%, rgba(247, 215, 141, 0.55), rgba(226, 180, 88, 0.3));
+.tp-btn.s3 {
+  --x: 140;
+  --y: 234;
+  --d: 56;
+}
+.tp-btn.ult {
+  --x: 54;
+  --y: 246;
+  --d: 68;
+}
+/* Skills: the art in a disc; the cooldown sweeps off like a sundial, seconds in the middle */
+.tp-btn.skill,
+.tp-btn.ult {
+  background: #15121c;
+}
+.tp-btn.skill img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  pointer-events: none;
+}
+.tp-btn.skill .cd {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(rgba(10, 8, 16, 0.8) calc(var(--cd, 0) * 360deg), transparent 0);
+}
+.tp-btn.skill .num {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--bone);
+  font: 900 calc(22 * var(--k)) / 1 var(--display);
+  text-shadow: 0 2px 0 #0a0810;
+}
+.tp-btn.skill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 1.5px rgba(160, 150, 180, 0.55),
+    inset 0 0 0 3.5px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+.tp-btn.skill.ready::after {
+  box-shadow:
+    inset 0 0 0 2px var(--gold),
+    inset 0 0 0 4px rgba(0, 0, 0, 0.3),
+    0 0 12px rgba(226, 180, 88, 0.4);
+}
+.tp-btn.skill.on::after {
+  box-shadow:
+    inset 0 0 0 3px var(--gold-hi),
+    inset 0 0 0 40px rgba(255, 231, 166, 0.25);
+}
+/* The ultimate: its charge fills a ring round the rim and the art lights up when it is ready */
+.tp-btn.ult img {
+  position: absolute;
+  left: 13%;
+  top: 13%;
+  width: 74%;
+  height: 74%;
+  border-radius: 50%;
+  object-fit: cover;
+  opacity: 0.4;
+  pointer-events: none;
+}
+.tp-btn.ult .ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+.tp-btn.ult .ring circle {
+  fill: none;
+  stroke-width: 7;
+}
+.tp-btn.ult .ring .track {
+  stroke: rgba(10, 8, 16, 0.75);
+}
+.tp-btn.ult .ring .fill {
+  stroke: var(--hero, var(--gold));
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+}
+.tp-btn.ult.ready img {
+  opacity: 1;
+}
+.tp-btn.ult.ready .ring .fill {
+  stroke: var(--gold-hi);
+}
+.tp-btn.ult.ready::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px rgba(255, 231, 166, 0.85),
+    0 0 18px rgba(226, 180, 88, 0.8);
+  pointer-events: none;
+  animation: ultready 0.9s ease-in-out infinite alternate;
+}
+.tp-btn.ult.on {
+  background: #15121c;
+}
+/* Shown for a moment when the phone is held upright and the match turns sideways */
+.tp-hint {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px 10px 12px;
+  border-radius: 999px;
+  background: rgba(12, 9, 18, 0.85);
+  box-shadow: inset 0 0 0 1px rgba(226, 180, 88, 0.5);
+  color: var(--bone);
+  font: 700 1rem var(--ui);
+  white-space: nowrap;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+.tp-hint-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  color: var(--gold);
+  animation: turnphone 1.8s var(--ease) infinite;
+}
+.tp-hint-icon svg {
+  width: 100%;
+  height: 100%;
+}
+@keyframes turnphone {
+  0%,
+  25% {
+    transform: rotate(90deg);
+  }
+  60%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+@media (pointer: coarse) and (orientation: portrait) {
+  .tp-hint {
+    display: flex;
+  }
+  .tp-hint.show {
+    opacity: 1;
+  }
+}
+
+/* The HUD with touch controls: the pad shows the skills, the menu sits under the clock */
+.touch-ui .hud-tray,
+.touch-ui .hud-stats,
+.touch-ui .hud-stage {
+  display: none;
+}
+.touch-ui .game-menu {
+  top: calc(max(14px, var(--sa-t)) + 112px);
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  gap: 10px;
+}
+.icon-btn,
+.touch-ui .game-menu .menu-btn {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
+  padding: 9px;
+  border: 1px solid #514a63;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #3b3548, #2d2839 52%, #231f2c);
+  color: var(--bone);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 2px 0 rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+.icon-btn:active,
+.touch-ui .game-menu .menu-btn:active {
+  border-color: var(--gold);
+}
+.touch-ui .menu-btn .ico {
+  width: 100%;
+  height: 100%;
+}
+.touch-ui .menu-btn .label {
+  display: none;
+}
+.touch-ui .training-panel {
+  top: calc(max(14px, var(--sa-t)) + 120px);
+  left: max(12px, var(--sa-l));
 }
 
 /* ———————————————————————————————————— responsive */
@@ -2753,6 +3101,267 @@ li + li .menu-item {
   .skill-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* When the hero list runs past the screen, the button that confirms stays in reach at the bottom */
+@media (max-width: 1100px), (max-height: 820px) {
+  .confirm-row {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    margin: 0 -8px;
+    padding: 14px 8px max(10px, env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, rgba(19, 16, 26, 0), rgba(19, 16, 26, 0.94) 36%);
+  }
+}
+
+/*
+ * Phones on their side. Title: the crest and the online box on the left, the menu on the right, all
+ * above the heroes on the quay. Hero select: the two alcoves flank the portraits and stay put while
+ * the list scrolls.
+ */
+@media (orientation: landscape) and (max-height: 520px) {
+  .title {
+    height: 100dvh;
+    min-height: 320px;
+    overflow: hidden;
+  }
+  .title-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(250px, 300px);
+    grid-template-rows: auto 1fr;
+    align-items: start;
+    gap: 10px 20px;
+    height: auto;
+    padding: max(10px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 0
+      max(20px, env(safe-area-inset-left));
+  }
+  .title-head {
+    justify-items: start;
+    text-align: left;
+  }
+  .logo {
+    font-size: 2.75rem;
+  }
+  .logo-kana {
+    margin-top: 4px;
+    font-size: 0.75rem;
+  }
+  .tagline {
+    display: none;
+  }
+  .title-panels {
+    display: contents;
+  }
+  .title-menu {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    padding: 6px;
+  }
+  .menu-item {
+    padding: 4px 12px 6px 16px;
+  }
+  .menu-item .name {
+    font-size: 1.125rem;
+  }
+  .menu-item .hint {
+    font-size: 0.75rem;
+  }
+  .challenge {
+    grid-column: 1;
+    grid-row: 2;
+    max-width: 380px;
+    gap: 8px;
+    padding: 12px 14px 14px;
+  }
+  .challenge h2 {
+    font-size: 1.375rem;
+  }
+  .challenge label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .challenge .btn {
+    min-height: 40px;
+  }
+  .challenge .field {
+    height: 40px;
+  }
+  .title-foot {
+    top: auto;
+    bottom: 2px;
+    left: 0;
+    right: 0;
+    max-width: none;
+    text-align: center;
+    font-size: 0.6875rem;
+  }
+  .screen {
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+  .topbar {
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .topbar-title {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .topbar-title h1 {
+    font-size: 1.625rem;
+  }
+  .topbar-title small {
+    margin: 0;
+    font-size: 0.8125rem;
+  }
+  .brand,
+  .steps {
+    display: none;
+  }
+  .back {
+    height: 34px;
+  }
+  .select {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.5fr) minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+  }
+  .picker {
+    grid-column: auto;
+    order: 0;
+    gap: 8px;
+  }
+  .side {
+    position: sticky;
+    top: 8px;
+    gap: 6px;
+    height: calc(100dvh - 64px);
+    min-height: 210px;
+  }
+  .side-label {
+    padding: 3px 14px 4px 8px;
+    font-size: 0.75rem;
+  }
+  .side.p2 .side-label {
+    padding: 3px 8px 4px 14px;
+  }
+  .niche {
+    min-height: 110px;
+    border-radius: 50% 50% 6px 6px / 64px 64px 6px 6px;
+  }
+  .niche .empty {
+    font-size: 4rem;
+  }
+  .side-name {
+    font-size: 1.5rem;
+  }
+  .side-title {
+    margin-top: 2px;
+    font-size: 0.875rem;
+  }
+  .side-meta,
+  .stats,
+  .kana-mark {
+    display: none;
+  }
+  .seal {
+    top: 18px;
+    width: 42px;
+    height: 42px;
+    font-size: 1rem;
+  }
+  .side .change {
+    min-height: 30px;
+    margin-top: 4px;
+  }
+  .picker-head {
+    min-height: 0;
+  }
+  .picker-head .who {
+    font-size: 1.375rem;
+  }
+  .picker-head .muted {
+    display: none;
+  }
+  .tiles {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .tile .tile-name {
+    padding: 10px 2px 3px;
+    font-size: 0.75rem;
+  }
+  .hero-detail {
+    padding: 10px 14px 12px;
+  }
+  .hero-detail h3 {
+    font-size: 1.5rem;
+  }
+  .hero-detail h3 span {
+    font-size: 0.9375rem;
+  }
+  .hero-detail .role {
+    margin: 4px 0 8px;
+    padding-bottom: 6px;
+    font-size: 0.8125rem;
+  }
+  .skill-list {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 14px;
+  }
+  .skill-list b {
+    font-size: 0.9375rem;
+  }
+  .skill-list span {
+    font-size: 0.8125rem;
+  }
+  .skill-list .skill-ico {
+    width: 34px;
+    height: 34px;
+  }
+  .stage-pick {
+    gap: 8px;
+  }
+  .stage-card {
+    aspect-ratio: 16 / 8;
+  }
+  .invite {
+    grid-template-columns: auto 1fr;
+    gap: 16px;
+    margin-bottom: 10px;
+    padding: 10px 16px;
+  }
+  .invite-code {
+    padding: 4px 12px 6px;
+    font-size: 2rem;
+  }
+  .invite p {
+    margin-bottom: 6px;
+    font-size: 0.9375rem;
+  }
+  .invite .btn {
+    min-height: 38px;
+  }
+  .invite .link {
+    margin-top: 4px;
+    font-size: 0.75rem;
+  }
+  .confirm-row .btn {
+    min-height: 42px;
+  }
+}
+
+/*
+ * The match sizes itself by its own box (the .game-view container), not the window: a phone held
+ * upright shows it turned sideways, where the window's width is the view's height.
+ */
+@container game (max-width: 760px) {
   .result {
     grid-template-columns: 1fr;
   }
@@ -2780,9 +3389,9 @@ li + li .menu-item {
     font-size: 3.5rem;
   }
   .hud-top {
-    top: 8px;
-    left: 8px;
-    right: 8px;
+    top: max(8px, var(--sa-t));
+    left: max(8px, var(--sa-l));
+    right: max(8px, var(--sa-r));
     gap: 8px;
   }
   .hud-side,
@@ -2814,41 +3423,186 @@ li + li .menu-item {
   }
 }
 
-@media (pointer: coarse) {
-  .hud-tray {
-    bottom: auto;
-    top: 128px;
-    transform: scale(0.7);
-    transform-origin: top left;
+/* Short views (phones on their side): a slim HUD so the fight gets the screen */
+@container game (max-height: 560px) {
+  .hud::before {
+    height: 100px;
   }
-  .hud-tray.p2 {
-    transform-origin: top right;
+  .hud::after {
+    height: 110px;
   }
-  .hud-stats,
-  .hud-stage {
-    display: none;
-  }
-}
-@media (pointer: coarse) and (max-height: 520px) {
-  .hud-face {
-    width: 64px;
-    height: 64px;
+  .hud-top {
+    top: max(6px, var(--sa-t));
+    gap: 10px;
   }
   .hud-side {
-    grid-template-columns: 64px 1fr;
+    grid-template-columns: 46px 1fr;
+    gap: 9px;
   }
   .hud-side.p2 {
-    grid-template-columns: 1fr 64px;
+    grid-template-columns: 1fr 46px;
   }
-  .hud-tray {
-    top: 104px;
-    transform: scale(0.6);
+  .hud-face {
+    width: 46px;
+    height: 46px;
+    border-radius: 4px;
   }
+  .hud-face img {
+    border-radius: 4px;
+  }
+  .hud-face .who {
+    bottom: -7px;
+    padding: 1px 6px 2px;
+    font-size: 0.625rem;
+  }
+  .hud-name {
+    font-size: 1.125rem;
+  }
+  .hud-tag {
+    font-size: 0.8125rem;
+  }
+  .hud-bar {
+    height: 13px;
+    margin-top: 3px;
+  }
+  .hud-hp {
+    display: none;
+  }
+  .hud-meter {
+    height: 5px;
+    margin-top: 4px;
+  }
+  .hud-pips {
+    gap: 5px;
+    margin-top: 5px;
+  }
+  .hud-pips i {
+    width: 7px;
+    height: 7px;
+  }
+  .hud-clock {
+    min-width: 62px;
+    padding: 3px 8px 11px;
+    border-radius: 5px 5px 50% 50% / 5px 5px 14px 14px;
+  }
+  .hud-round {
+    font-size: 0.625rem;
+  }
+  .hud-timer {
+    font-size: 1.75rem;
+    line-height: 0.9;
+  }
+  .hud-score {
+    font-size: 0.75rem;
+  }
+  .hud-banner {
+    font-size: clamp(3rem, 22cqh, 7rem);
+  }
+  .hud-sub {
+    top: calc(40% + 13cqh);
+    font-size: 1.125rem;
+  }
+  .hud-combo {
+    top: 24%;
+  }
+  .hud-combo b {
+    font-size: 3.25rem;
+  }
+  .hud-combo span {
+    font-size: 1.125rem;
+  }
+  .cutin-text b {
+    font-size: clamp(2rem, 14cqh, 4rem);
+  }
+  .cutin-text small {
+    font-size: 0.8125rem;
+  }
+  .cutin-text span {
+    display: none;
+  }
+  .hud-stats,
+  .hud-stage,
+  .skill-name,
   .hud-tray .owner {
     display: none;
   }
+  .hud-tray {
+    bottom: 10px;
+    gap: 6px;
+  }
+  .skill {
+    width: 50px;
+    height: 50px;
+  }
+  .skill.ult {
+    width: 58px;
+    height: 58px;
+  }
   .corner-menu {
-    top: 96px;
+    top: 76px;
+  }
+  .touch-ui .game-menu {
+    top: calc(max(6px, var(--sa-t)) + 62px);
+  }
+  .hud-net,
+  .hud-frames,
+  .hud-inputs {
+    top: 80px;
+  }
+  .training-panel,
+  .touch-ui .training-panel {
+    top: calc(max(6px, var(--sa-t)) + 70px);
+    left: max(12px, var(--sa-l));
+    max-width: 46%;
+    padding: 0;
+  }
+  .training-panel h3,
+  .training-panel p {
+    display: none;
+  }
+  .training-panel .chips {
+    gap: 6px;
+  }
+  .training-panel .chips .chip {
+    min-height: 28px;
+    padding: 0 10px;
+    font-size: 0.8125rem;
+  }
+  .overlay {
+    padding-top: max(10px, var(--sa-t));
+    padding-bottom: max(10px, var(--sa-b));
+  }
+  .card {
+    padding: 18px 22px 20px;
+  }
+  .card h2 {
+    font-size: 2.25rem;
+  }
+  .result {
+    grid-template-columns: minmax(130px, 210px) minmax(260px, 400px);
+    gap: 18px;
+    padding: 14px 18px;
+  }
+  .result-art {
+    height: min(300px, calc(100cqh - 60px));
+  }
+  .result h2 {
+    font-size: clamp(2rem, 11cqh, 3.25rem);
+  }
+  .result .sub {
+    margin: 4px 0 10px;
+    font-size: 1rem;
+  }
+  .result-stats {
+    gap: 6px 14px;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+  }
+  .result-stats dd {
+    font-size: 1.25rem;
+  }
+  .result .actions .btn {
+    min-height: 40px;
   }
 }
 
@@ -3050,4 +3804,41 @@ li + li .menu-item {
   .vs-side img {
     width: 44vw;
   }
+}
+
+/* ———————————————————————————————————— hero select: look, then choose */
+
+/* The hero you're looking at keeps its gold ring after the pointer leaves */
+.tile[data-looking='true'],
+.tile[aria-pressed='true'] {
+  z-index: 2;
+  border-color: var(--gold);
+  box-shadow:
+    inset 0 0 0 2px rgba(13, 11, 18, 0.85),
+    0 0 0 1px var(--gold),
+    0 0 18px rgba(226, 180, 88, 0.35);
+}
+.tile[aria-pressed='true'] {
+  transform: translateY(-2px);
+}
+.confirm-row .btn.confirm {
+  min-height: 52px;
+  font-size: 1.0625rem;
+}
+.side .change {
+  margin-top: 10px;
+}
+.lock-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+}
+.lock-note p {
+  margin: 0;
+  color: var(--ash);
+}
+.lock-note b {
+  color: var(--bone);
 }

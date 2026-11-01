@@ -192,9 +192,9 @@ export class GameRenderer {
     this.camX = Math.max(-lim, Math.min(lim, this.camX));
     v.scale = v.w / this.viewW;
     v.camX = this.camX;
-    // Raise the view when someone flies high
+    // Raise the view when someone flies high, keeping their head clear of the HUD at the top
     const top = Math.max(a.y, b.y) + 2300;
-    const room = v.h * GROUND - 40;
+    const room = v.h * GROUND - Math.min(150, v.h * 0.2);
     const lift = Math.max(0, top * v.scale - room);
     v.groundY = v.h * GROUND + lift * 0.9;
     const sh = this.effects.shake;
@@ -344,7 +344,9 @@ export class GameRenderer {
 
     // Hit shake
     const shake = f.state === FS.HITSTUN && f.stateFrame < 8 ? Math.sin(f.stateFrame * 3) * v.px(40) : 0;
-    sprite.drawPick(g, pick, x + shake, y, scale, facing, { flash, alt });
+    // Wake-up protection: the hero blinks (from the sim frame, so a rollback redraws it the same)
+    const blink = f.wakeup > 0 && ((s.frame >> 2) & 1) === 1 ? 0.3 : 1;
+    sprite.drawPick(g, pick, x + shake, y, scale, facing, { flash, alt, alpha: blink });
 
     // Skill-specific overlays drawn in code (the packs have no art for these moves)
     if (f.state === FS.ACTION && a) this.overlay(g, s, i, a.id, f.actionFrame, look.color, look.glow);

@@ -149,7 +149,8 @@ export class RoomLogic {
         this.io.send(slot, { t: 'pong' });
         return;
       case 'select':
-        if (st.phase !== 'select') return this.badState(slot, 'not selecting');
+        // The room owner may browse and lock in while waiting for their friend
+        if (st.phase !== 'select' && st.phase !== 'waiting') return this.badState(slot, 'not selecting');
         if (!(SELECTABLE_FIGHTERS as readonly string[]).includes(msg.fighter)) {
           return this.io.send(slot, { t: 'error', code: 'BAD_MESSAGE', message: 'Unknown fighter' });
         }
@@ -158,11 +159,11 @@ export class RoomLogic {
         this.broadcastRoom();
         return;
       case 'ready':
-        if (st.phase !== 'select') return this.badState(slot, 'not selecting');
+        if (st.phase !== 'select' && st.phase !== 'waiting') return this.badState(slot, 'not selecting');
         if (!me.fighter) return this.badState(slot, 'pick a fighter first');
         me.ready = msg.ready;
         me.viewMirrored = msg.viewMirrored;
-        if (st.players[0]?.ready && st.players[1]?.ready) this.startLoading();
+        if (st.phase === 'select' && st.players[0]?.ready && st.players[1]?.ready) this.startLoading();
         else this.broadcastRoom();
         return;
       case 'signal':

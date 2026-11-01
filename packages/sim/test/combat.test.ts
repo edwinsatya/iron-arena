@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ARENA_WALK_R, END, EV, FS, JUGGLE_LIMIT, PHASE, ULT_MAX } from '../src/constants';
+import { ARENA_WALK_R, END, EV, FS, JUGGLE_LIMIT, PHASE, ULT_MAX, WAKEUP_INVULN } from '../src/constants';
 import { getCharacter } from '../src/roster';
 import { step } from '../src/step';
 import { BTN, eventsOf, run, setup, tap } from './helpers';
@@ -229,6 +229,60 @@ describe('rounds', () => {
     expect(a.y).toBe(0);
     expect(a.airJumps).toBe(0);
     expect(peakHeld).toBeGreaterThan(peakTap * 1.5);
+  });
+
+  it('a tapped double jump goes all the way up, higher than the first jump', () => {
+    const s = setup('benika', 'dummy', -3000, 3000);
+    const a = s.fighters[0];
+    // A full first jump to its top
+    step(s, [BTN.JUMP, 0]);
+    let k = 0;
+    for (; k < 200 && !(a.state === FS.AIR && a.vy <= 0); k++) step(s, [BTN.JUMP, 0]);
+    const firstPeak = a.y;
+    // Tap Jump for a single frame: the double jump
+    step(s, [0, 0]);
+    const from = a.y;
+    step(s, [BTN.JUMP, 0]);
+    expect(a.airJumps).toBe(1);
+    let peak = a.y;
+    for (k = 0; k < 120 && a.y > 0; k++) {
+      step(s, [0, 0]);
+      peak = Math.max(peak, a.y);
+    }
+    expect(peak - from).toBeGreaterThan(firstPeak);
+  });
+
+  it('wake-up: after a knockdown the fighter is protected for a moment (they blink)', () => {
+    const s = setup('benika', 'dummy', 0, 900);
+    const b = s.fighters[1];
+    b.state = FS.DOWN;
+    b.stateFrame = 0;
+    for (let k = 0; k < 200 && b.state !== FS.IDLE; k++) step(s, [0, 0]);
+    expect(b.state).toBe(FS.IDLE);
+    expect(b.wakeup).toBeGreaterThan(WAKEUP_INVULN - 3);
+    // An attack right on wake-up passes through them
+    const hp = b.hp;
+    tap(s, 0, BTN.ATTACK);
+    run(s, 14);
+    expect(b.hp).toBe(hp);
+    // Once it wears off they can be hit again
+    run(s, WAKEUP_INVULN);
+    expect(b.wakeup).toBe(0);
+    tap(s, 0, BTN.ATTACK);
+    run(s, 14);
+    expect(b.hp).toBeLessThan(hp);
+  });
+
+  it('wake-up: attacking ends the protection', () => {
+    const s = setup('benika', 'benika', -3000, 3000);
+    const b = s.fighters[1];
+    b.state = FS.DOWN;
+    b.stateFrame = 0;
+    for (let k = 0; k < 200 && b.state !== FS.IDLE; k++) step(s, [0, 0]);
+    expect(b.wakeup).toBeGreaterThan(0);
+    tap(s, 1, BTN.ATTACK);
+    expect(b.state).toBe(FS.ACTION);
+    expect(b.wakeup).toBe(0);
   });
 
   it('time out: more health wins; first to 2 rounds wins the match', () => {

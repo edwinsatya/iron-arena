@@ -261,6 +261,8 @@ export interface FighterState {
   buffDamagePct: number;
   buffSpeedPct: number;
   invulnFrames: number;
+  /** Wake-up protection frames left after getting up (blinking; any attack ends it). */
+  wakeup: number;
   /** Air jumps used since leaving the ground (double jump). */
   airJumps: number;
   /** Frames Attack has been held without a break (charge attacks). */

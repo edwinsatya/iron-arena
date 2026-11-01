@@ -50,7 +50,7 @@ export default function SettingsPage() {
             />
           </label>
           <div className="group">
-            <span className="label">Voices and view</span>
+            <span className="label">Voices, view and touch</span>
             <div className="chips">
               <button
                 className="chip"
@@ -65,6 +65,13 @@ export default function SettingsPage() {
                 onClick={() => update({ alwaysLeft: !s.alwaysLeft })}
               >
                 See the arena from my side (online)
+              </button>
+              <button
+                className="chip"
+                aria-pressed={s.haptics}
+                onClick={() => update({ haptics: !s.haptics })}
+              >
+                Vibrate on touch buttons
               </button>
             </div>
           </div>

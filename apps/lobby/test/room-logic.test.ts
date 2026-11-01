@@ -59,6 +59,22 @@ describe('room logic', () => {
     expect(msg.players.map((p) => p?.name)).toEqual(['Edwin', 'Friend']);
   });
 
+  it('the room owner can lock in a hero while waiting; the match starts once the friend locks in', () => {
+    join('Edwin', 'client-aaaa');
+    room.message(0, { t: 'select', fighter: 'karasu' });
+    room.message(0, { t: 'ready', ready: true, viewMirrored: false });
+    expect(io.last(0, 'error')).toBeUndefined();
+    expect(room.state.phase).toBe('waiting');
+    expect(room.state.players[0]).toMatchObject({ fighter: 'karasu', ready: true });
+    join('Friend', 'client-bbbb');
+    expect(room.state.phase).toBe('select');
+    expect(room.state.players[0]).toMatchObject({ fighter: 'karasu', ready: true });
+    room.message(1, { t: 'select', fighter: 'akari' });
+    room.message(1, { t: 'ready', ready: true, viewMirrored: false });
+    expect(room.state.phase).toBe('loading');
+    expect(room.state.config?.fighters).toEqual(['karasu', 'akari']);
+  });
+
   it('a third player is turned away', () => {
     join('A', 'client-aaaa');
     join('B', 'client-bbbb');

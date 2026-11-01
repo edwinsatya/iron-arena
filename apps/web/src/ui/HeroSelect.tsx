@@ -1,7 +1,7 @@
 'use client';
 
 import { getCharacter, selectableCharacters, type CompiledHero } from '@neonfist/sim';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { KEY_HINTS, type KeyHintSet } from '../game/input/bindings';
 import { LOOKS } from '../game/looks';
 import { HeroShowcase } from './HeroShowcase';
@@ -12,6 +12,7 @@ export interface HeroSelectProps {
   picks: [string | null, string | null];
   /** Which side the grid is choosing for right now (null = nobody, e.g. online and locked in). */
   picking: 0 | 1 | null;
+  /** A hero was chosen for the side that is picking. */
   onPick: (id: string) => void;
   /** Labels above each side, e.g. "Player 1" / "The CPU". */
   sideLabels: [string, string];
@@ -21,8 +22,16 @@ export interface HeroSelectProps {
   ready?: [boolean, boolean];
   /** Keys shown next to each skill. */
   keys?: KeyHintSet;
-  /** Buttons under the grid (random, etc.). */
-  children?: ReactNode;
+  /** Words on the confirm button, e.g. `Choose ${name}` (default) or `Lock in ${name}`. */
+  confirmLabel?: (heroName: string) => string;
+  /** More buttons beside the confirm button (random…). */
+  actions?: ReactNode;
+  /** Shown in place of the confirm row while nobody is picking (online, locked in). */
+  locked?: ReactNode;
+  /** A locked-in side can be changed: a "Change" button appears under it. */
+  onChange?: (side: 0 | 1) => void;
+  /** Which sides get that button (online: only your own). */
+  changeable?: [boolean, boolean];
   /** Heroes are locked in: show this (arena, CPU level, Fight) in place of the grid. */
   arena?: ReactNode;
   /** What to tell each side while it picks. */
@@ -31,7 +40,20 @@ export interface HeroSelectProps {
 
 const COLS = 6;
 
-function SkillRows({ hero, keys }: { hero: CompiledHero; keys: KeyHintSet }) {
+/** Phones and tablets: tap wording, and skill art in place of keyboard keys. */
+export function useCoarsePointer(): boolean {
+  const [coarse, setCoarse] = useState(false);
+  useEffect(() => {
+    const m = window.matchMedia('(pointer: coarse)');
+    const on = () => setCoarse(m.matches);
+    on();
+    m.addEventListener('change', on);
+    return () => m.removeEventListener('change', on);
+  }, []);
+  return coarse;
+}
+
+function SkillRows({ hero, keys, touch }: { hero: CompiledHero; keys: KeyHintSet; touch: boolean }) {
   const chords = [
     [keys.attack, keys.guard],
     [keys.attack, keys.jump],
@@ -43,11 +65,15 @@ function SkillRows({ hero, keys }: { hero: CompiledHero; keys: KeyHintSet }) {
         const a = hero.actions[idx]!;
         return (
           <li key={a.id}>
-            <span className="combo" aria-label={`Key ${keys.skills[k]}`}>
-              <span className="kbd">{keys.skills[k]}</span>
-              <span className="muted">or</span>
-              <span className="kbd dark">{chords[k]!.join('+')}</span>
-            </span>
+            {touch ? (
+              <Portrait heroId={hero.id} kind={`skill:${a.id}`} className="skill-ico" />
+            ) : (
+              <span className="combo" aria-label={`Key ${keys.skills[k]}`}>
+                <span className="kbd">{keys.skills[k]}</span>
+                <span className="muted">or</span>
+                <span className="kbd dark">{chords[k]!.join('+')}</span>
+              </span>
+            )}
             <div>
               <b>{a.name}</b>
               <span>{a.blurb}</span>
@@ -56,9 +82,17 @@ function SkillRows({ hero, keys }: { hero: CompiledHero; keys: KeyHintSet }) {
         );
       })}
       <li className="ult">
-        <span className="combo">
-          <span className="kbd">{keys.ult}</span>
-        </span>
+        {touch ? (
+          <Portrait
+            heroId={hero.id}
+            kind={`skill:${hero.actions[hero.ultIdx]!.id}`}
+            className="skill-ico ult"
+          />
+        ) : (
+          <span className="combo">
+            <span className="kbd">{keys.ult}</span>
+          </span>
+        )}
         <div>
           <b>{hero.actions[hero.ultIdx]!.name}</b>
           <span>{hero.actions[hero.ultIdx]!.blurb}. Needs a full meter.</span>
@@ -104,6 +138,7 @@ function Side({
   name,
   sealed,
   alt,
+  onChange,
 }: {
   side: 0 | 1;
   heroId: string | null;
@@ -112,8 +147,11 @@ function Side({
   name: string | null;
   sealed: boolean;
   alt: boolean;
+  onChange?: () => void;
 }) {
-  const shownId = heroId ?? previewId;
+  // While a side is choosing it shows the hero being looked at, faintly
+  const shownId = previewId ?? heroId;
+  const previewing = !!previewId && previewId !== heroId;
   const hero = shownId ? getCharacter(shownId) : null;
   const look = shownId ? LOOKS[shownId] : null;
   const ranges = useRanges();
@@ -135,7 +173,7 @@ function Side({
               heroId={hero.id}
               side={side}
               alt={alt}
-              mode={heroId ? (sealed ? 'locked' : 'idle') : 'preview'}
+              mode={previewing ? 'preview' : sealed ? 'locked' : 'idle'}
             />
           </>
         ) : (
@@ -143,7 +181,7 @@ function Side({
             ?
           </div>
         )}
-        {sealed && heroId && (
+        {sealed && heroId && !previewing && (
           <span className="seal" aria-hidden="true">
             {side === 0 ? 'P1' : 'P2'}
           </span>
@@ -156,7 +194,7 @@ function Side({
           <p className="side-meta">
             {hero.role}
             {name ? `, played by ${name}` : ''}
-            {!heroId && ' (choosing)'}
+            {previewing && ' (looking)'}
           </p>
           <dl className="stats">
             <div className="stat">
@@ -176,7 +214,18 @@ function Side({
               <Pips value={hero.difficulty} max={3} />
             </div>
           </dl>
-          {sealed && heroId && name && <span className="ready-flag">Ready</span>}
+          {sealed && heroId && !previewing && onChange && (
+            <button
+              type="button"
+              className="btn ghost small change"
+              onClick={() => {
+                uiSound('back');
+                onChange();
+              }}
+            >
+              Change
+            </button>
+          )}
         </div>
       ) : (
         <div>
@@ -188,7 +237,11 @@ function Side({
   );
 }
 
-/** Hero select: your alcove on the left, the portraits and their skills in the middle, the rival on the right. */
+/**
+ * Hero select: your alcove on the left, the portraits and their skills in the middle, the rival
+ * on the right. Pointing at or clicking a portrait only looks at that hero (their skills, their
+ * alcove); the hero is chosen with the confirm button, a second click, or Enter.
+ */
 export function HeroSelect({
   picks,
   picking,
@@ -197,18 +250,34 @@ export function HeroSelect({
   names,
   ready = [false, false],
   keys = KEY_HINTS.solo,
-  children,
+  confirmLabel = (n) => `Choose ${n}`,
+  actions,
+  locked,
+  onChange,
+  changeable = [true, true],
   arena,
   prompts = ['Pick your hero', 'Pick your rival'],
 }: HeroSelectProps) {
   const heroes = selectableCharacters();
+  // The hero being looked at (clicked or keyboard-focused) and the one under the pointer
+  const [focus, setFocus] = useState<string | null>(null);
   const [hover, setHover] = useState<string | null>(null);
-  const preview = getCharacter(
-    hover ?? (picking !== null ? picks[picking] : null) ?? picks[0] ?? heroes[0]!.id,
-  );
-  const look = LOOKS[preview.id]!;
+  const touch = useCoarsePointer();
+  const current = picking !== null ? picks[picking] : null;
+  // Each side starts by looking at its current hero (or at nobody)
+  useEffect(() => setFocus(current), [picking]); // eslint-disable-line react-hooks/exhaustive-deps
+  const looking = hover ?? focus;
+  const detail = getCharacter(looking ?? current ?? picks[0] ?? heroes[0]!.id);
+  const look = LOOKS[detail.id]!;
   const same = picks[0] !== null && picks[0] === picks[1];
-  const previewFor = (side: 0 | 1) => (picking === side && !picks[side] ? hover : null);
+  const previewFor = (side: 0 | 1) => (picking === side ? looking : null);
+  const target = focus ?? current;
+
+  const confirm = (id: string) => {
+    uiSound('stamp');
+    setHover(null);
+    onPick(id);
+  };
 
   // Arrow keys move the cursor around the grid
   const onGridKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -232,6 +301,7 @@ export function HeroSelect({
         name={names?.[0] ?? null}
         sealed={ready[0]}
         alt={false}
+        onChange={onChange && changeable[0] && picking !== 0 ? () => onChange(0) : undefined}
       />
       <div className="picker">
         <div className="picker-head">
@@ -241,16 +311,20 @@ export function HeroSelect({
               color: arena
                 ? 'var(--gold)'
                 : picking === 1
-                  ? '#7aa8ff'
+                  ? 'var(--p2-hi)'
                   : picking === 0
-                    ? '#ff7a6a'
+                    ? 'var(--p1-hi)'
                     : 'var(--bone)',
             }}
           >
             {arena ? 'Choose the arena' : picking === null ? 'Locked in' : prompts[picking]}
           </span>
           <span className="muted">
-            {arena ? '' : picking === null ? '' : 'Arrows to browse, Enter to choose'}
+            {arena || picking === null
+              ? ''
+              : touch
+                ? 'Tap a hero to see their skills, tap again to choose'
+                : 'Click a hero to see their skills, click again to choose'}
           </span>
         </div>
         {arena ? (
@@ -265,23 +339,30 @@ export function HeroSelect({
                   className="tile"
                   style={{ '--hero': LOOKS[h.id]!.color } as React.CSSProperties}
                   aria-label={h.name}
-                  aria-pressed={picking !== null && picks[picking] === h.id}
+                  aria-pressed={focus === h.id}
+                  data-looking={looking === h.id}
                   data-p1={picks[0] === h.id}
                   data-p2={picks[1] === h.id}
                   disabled={picking === null}
-                  onMouseEnter={() => {
+                  onPointerEnter={(e) => {
+                    if (e.pointerType !== 'mouse') return;
                     setHover(h.id);
                     uiSound('move');
                   }}
-                  onMouseLeave={() => setHover(null)}
-                  onFocus={() => {
-                    setHover(h.id);
-                    uiSound('move');
+                  onPointerLeave={(e) => e.pointerType === 'mouse' && setHover(null)}
+                  onFocus={(e) => {
+                    // Keyboard focus looks at the hero; a click is handled below
+                    if (e.currentTarget.matches(':focus-visible')) {
+                      setFocus(h.id);
+                      uiSound('move');
+                    }
                   }}
-                  onBlur={() => setHover(null)}
                   onClick={() => {
-                    uiSound('stamp');
-                    onPick(h.id);
+                    if (focus === h.id) confirm(h.id);
+                    else {
+                      setFocus(h.id);
+                      uiSound('move');
+                    }
                   }}
                 >
                   <Portrait heroId={h.id} kind="face" />
@@ -293,23 +374,41 @@ export function HeroSelect({
             </div>
             <div className="hero-detail parchment" style={{ '--hero': look.color } as React.CSSProperties}>
               <h3>
-                {preview.name}
-                <span style={{ color: '#9a2a14' }}>{preview.title}</span>
+                {detail.name}
+                <span style={{ color: 'var(--ink-red)' }}>{detail.title}</span>
               </h3>
               <div className="role">
-                <span>{preview.role}</span>
+                <span>{detail.role}</span>
                 <span>
                   Difficulty{' '}
                   <span className="dots">
-                    {'■'.repeat(preview.difficulty)}
-                    {'□'.repeat(3 - preview.difficulty)}
+                    {'■'.repeat(detail.difficulty)}
+                    {'□'.repeat(3 - detail.difficulty)}
                   </span>
                 </span>
-                <span>{preview.hp} health</span>
+                <span>{detail.hp} health</span>
               </div>
-              <SkillRows hero={preview} keys={keys} />
+              <SkillRows hero={detail} keys={keys} touch={touch} />
             </div>
-            {children}
+            {picking !== null ? (
+              <div className="picker-actions confirm-row">
+                <button
+                  type="button"
+                  className="btn confirm"
+                  disabled={!target}
+                  onClick={() => target && confirm(target)}
+                >
+                  {target
+                    ? confirmLabel(getCharacter(target).name)
+                    : touch
+                      ? 'Tap a hero first'
+                      : 'Click a hero first'}
+                </button>
+                {actions}
+              </div>
+            ) : (
+              locked
+            )}
           </>
         )}
       </div>
@@ -321,6 +420,7 @@ export function HeroSelect({
         name={names?.[1] ?? null}
         sealed={ready[1]}
         alt={same}
+        onChange={onChange && changeable[1] && picking !== 1 ? () => onChange(1) : undefined}
       />
     </div>
   );

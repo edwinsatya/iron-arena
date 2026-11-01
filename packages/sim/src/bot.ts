@@ -1,5 +1,6 @@
 import { BTN } from '@neonfist/shared';
 import { FS, ULT_MAX } from './constants';
+import { isInvulnerable } from './fighter';
 import { dist2, isqrt } from './math';
 import { ROSTER } from './roster';
 import type { CompiledHero, GameState } from './types';
@@ -135,9 +136,7 @@ export function cpuBot(seed: number, opts: CpuOptions = { level: 1 }) {
       return out;
     }
 
-    const threatened =
-      o.state === FS.ACTION &&
-      dist < (fightsAtRange(ROSTER[o.char]!) ? 9000 : 2600);
+    const threatened = o.state === FS.ACTION && dist < (fightsAtRange(ROSTER[o.char]!) ? 9000 : 2600);
     const projectileIncoming = s.projectiles.some(
       (p) => p.owner !== me && dist2(p.x, p.z, f.x, f.z) < 2200 * 2200,
     );
@@ -157,6 +156,9 @@ export function cpuBot(seed: number, opts: CpuOptions = { level: 1 }) {
       return out;
     }
 
+    // Down, getting up or blinking: nothing can hit them, so keep the meter and the cooldowns
+    const untouchable = isInvulnerable(o);
+
     // Ranged heroes escape when someone is in their face
     if (ranged && dist < 2000 && free) {
       const k = 2; // the archer's vanish, the witch's fire ward
@@ -168,7 +170,7 @@ export function cpuBot(seed: number, opts: CpuOptions = { level: 1 }) {
     }
 
     // Ultimate when it will land
-    if (f.ult >= ULT_MAX && dist < (ranged ? 11000 : 7000) && r() < 0.05 + react * 0.1) {
+    if (f.ult >= ULT_MAX && !untouchable && dist < (ranged ? 11000 : 7000) && r() < 0.05 + react * 0.1) {
       out = press(BTN.ULT);
       prev = out;
       return out;
@@ -176,7 +178,7 @@ export function cpuBot(seed: number, opts: CpuOptions = { level: 1 }) {
 
     // Skills
     const ready = [0, 1, 2].filter((k) => f.cd[k] === 0);
-    if (ready.length && r() < 0.03 + react * 0.05) {
+    if (ready.length && !untouchable && r() < 0.03 + react * 0.05) {
       const k = ready[Math.floor(r() * ready.length)]!;
       const range = ranged ? 8500 : k === 2 ? 3000 : 5500;
       if (dist < range) {
