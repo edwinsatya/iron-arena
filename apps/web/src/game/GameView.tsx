@@ -1,6 +1,6 @@
 'use client';
 
-import { checksum, EV, ROSTER, type GameState } from '@neonfist/sim';
+import { checksum, EV, ROSTER, type GameState } from '@iron-arena/sim';
 import { WEAPON_OF } from './looks';
 import { portraitsReady } from './portraits';
 import { useEffect, useRef, useState } from 'react';
@@ -34,7 +34,7 @@ export interface GameViewProps {
 declare global {
   interface Window {
     /** Test hooks (Playwright e2e and debugging). */
-    __neonfist?: { state: () => GameState; checksum: () => number; driver: MatchDriver };
+    __ironArena?: { state: () => GameState; checksum: () => number; driver: MatchDriver };
   }
 }
 
@@ -149,7 +149,7 @@ export function GameView({
       e.preventDefault();
     };
     window.addEventListener('keydown', onKey);
-    window.__neonfist = { state: () => driver.state, checksum: () => checksum(driver.state), driver };
+    window.__ironArena = { state: () => driver.state, checksum: () => checksum(driver.state), driver };
 
     return () => {
       loop.stop();
@@ -161,7 +161,7 @@ export function GameView({
       hud.dispose();
       sfx.dispose();
       hudRef.current = null;
-      if (window.__neonfist?.driver === driver) delete window.__neonfist;
+      if (window.__ironArena?.driver === driver) delete window.__ironArena;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driver, mirrored]);

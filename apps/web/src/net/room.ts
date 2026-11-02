@@ -6,7 +6,7 @@ import {
   type PlayerInfo,
   type RoomPhase,
   type ServerMsg,
-} from '@neonfist/shared';
+} from '@iron-arena/shared';
 import {
   isSignalData,
   measureRtt,
@@ -16,7 +16,7 @@ import {
   type LinkKind,
   type PeerLink,
   type SignalData,
-} from '@neonfist/netcode';
+} from '@iron-arena/netcode';
 import { createPlayerInput } from '../game/input/sampler';
 import { SOLO_KEYS } from '../game/input/bindings';
 import { OnlineDriver, type DesyncBundle } from '../game/driver';

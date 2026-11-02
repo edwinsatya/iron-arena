@@ -1,4 +1,4 @@
-import { BTN, DIRECTION_MASK } from '@neonfist/shared';
+import { BTN, DIRECTION_MASK } from '@iron-arena/shared';
 
 /**
  * Bits from the on-screen touch controls. The overlay writes here; the player's input source reads

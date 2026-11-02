@@ -2,7 +2,7 @@
  * CPU-vs-CPU balance check: plays many matches for every hero pair and prints win rates, how rounds
  * ended, and how often each skill was used. `pnpm balance [matches=20]`
  */
-import { cpuBot, createInitialState, END, EV, PHASE, ROSTER, selectableCharacters, step } from '@neonfist/sim';
+import { cpuBot, createInitialState, END, EV, PHASE, ROSTER, selectableCharacters, step } from '@iron-arena/sim';
 
 const matches = Number(process.argv[2] ?? 20);
 const heroes = selectableCharacters().map((h) => h.id);

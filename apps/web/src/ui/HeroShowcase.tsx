@@ -1,6 +1,6 @@
 'use client';
 
-import { getCharacter } from '@neonfist/sim';
+import { getCharacter } from '@iron-arena/sim';
 import { useEffect, useRef } from 'react';
 import { lookFor } from '../game/looks';
 import { loadSpriteHero, type AtlasAnim } from '../game/render2d/sprites';

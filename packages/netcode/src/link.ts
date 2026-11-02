@@ -1,4 +1,4 @@
-import { ControlMsgSchema, type ControlMsg } from '@neonfist/shared';
+import { ControlMsgSchema, type ControlMsg } from '@iron-arena/shared';
 
 /** How the two browsers are connected. Shown in the network overlay (PLAN §4.6). */
 export type LinkKind = 'loopback' | 'direct' | 'turn' | 'relay';

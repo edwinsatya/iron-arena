@@ -1,7 +1,7 @@
 'use client';
 
-import { isValidRoomCode } from '@neonfist/shared';
-import { checksum, getCharacter, PHASE, type GameState } from '@neonfist/sim';
+import { isValidRoomCode } from '@iron-arena/shared';
+import { checksum, getCharacter, PHASE, type GameState } from '@iron-arena/sim';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { GameView } from '../game/GameView';

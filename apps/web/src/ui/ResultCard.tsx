@@ -1,4 +1,4 @@
-import { ROSTER, type GameState } from '@neonfist/sim';
+import { ROSTER, type GameState } from '@iron-arena/sim';
 import type { ReactNode } from 'react';
 import { LOOKS } from '../game/looks';
 import { Portrait } from './usePortrait';

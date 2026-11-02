@@ -1,6 +1,6 @@
 'use client';
 
-import { describeInput } from '@neonfist/shared';
+import { describeInput } from '@iron-arena/shared';
 import { useEffect, useRef, useState } from 'react';
 import { P1_KEYS, P2_KEYS } from '../../../src/game/input/bindings';
 import { createPlayerInput } from '../../../src/game/input/sampler';

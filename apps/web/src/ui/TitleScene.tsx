@@ -1,6 +1,6 @@
 'use client';
 
-import { type CompiledHero } from '@neonfist/sim';
+import { type CompiledHero } from '@iron-arena/sim';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { lookFor } from '../game/looks';

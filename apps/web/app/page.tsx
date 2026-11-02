@@ -1,7 +1,7 @@
 'use client';
 
-import { isValidRoomCode, normalizeRoomCode } from '@neonfist/shared';
-import { selectableCharacters } from '@neonfist/sim';
+import { isValidRoomCode, normalizeRoomCode } from '@iron-arena/shared';
+import { selectableCharacters } from '@iron-arena/sim';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';

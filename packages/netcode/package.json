@@ -1,5 +1,5 @@
 {
-  "name": "@neonfist/netcode",
+  "name": "@iron-arena/netcode",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,9 +13,9 @@
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
-    "@neonfist/shared": "workspace:*"
+    "@iron-arena/shared": "workspace:*"
   },
   "devDependencies": {
-    "@neonfist/sim": "workspace:*"
+    "@iron-arena/sim": "workspace:*"
   }
 }

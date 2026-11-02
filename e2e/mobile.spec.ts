@@ -14,7 +14,7 @@ async function startTraining(page: Page) {
   await page.getByRole('button', { name: 'Hyōga', exact: true }).tap();
   await page.getByRole('button', { name: 'Choose Hyōga' }).tap();
   await page.getByRole('button', { name: 'Start training' }).tap();
-  await page.waitForFunction(() => window.__neonfist?.state().phase === 1, null, { timeout: 60_000 });
+  await page.waitForFunction(() => window.__ironArena?.state().phase === 1, null, { timeout: 60_000 });
   await expect(page.locator('.tp-pad')).toBeVisible();
 }
 
@@ -33,7 +33,7 @@ async function drag(page: Page, from: [number, number], to: [number, number], ho
   await cdp.detach();
 }
 
-const myX = (page: Page) => page.evaluate(() => window.__neonfist!.state().fighters[0].x);
+const myX = (page: Page) => page.evaluate(() => window.__ironArena!.state().fighters[0].x);
 
 test.describe('phone on its side', () => {
   test.use({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
@@ -48,13 +48,13 @@ test.describe('phone on its side', () => {
     expect(await myX(page)).toBeGreaterThan(x0);
 
     await page.locator('.tp-btn.atk').tap();
-    await page.waitForFunction(() => window.__neonfist!.state().fighters[0].action >= 0, null, {
+    await page.waitForFunction(() => window.__ironArena!.state().fighters[0].action >= 0, null, {
       timeout: 5_000,
     });
 
     await page.waitForTimeout(800);
     await page.locator('.tp-btn.s1').tap();
-    await page.waitForFunction(() => window.__neonfist!.state().fighters[0].cd[0] > 0, null, {
+    await page.waitForFunction(() => window.__ironArena!.state().fighters[0].cd[0] > 0, null, {
       timeout: 5_000,
     });
 
@@ -64,7 +64,7 @@ test.describe('phone on its side', () => {
       const w = window as unknown as { seen: Set<number> };
       w.seen = new Set();
       const look = () => {
-        w.seen.add(window.__neonfist!.state().fighters[0].state);
+        w.seen.add(window.__ironArena!.state().fighters[0].state);
         requestAnimationFrame(look);
       };
       look();

@@ -859,8 +859,8 @@ export type ControlMsg =
 | 3D | `three` (exact version pinned), `GLTFLoader` + `MeshoptDecoder`, `postprocessing` | No React Three Fiber in the fight scene |
 | UI state | Zustand | Menus and settings only — never game state |
 | Validation | zod | Every lobby and control message |
-| Simulation | `@neonfist/sim`, zero dependencies | Runs in the browser and Node |
-| Netcode | `@neonfist/netcode` (Appendix C) | GGPO and NetplayJS as references |
+| Simulation | `@iron-arena/sim`, zero dependencies | Runs in the browser and Node |
+| Netcode | `@iron-arena/netcode` (Appendix C) | GGPO and NetplayJS as references |
 | Lobby | Cloudflare Workers + Durable Objects (`wrangler`) | Alternative: Node + `ws` on Fly.io `sin` |
 | NAT traversal | Cloudflare Realtime TURN (+ STUN) | Short-lived credentials from the lobby |
 | Audio | Howler.js | |
@@ -874,7 +874,7 @@ export type ControlMsg =
 ## 8. Repository structure
 
 ```
-neon-fist/
+iron-arena/
 ├── CLAUDE.md                        # short project rules for Claude Code (§9.0)
 ├── .claude/rules/
 │   └── sim-determinism.md           # path-scoped to packages/sim + packages/netcode (§9.0)
@@ -1271,12 +1271,12 @@ F1 hitboxes/hurtboxes · F2 frame data · F3 network & performance · F4 input d
 | Lobby | Cloudflare Workers Free plan with SQLite-backed Durable Objects | $0 (100k requests/day) |
 | TURN | Cloudflare Realtime TURN | $0 for the first 1,000 GB/month, then $0.05/GB |
 | Models & audio | Served with the site (Cloudflare R2 later if needed) | $0 |
-| Domain | `neonfist.touchsimpledev.site` (subdomain of your domain) | Already owned |
+| Domain | `iron-arena.touchsimpledev.site` (subdomain of your domain) | Already owned |
 | **Total** | | **≈ $0/month** |
 
 Deploy steps:
 1. **Lobby:** `wrangler deploy` from `apps/lobby`; store the TURN key ID and API token with `wrangler secret put`. Use a custom domain if your DNS is on Cloudflare, otherwise the free `*.workers.dev` URL.
-2. **Web:** a Vercel project with root directory `apps/web`; env `NEXT_PUBLIC_LOBBY_URL`; add `neonfist.touchsimpledev.site` as a domain (CNAME at your DNS provider).
+2. **Web:** a Vercel project with root directory `apps/web`; env `NEXT_PUBLIC_LOBBY_URL`; add `iron-arena.touchsimpledev.site` as a domain (CNAME at your DNS provider).
 3. **Version lock:** both builds embed `simVersion` = git SHA; CI deploys web and lobby from the same commit.
 4. **Cache busting:** content hashes in model/audio filenames.
 5. **Old tabs:** a player with an outdated tab gets `VERSION_MISMATCH` → "New version available — refresh".

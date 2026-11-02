@@ -11,7 +11,7 @@ import {
   parseJson,
   ROOM_IDLE_MS,
   type ServerMsg,
-} from '@neonfist/shared';
+} from '@iron-arena/shared';
 import { WebSocket, WebSocketServer, type RawData } from 'ws';
 import { corsHeaders, cryptoUint32, fetchIceServers, generateRoomCode } from './common';
 import { newRoomState, RoomLogic, type RoomIO, type Slot } from './room-logic';

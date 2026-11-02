@@ -1,6 +1,6 @@
 import type { AddressInfo } from 'node:net';
 import type { Server } from 'node:http';
-import { ServerMsgSchema, type ServerMsg } from '@neonfist/shared';
+import { ServerMsgSchema, type ServerMsg } from '@iron-arena/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { WebSocket } from 'ws';
 import { startLobbyServer } from '../src/node-server';

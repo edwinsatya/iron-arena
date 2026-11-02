@@ -1,4 +1,4 @@
-import { SELECTABLE_FIGHTERS } from '@neonfist/shared';
+import { SELECTABLE_FIGHTERS } from '@iron-arena/shared';
 import { describe, expect, it } from 'vitest';
 import { selectableCharacters } from '../src/roster';
 

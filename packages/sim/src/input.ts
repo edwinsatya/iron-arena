@@ -1,4 +1,4 @@
-import { BTN } from '@neonfist/shared';
+import { BTN } from '@iron-arena/shared';
 import { CHORD_WINDOW, DASH_TAP_WINDOW } from './constants';
 import type { FighterState, GameState } from './types';
 

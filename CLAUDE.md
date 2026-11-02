@@ -1,6 +1,6 @@
 # IRON ARENA — browser 2D side-view fantasy brawler, 1v1 online with rollback netcode
 
-(Internal names keep the old project name: the `@neonfist/*` packages and the `neon-fist-lobby` Worker.)
+(Packages are `@iron-arena/*`; the lobby is the Cloudflare Worker `iron-arena-lobby`.)
 
 Game design: docs/GAME.md (current). Architecture and netcode: docs/PLAN.md (§2 game design there is the old fighter, superseded by GAME.md).
 

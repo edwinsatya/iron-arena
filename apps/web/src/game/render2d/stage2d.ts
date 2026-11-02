@@ -1,4 +1,4 @@
-import { ARENA_R } from '@neonfist/sim';
+import { ARENA_R } from '@iron-arena/sim';
 import { hexA, mix, seeded, View2D } from './view';
 
 /**

@@ -1,4 +1,4 @@
-import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, type IceServer } from '@neonfist/shared';
+import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, type IceServer } from '@iron-arena/shared';
 
 export function generateRoomCode(randomUint32: () => number): string {
   let code = '';
@@ -50,9 +50,20 @@ export async function fetchIceServers(env: TurnEnv, fetchFn: typeof fetch = fetc
   }
 }
 
+/**
+ * CORS for the lobby API. `allowed` (ALLOWED_ORIGINS): comma-separated sites, each a full origin
+ * (`https://iron-arena.example.com`) or just its host (`iron-arena.example.com`), or `*`.
+ */
 export function corsHeaders(origin: string | null, allowed: string): Record<string, string> {
-  const list = allowed.split(',').map((s) => s.trim());
-  const allow = list.includes('*') ? '*' : origin && list.includes(origin) ? origin : (list[0] ?? '*');
+  const list = allowed
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const allow = list.includes('*')
+    ? '*'
+    : origin && list.some((entry) => originMatches(entry, origin))
+      ? origin
+      : withScheme(list[0] ?? '*');
   return {
     'Access-Control-Allow-Origin': allow,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -60,3 +71,18 @@ export function corsHeaders(origin: string | null, allowed: string): Record<stri
     'Access-Control-Max-Age': '86400',
   };
 }
+
+/** Browsers send the full origin (`https://host`); an entry written without a scheme matches by host. */
+function originMatches(entry: string, origin: string): boolean {
+  const e = entry.replace(/\/+$/, '').toLowerCase();
+  const o = origin.toLowerCase();
+  if (e === o) return true;
+  if (e.includes('://')) return false;
+  try {
+    return new URL(o).host === e;
+  } catch {
+    return false;
+  }
+}
+
+const withScheme = (entry: string) => (entry === '*' || entry.includes('://') ? entry : `https://${entry}`);

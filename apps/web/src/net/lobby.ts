@@ -5,8 +5,8 @@ import {
   parseJson,
   type ClientMsg,
   type ServerMsg,
-} from '@neonfist/shared';
-import type { BinarySocket } from '@neonfist/netcode';
+} from '@iron-arena/shared';
+import type { BinarySocket } from '@iron-arena/netcode';
 
 /** Lobby base URL: NEXT_PUBLIC_LOBBY_URL, or port 8787 on the same host (local dev, LAN play). */
 export function lobbyBaseUrl(): string {

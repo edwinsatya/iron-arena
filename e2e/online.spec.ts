@@ -11,7 +11,7 @@ async function player(browser: Browser, name: string): Promise<Page> {
   page.on('pageerror', (e) => console.log(`[${name}] page error:`, e.message));
   await page.addInitScript((n) => {
     localStorage.setItem(
-      'neonfist.settings.v1',
+      'iron-arena.settings.v1',
       JSON.stringify({ name: n, announcer: false, volume: 0, quality: 'low' }),
     );
   }, name);
@@ -22,7 +22,7 @@ async function player(browser: Browser, name: string): Promise<Page> {
 async function compare(a: Page, b: Page) {
   const read = (p: Page) =>
     p.evaluate(() => {
-      const d = window.__neonfist?.driver as unknown as {
+      const d = window.__ironArena?.driver as unknown as {
         session?: { confirmedChecksums: Map<number, number> };
       };
       return d?.session ? [...d.session.confirmedChecksums.entries()] : [];
@@ -63,7 +63,7 @@ async function playOnline(browser: Browser, query: string) {
 
   // Both fight screens are up once the session exists
   for (const p of [host, guest])
-    await p.waitForFunction(() => !!window.__neonfist, null, { timeout: 60_000 });
+    await p.waitForFunction(() => !!window.__ironArena, null, { timeout: 60_000 });
 
   // Fight: both mash and move for a while (keyboard → the real input path)
   const script = async (p: Page, seed: number) => {
@@ -78,7 +78,7 @@ async function playOnline(browser: Browser, query: string) {
   await Promise.all([script(host, 1), script(guest, 4)]);
 
   const frames = await Promise.all(
-    [host, guest].map((p) => p.evaluate(() => window.__neonfist!.state().frame)),
+    [host, guest].map((p) => p.evaluate(() => window.__ironArena!.state().frame)),
   );
   console.log(`frames reached: host ${frames[0]}, guest ${frames[1]}`);
   const r = await compare(host, guest);
@@ -86,7 +86,7 @@ async function playOnline(browser: Browser, query: string) {
   expect(r.common).toBeGreaterThan(200);
   expect(r.mismatches).toBe(0);
 
-  const path = await host.evaluate(() => (window.__neonfist!.driver.netStats() as { path: string }).path);
+  const path = await host.evaluate(() => (window.__ironArena!.driver.netStats() as { path: string }).path);
   await host.context().close();
   await guest.context().close();
   return path;

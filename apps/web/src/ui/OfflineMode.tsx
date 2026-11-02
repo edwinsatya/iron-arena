@@ -1,7 +1,7 @@
 'use client';
 
-import { BTN, DEFAULT_ROUND_FRAMES, DEFAULT_STAGE } from '@neonfist/shared';
-import { getCharacter, PHASE, selectableCharacters, type GameState } from '@neonfist/sim';
+import { BTN, DEFAULT_ROUND_FRAMES, DEFAULT_STAGE } from '@iron-arena/shared';
+import { getCharacter, PHASE, selectableCharacters, type GameState } from '@iron-arena/sim';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';

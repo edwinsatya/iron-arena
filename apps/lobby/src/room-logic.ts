@@ -9,7 +9,7 @@ import {
   type PlayerInfo,
   type RoomPhase,
   type ServerMsg,
-} from '@neonfist/shared';
+} from '@iron-arena/shared';
 
 /**
  * Platform-independent room logic (PLAN §4.7). The Cloudflare Durable Object and the Node dev

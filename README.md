@@ -69,9 +69,12 @@ e2e (6 tests) fights match frame-for-frame over both WebRTC and the relay.
    pnpm exec wrangler secret put TURN_KEY_ID
    pnpm exec wrangler secret put TURN_KEY_API_TOKEN
    ```
-   Check it: `pnpm lobby:smoke https://neon-fist-lobby.<your-subdomain>.workers.dev`
+   Check it: `pnpm lobby:smoke https://iron-arena-lobby.<your-subdomain>.workers.dev`
 2. **Web → Vercel** (Hobby): import the repo, set the root directory to `apps/web`, and set
-   `NEXT_PUBLIC_LOBBY_URL` to the Worker URL. Add a domain such as `neonfist.touchsimpledev.site`.
+   `NEXT_PUBLIC_LOBBY_URL` to the Worker URL. Add a domain such as `iron-arena.touchsimpledev.site`.
+3. **Lock the lobby to your site:** set `ALLOWED_ORIGINS` in `apps/lobby/wrangler.jsonc` to that
+   address (`https://iron-arena.touchsimpledev.site`; more than one, comma-separated) and deploy
+   the lobby again. Other sites then can't create rooms on your Worker.
 
 Both players must run the same build — the lobby compares a build id and asks the older tab to
 refresh.

@@ -37,13 +37,13 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'pnpm --filter @neonfist/lobby start',
+      command: 'pnpm --filter @iron-arena/lobby start',
       url: 'http://localhost:8787/api/health',
       reuseExistingServer: true,
       timeout: 60_000,
     },
     {
-      command: 'pnpm --filter @neonfist/web start',
+      command: 'pnpm --filter @iron-arena/web start',
       url: 'http://localhost:3000',
       reuseExistingServer: true,
       timeout: 120_000,

@@ -1,4 +1,4 @@
-import type { ClientMsg, ServerMsg } from '@neonfist/shared';
+import type { ClientMsg, ServerMsg } from '@iron-arena/shared';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { newRoomState, RoomLogic, type RoomIO, type Slot } from '../src/room-logic';
 

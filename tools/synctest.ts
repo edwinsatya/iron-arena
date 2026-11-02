@@ -13,8 +13,8 @@ import {
   randomBot,
   selectableCharacters,
   step,
-} from '@neonfist/sim';
-import type { GameState } from '@neonfist/sim';
+} from '@iron-arena/sim';
+import type { GameState } from '@iron-arena/sim';
 
 const frames = Number(process.argv[2] ?? 10_000);
 const depth = Number(process.argv[3] ?? 8);

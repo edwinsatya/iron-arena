@@ -1,4 +1,4 @@
-import { getCharacter } from '@neonfist/sim';
+import { getCharacter } from '@iron-arena/sim';
 import { lookFor } from './looks';
 import { chooseSpriteForAction, loadSpriteHero, type SpritePick, type SpriteHero } from './render2d/sprites';
 

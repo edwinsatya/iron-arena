@@ -1,5 +1,5 @@
-import { CHECKSUM_INTERVAL_FRAMES, MAX_ROLLBACK_FRAMES, type ControlMsg } from '@neonfist/shared';
-import { RollbackSession, type PeerLink } from '@neonfist/netcode';
+import { CHECKSUM_INTERVAL_FRAMES, MAX_ROLLBACK_FRAMES, type ControlMsg } from '@iron-arena/shared';
+import { RollbackSession, type PeerLink } from '@iron-arena/netcode';
 import {
   checksum,
   cloneState,
@@ -9,7 +9,7 @@ import {
   step,
   type GameState,
   type SimConfig,
-} from '@neonfist/sim';
+} from '@iron-arena/sim';
 import type { NetStats } from './hud/hud';
 import type { InputSource } from './input/sampler';
 

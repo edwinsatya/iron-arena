@@ -1,6 +1,6 @@
 'use client';
 
-import { STAGES } from '@neonfist/shared';
+import { STAGES } from '@iron-arena/shared';
 import { useEffect, useState } from 'react';
 import { stagePreview } from '../game/render2d/stage2d';
 

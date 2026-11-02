@@ -6,7 +6,7 @@
  *   pnpm replay desync-1234.json
  */
 import { readFileSync } from 'node:fs';
-import { checksum, createInitialState, step, type SimConfig } from '@neonfist/sim';
+import { checksum, createInitialState, step, type SimConfig } from '@iron-arena/sim';
 
 interface Bundle {
   config: SimConfig;

@@ -1,4 +1,4 @@
-import { selectableCharacters } from '@neonfist/sim';
+import { selectableCharacters } from '@iron-arena/sim';
 import { KEY_HINTS } from '../../src/game/input/bindings';
 import { LOOKS } from '../../src/game/looks';
 import { Topbar } from '../../src/ui/Topbar';

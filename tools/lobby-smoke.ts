@@ -3,9 +3,9 @@
  * Use it to check local dev or a real deployment:
  *
  *   pnpm lobby:smoke                          # http://localhost:8787
- *   pnpm lobby:smoke https://neon-fist-lobby.<you>.workers.dev
+ *   pnpm lobby:smoke https://iron-arena-lobby.<you>.workers.dev
  */
-import { ServerMsgSchema, type ServerMsg } from '@neonfist/shared';
+import { ServerMsgSchema, type ServerMsg } from '@iron-arena/shared';
 import WebSocket from 'ws';
 
 const base = (process.argv[2] ?? 'http://localhost:8787').replace(/\/$/, '');

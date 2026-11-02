@@ -1,5 +1,5 @@
-import { BTN, DIRECTION_MASK } from '@neonfist/shared';
-import { ROSTER, ULT_MAX, type GameState } from '@neonfist/sim';
+import { BTN, DIRECTION_MASK } from '@iron-arena/shared';
+import { ROSTER, ULT_MAX, type GameState } from '@iron-arena/sim';
 import { touchInput } from '../input/touch';
 import { LOOKS } from '../looks';
 import { portrait } from '../portraits';

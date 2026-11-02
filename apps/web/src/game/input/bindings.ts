@@ -1,4 +1,4 @@
-import { BTN } from '@neonfist/shared';
+import { BTN } from '@iron-arena/shared';
 
 /** KeyboardEvent.code → input bits (physical keys, so any keyboard layout works). */
 export type KeyBindings = Record<string, number>;

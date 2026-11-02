@@ -1,4 +1,4 @@
-import { BTN } from '@neonfist/shared';
+import { BTN } from '@iron-arena/shared';
 import { FS, ULT_MAX } from './constants';
 import { isInvulnerable } from './fighter';
 import { dist2, isqrt } from './math';

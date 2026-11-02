@@ -1,4 +1,4 @@
-import { actionOf, FS, ROSTER, type ActionData, type GameState } from '@neonfist/sim';
+import { actionOf, FS, ROSTER, type ActionData, type GameState } from '@iron-arena/sim';
 import { lookFor, type AnimRef, type Puppet } from '../looks';
 import type { View2D } from './view';
 

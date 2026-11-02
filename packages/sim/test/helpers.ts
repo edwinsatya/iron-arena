@@ -1,4 +1,4 @@
-import { BTN } from '@neonfist/shared';
+import { BTN } from '@iron-arena/shared';
 import { INTRO_FRAMES, PHASE } from '../src/constants';
 import { createInitialState } from '../src/state';
 import { step } from '../src/step';

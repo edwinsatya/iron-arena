@@ -1,6 +1,6 @@
 'use client';
 
-import { getCharacter, selectableCharacters, type CompiledHero } from '@neonfist/sim';
+import { getCharacter, selectableCharacters, type CompiledHero } from '@iron-arena/sim';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { KEY_HINTS, type KeyHintSet } from '../game/input/bindings';
 import { LOOKS } from '../game/looks';

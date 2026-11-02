@@ -12,7 +12,7 @@ import {
   ULT_FREEZE,
   type GameState,
   type SimEvent,
-} from '@neonfist/sim';
+} from '@iron-arena/sim';
 import { lookFor } from '../looks';
 import { Effects2D } from './effects2d';
 import { burningSky, firePool, fireRing, flare } from './fire';

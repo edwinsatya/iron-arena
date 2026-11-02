@@ -7,7 +7,7 @@ import {
   ROSTER,
   type GameState,
   type SimEvent,
-} from '@neonfist/sim';
+} from '@iron-arena/sim';
 import { LOOKS } from '../looks';
 import {
   abyssEye,

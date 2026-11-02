@@ -1,4 +1,4 @@
-import type { ControlMsg } from '@neonfist/shared';
+import type { ControlMsg } from '@iron-arena/shared';
 import type { PeerLink } from './link';
 
 export interface LoopbackOptions {

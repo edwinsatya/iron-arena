@@ -1,5 +1,5 @@
-import { describeInput, STAGES } from '@neonfist/shared';
-import { actionOf, END, FS, PHASE, ROSTER, ULT_FREEZE, ULT_MAX, type GameState } from '@neonfist/sim';
+import { describeInput, STAGES } from '@iron-arena/shared';
+import { actionOf, END, FS, PHASE, ROSTER, ULT_FREEZE, ULT_MAX, type GameState } from '@iron-arena/sim';
 import type { KeyHintSet } from '../input/bindings';
 import { PLAYER_COLORS } from '../render2d/renderer2d';
 import { LOOKS } from '../looks';

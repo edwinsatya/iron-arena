@@ -1,7 +1,7 @@
 'use client';
 
-import { createLoopbackPair, RollbackSession } from '@neonfist/netcode';
-import { checksum, cloneState, createInitialState, step, type GameState } from '@neonfist/sim';
+import { createLoopbackPair, RollbackSession } from '@iron-arena/netcode';
+import { checksum, cloneState, createInitialState, step, type GameState } from '@iron-arena/sim';
 import { useEffect, useState } from 'react';
 import type { MatchDriver } from '../../../src/game/driver';
 import { GameView } from '../../../src/game/GameView';

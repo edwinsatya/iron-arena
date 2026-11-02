@@ -1,4 +1,4 @@
-import { BTN } from '@neonfist/shared';
+import { BTN } from '@iron-arena/shared';
 
 /** W3C "standard" mapping: X attack, B guard, A jump, LB/RB/Y skills, RT ultimate. */
 const BUTTONS: [number, number][] = [

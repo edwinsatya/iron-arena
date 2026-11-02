@@ -1,5 +1,5 @@
 {
-  "name": "@neonfist/lobby",
+  "name": "@iron-arena/lobby",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit -p . && tsc --noEmit -p tsconfig.worker.json"
   },
   "dependencies": {
-    "@neonfist/shared": "workspace:*",
+    "@iron-arena/shared": "workspace:*",
     "ws": "8.22.0"
   },
   "devDependencies": {

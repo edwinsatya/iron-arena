@@ -5,7 +5,7 @@
  *   pnpm soak           # 300 random networks
  *   pnpm soak 50        # fewer
  */
-import { checksum, cloneState, createInitialState, randomBot, step } from '@neonfist/sim';
+import { checksum, cloneState, createInitialState, randomBot, step } from '@iron-arena/sim';
 import { randomConfig, runNet, type NetCfg } from '../packages/netcode/test/harness';
 
 const count = Number(process.argv[2] ?? 300);

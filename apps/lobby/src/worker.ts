@@ -4,7 +4,7 @@
  * Object storage and socket attachments, because in-memory fields are lost on hibernation.
  */
 import { DurableObject } from 'cloudflare:workers';
-import { ClientMsgSchema, isValidRoomCode, parseJson, ROOM_IDLE_MS, type ServerMsg } from '@neonfist/shared';
+import { ClientMsgSchema, isValidRoomCode, parseJson, ROOM_IDLE_MS, type ServerMsg } from '@iron-arena/shared';
 import { corsHeaders, cryptoUint32, fetchIceServers, generateRoomCode } from './common';
 import { newRoomState, RoomLogic, type RoomIO, type RoomState, type Slot } from './room-logic';
 

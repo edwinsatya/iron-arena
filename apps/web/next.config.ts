@@ -14,7 +14,7 @@ function buildId(): string {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@neonfist/sim', '@neonfist/netcode', '@neonfist/shared'],
+  transpilePackages: ['@iron-arena/sim', '@iron-arena/netcode', '@iron-arena/shared'],
   env: {
     // Both players must run the same simulation; the lobby compares this (PLAN §4.4 rule 7).
     NEXT_PUBLIC_SIM_VERSION: process.env.NEXT_PUBLIC_SIM_VERSION ?? buildId(),

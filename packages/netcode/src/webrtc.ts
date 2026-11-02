@@ -1,4 +1,4 @@
-import type { ControlMsg } from '@neonfist/shared';
+import type { ControlMsg } from '@iron-arena/shared';
 import { parseControl, type LinkKind, type PeerLink } from './link';
 
 /** Signaling messages exchanged through the lobby (opaque to it). */

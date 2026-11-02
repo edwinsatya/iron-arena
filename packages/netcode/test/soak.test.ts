@@ -1,4 +1,4 @@
-import { checksum, cloneState, createInitialState, randomBot, step, type GameState } from '@neonfist/sim';
+import { checksum, cloneState, createInitialState, randomBot, step, type GameState } from '@iron-arena/sim';
 import { describe, expect, it } from 'vitest';
 import { decodeInputPacket, encodeInputPacket } from '../src/packet';
 import type { SimAdapter } from '../src/session';

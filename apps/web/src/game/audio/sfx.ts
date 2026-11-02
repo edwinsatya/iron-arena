@@ -1,4 +1,4 @@
-import { EV, type SimEvent } from '@neonfist/sim';
+import { EV, type SimEvent } from '@iron-arena/sim';
 
 /**
  * Procedural sound effects with the Web Audio API (no audio files needed) and an English

@@ -1,4 +1,4 @@
-import { cpuBot, type CpuOptions, type GameState } from '@neonfist/sim';
+import { cpuBot, type CpuOptions, type GameState } from '@iron-arena/sim';
 import type { KeyBindings } from './bindings';
 import { GamepadSampler } from './gamepad';
 import { KeyboardSampler } from './keyboard';

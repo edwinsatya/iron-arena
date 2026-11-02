@@ -1,4 +1,4 @@
-import { GAME_TITLE } from '@neonfist/shared';
+import { GAME_TITLE } from '@iron-arena/shared';
 import Link from 'next/link';
 
 /** Screen header: back, title (with a small line above), and the game mark. */

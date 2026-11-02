@@ -1,6 +1,6 @@
 'use client';
 
-import { cpuBot, createInitialState, PHASE, selectableCharacters, step, type GameState } from '@neonfist/sim';
+import { cpuBot, createInitialState, PHASE, selectableCharacters, step, type GameState } from '@iron-arena/sim';
 import { useEffect, useRef } from 'react';
 import { FixedStepLoop } from '../game/loop';
 import { GameRenderer } from '../game/render2d/renderer2d';

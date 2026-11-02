@@ -1,4 +1,4 @@
-import type { ControlMsg } from '@neonfist/shared';
+import type { ControlMsg } from '@iron-arena/shared';
 import { parseControl, type PeerLink } from './link';
 import { decodeControlPacket, encodeControlPacket, packetType, PKT_CONTROL, PKT_INPUT } from './packet';
 
