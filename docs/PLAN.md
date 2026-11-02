@@ -902,7 +902,7 @@ iron-arena/
 │   │       └── ui/                  # React screens: lobby, select, results, settings
 │   └── lobby/                       # Cloudflare Worker
 │       ├── src/index.ts             # routes
-│       ├── src/room.ts              # RoomDO (Durable Object)
+│       ├── src/room.ts              # ArenaRoom (Durable Object)
 │       └── wrangler config (.jsonc or .toml)
 ├── packages/
 │   ├── sim/

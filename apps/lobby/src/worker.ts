@@ -9,7 +9,7 @@ import { corsHeaders, cryptoUint32, fetchIceServers, generateRoomCode } from './
 import { newRoomState, RoomLogic, type RoomIO, type RoomState, type Slot } from './room-logic';
 
 export interface Env {
-  ROOMS: DurableObjectNamespace<RoomDO>;
+  ROOMS: DurableObjectNamespace<ArenaRoom>;
   ALLOWED_ORIGINS?: string;
   TURN_KEY_ID?: string;
   TURN_KEY_API_TOKEN?: string;
@@ -23,7 +23,7 @@ function slotOf(ws: WebSocket): Slot | null {
   return (ws.deserializeAttachment() as Attachment | null)?.slot ?? null;
 }
 
-export class RoomDO extends DurableObject<Env> {
+export class ArenaRoom extends DurableObject<Env> {
   private logic: RoomLogic | null = null;
 
   constructor(ctx: DurableObjectState, env: Env) {
