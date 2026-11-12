@@ -60,6 +60,14 @@ The free VFX updates replace the biggest effects with the packs' own pixel art (
 | Yomi | Void Arcane Surge | Grave Hands: the star over the spot, then the ring of crescents |
 | Yomi | Void Awakening (frames 3+; the first three show the reaper himself) | Yomi Gate opening and holding |
 | Yomi | Void Triple Claw | Yomi Gate's raking hits and the last cut |
+| Kemuri | Cindertrace Brand (her complete pack's own VFX folder) | Hibana Brand: marks closing on the chest, the blinking star, the burst |
+| Kemuri | Violet Vein Priming | Shimyaku Priming, at her chest, bursting on the strike |
+| Kemuri | Crimson Smokescreen Order (a little see-through, so nobody fully vanishes) | Kurenai Smokescreen: the canister, the ring of smoke, the bank rolling for as long as it lasts |
+| Kemuri | Last Breath Protocol | Imawa Last Breath: the cage around the target through the barrage, flaring and shattering on the last blow |
+
+Painted art (portraits, full art, skill boards) is in every complete pack but the game doesn't use
+it: since the tournament redesign every portrait, skill icon and cut-in is made from the sprites so
+all heroes match (`portraits.ts`).
 
 ### Building missing moves from a pack's own frames
 
@@ -92,8 +100,8 @@ The two cyberpunk packs have an animation for every skill, so little is built:
 
 | Hero | The pack has | Made from it |
 |---|---|---|
-| Kemuri, Smoke Gauntlet | Idle, walk, one punch, four skills and a death that ends on her knees (complete pack, plus stand-alone VFX frames the game doesn't use: its effects are drawn in code) | The four-hit combo (the punch without its wind-up, the punch from three quarters, the ultimate's straight arm, the full punch), the hammer fist (the punch seen from the front), guard (fists up), flinch and knockdown (the stumble, then the kneeling frames tipped onto her back) |
-| Raika, Plasma Huntress | Idle, walk, six skills and a death (complete pack) | The quick cut, the thrust and the lunge (the big moves without their wind-ups), guard (the gauntlet held out), the victory pose (the Calibration, seen from the front) |
+| Kemuri, Smoke Gauntlet | Idle, walk, one punch, four skills and a death that ends on her knees (complete pack, plus stand-alone VFX clips of her four skills, used for them) | The four-hit combo (the punch without its wind-up, the punch from three quarters, the ultimate's straight arm, the full punch), the hammer fist (the punch seen from the front), guard (fists up), flinch and knockdown (the stumble, then the kneeling frames tipped onto her back) |
+| Raika, Plasma Huntress | Idle, walk, six skills and a death (complete pack) | The quick cut, the thrust and the lunge (the big moves without their wind-ups), Seam Cut (the pack's alternate side view of Plasma Seam Ripper: a low sweep, then the thrust), guard (the gauntlet held out), the victory pose (the Calibration, seen from the front) |
 
 Raika's decoy is drawn with her own idle frame: the renderer leaves it standing where the skill's
 area is until it bursts (`drawDecoys` in `renderer2d.ts`).

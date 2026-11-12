@@ -421,7 +421,8 @@ export const LOOKS: Record<string, Look> = {
     actions: {
       ra_b1: 'cut',
       ra_b2: 'thrust',
-      ra_b3: 'ripper',
+      // The alternate view of the seam cut, so the combo ender isn't Shisen Seam Ripper again
+      ra_b3: 'seam',
       ra_dash: 'lunge',
       ra_air: 'cut',
       ra_charge: 'breaker',

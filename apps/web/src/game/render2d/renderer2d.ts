@@ -798,6 +798,40 @@ export class GameRenderer {
         g.stroke();
       }
       g.restore();
+    } else if (id === 'ke_s2' && t <= 36) {
+      // Shimyaku Priming: violet sparks gather at her chest and burst as the buff takes
+      this.vfx.get('kemuri')?.draw(
+        g,
+        v,
+        'Violet_Vein_Priming',
+        keyed(t, [
+          [0, 0],
+          [12, 11.99],
+          [13, 12],
+          [16, 13],
+          [36, 18.99],
+        ]),
+        v.sx(f.x),
+        v.sy(f.y + 1000),
+        { size: 1.1 },
+      );
+    } else if (id === 'ke_ult' && t >= 22 && t < 92) {
+      // Imawa Last Breath: a cage of light locks around the target for the barrage
+      this.vfx.get('kemuri')?.draw(
+        g,
+        v,
+        'Last_Breath_Protocol',
+        t < 40
+          ? keyed(t, [
+              [22, 0],
+              [34, 7],
+              [40, 8],
+            ])
+          : 8 + (Math.floor(t / 3) % 4),
+        v.sx(o.x),
+        v.sy(o.y + 1000),
+        { size: 1.15 },
+      );
     } else if ((id === 're_s1' || id === 're_charge') && t >= 8 && t <= 18) {
       // Sword glints before the wave leaves
       const k = (t - 8) / 10;

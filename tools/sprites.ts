@@ -502,6 +502,16 @@ const HEROES: HeroCfg[] = [
     id: 'kemuri',
     pack: 'cyberpunk-street-assassin-COMPLETE-FREE',
     height: 1.72,
+    // Stand-alone clips named after her skills (the pack's own VFX folder)
+    vfx: {
+      pack: 'cyberpunk-street-assassin-COMPLETE-FREE',
+      clips: {
+        Cindertrace_Brand: [128, 128],
+        Violet_Vein_Priming: [128, 128],
+        Crimson_Smokescreen_Order: [128, 172],
+        Last_Breath_Protocol: [128, 128],
+      },
+    },
     anims: {
       idle: { src: 'Idle', fps: 10, loop: true },
       walk: { src: 'Walk', fps: 12, loop: true },
@@ -560,6 +570,13 @@ const HEROES: HeroCfg[] = [
       cut: { src: 'Plasma_Seam_Ripper', pick: [0, 7, 9, 11, 12, 13, 14, 16, 19], hit: 4 },
       thrust: { src: 'Magenta_Circuit_Break', pick: [0, 3, 4, 5, 6, 7, 16, 18, 19], hit: 3 },
       ripper: { src: 'Plasma_Seam_Ripper', hit: 12 },
+      // The pack's alternate side view of the same skill: a low rising sweep, then the thrust
+      seam: {
+        src: 'Plasma_Seam_Ripper',
+        dir: 'east-alternate-1',
+        pick: [2, 5, 6, 7, 8, 9, 10, 12, 14, 16, 19],
+        hit: 4,
+      },
       breaker: { src: 'Magenta_Circuit_Break', hit: 8 },
       lock: { src: 'Gauntlet_Polarity_Lock', hit: 8 },
       decoy: { src: 'Violet_Mantle_Decoy', hit: 6 },

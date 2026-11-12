@@ -841,7 +841,9 @@ export class Effects2D {
       } else if (spec.kind === 'brand' || spec.kind === 'lock') {
         const l = LOOKS[ROSTER[a.char]!.id]!;
         const t = a.age / Math.max(1, spec.delay);
-        if (spec.kind === 'brand') this.reticle(g, v, a.x, spec.r, t, l.color);
+        const kfx = this.kemuriFx(a);
+        if (spec.kind === 'brand' && kfx) this.kemuriArea(g, v, kfx, a, spec, a.age - spec.delay);
+        else if (spec.kind === 'brand') this.reticle(g, v, a.x, spec.r, t, l.color);
         else this.polarity(g, v, a.x, spec.r, t, l.color, l.glow, false);
       }
       return;
@@ -1302,6 +1304,12 @@ export class Effects2D {
         break;
       }
       case 'haze': {
+        const kfx = this.kemuriFx(a);
+        if (kfx) {
+          g.globalAlpha = 1;
+          this.kemuriArea(g, v, kfx, a, spec, a.age - spec.delay);
+          break;
+        }
         // Kurenai Smokescreen: a bank of crimson smoke, violet at its heart, rolling and thinning
         const u = a.age - spec.delay;
         const grow = 1 - (1 - Math.min(1, u / 12)) ** 2;
@@ -1329,7 +1337,13 @@ export class Effects2D {
       case 'brand': {
         // Hibana Brand goes off: the mark flares white and throws cinders up
         const cy = y0 - v.px(1050);
-        starBurst(g, x, cy, rx * 1.7, Math.min(1, k * 1.2), look.color, '#ffe9c0', a.action);
+        const kfx = this.kemuriFx(a);
+        if (kfx) {
+          g.save();
+          g.globalAlpha = 1;
+          this.kemuriArea(g, v, kfx, a, spec, a.age - spec.delay);
+          g.restore();
+        } else starBurst(g, x, cy, rx * 1.7, Math.min(1, k * 1.2), look.color, '#ffe9c0', a.action);
         const col = g.createLinearGradient(x - rx * 0.5, 0, x + rx * 0.5, 0);
         col.addColorStop(0, hexA(look.color, 0));
         col.addColorStop(0.5, hexA('#fff1d6', 0.8 * (1 - k)));
@@ -1439,6 +1453,14 @@ export class Effects2D {
       }
       case 'burst':
       default: {
+        const kfx = spec.kind === 'burst' ? this.kemuriFx(a) : undefined;
+        if (kfx) {
+          // Imawa Last Breath: the cage around them shatters
+          g.globalAlpha = 1;
+          this.kemuriArea(g, v, kfx, a, spec, a.age - spec.delay);
+          embers(g, x, y0 - v.px(400), rx * 1.6, v.px(1600), this.time, 14, look.glow, a.age);
+          break;
+        }
         // A star-shaped blast in the hero's colours
         starBurst(
           g,
@@ -1760,7 +1782,9 @@ export class Effects2D {
               : 30
             : spec.kind === 'void' && this.vfx.has(ROSTER[a.char]!.id)
               ? spec.active + 12
-              : 0;
+              : (spec.kind === 'brand' || spec.kind === 'burst') && this.kemuriFx(a)
+                ? spec.active + 10
+                : 0;
     if (to <= from) return;
     this.fx.push({
       age: 0,
@@ -1768,7 +1792,10 @@ export class Effects2D {
       draw: (g, v, k) => {
         const u = from + k * (to - from);
         if (spec.kind === 'pillar') this.firePillar(g, v, a.x, spec.r, u, seed);
-        else if (spec.kind === 'void') {
+        else if (spec.kind === 'brand' || spec.kind === 'burst') {
+          const fx = this.kemuriFx(a);
+          if (fx) this.kemuriArea(g, v, fx, a, spec, u);
+        } else if (spec.kind === 'void') {
           const fx = this.vfx.get(ROSTER[a.char]!.id);
           if (fx) {
             this.voidFx(g, v, fx, a, spec, u, 'under');
@@ -1778,6 +1805,80 @@ export class Effects2D {
         else this.meteorBlast(g, v, a.x, spec.r, u, seed);
       },
     });
+  }
+
+  /* ---------------------------------------------------- Kemuri's smoke (the pack's VFX clips) */
+
+  /** Kemuri's clips, for an area of hers. */
+  private kemuriFx(a: GameState['areas'][number]): VfxSet | undefined {
+    return ROSTER[a.char]!.id === 'kemuri' ? this.vfx.get('kemuri') : undefined;
+  }
+
+  /**
+   * Hibana Brand: marks converge on the enemy's chest into a blinking star that bursts.
+   * Kurenai Smokescreen: a canister drops, smoke rings out and banks up, rolls, then thins away.
+   * Imawa Last Breath's last blow: the cage around the target flares and shatters.
+   * `u` frames since the area went live (negative while it gathers).
+   */
+  private kemuriArea(
+    g: CanvasRenderingContext2D,
+    v: View2D,
+    fx: VfxSet,
+    a: GameState['areas'][number],
+    spec: ReturnType<typeof areaSpec>,
+    u: number,
+  ) {
+    const x = v.sx(a.x);
+    const y0 = v.sy(0);
+    const end = spec.active;
+    if (spec.kind === 'brand') {
+      const f =
+        u < 0
+          ? keyed(u, [
+              [-spec.delay, 0],
+              [0, 9.99],
+            ])
+          : keyed(u, [
+              [0, 10],
+              [4, 13],
+              [end + 10, 17.99],
+            ]);
+      fx.draw(g, v, 'Cindertrace_Brand', f, x, y0 - v.px(1050), { size: spec.r / 750 });
+    } else if (spec.kind === 'haze') {
+      // Rolls back and forth through its densest frames while it lasts
+      const roll = [13, 14, 15, 16, 17, 18, 17, 16, 15, 14];
+      const f =
+        u < 12
+          ? keyed(u, [
+              [-spec.delay, 0],
+              [0, 1],
+              [12, 13],
+            ])
+          : u < end - 24
+            ? roll[Math.floor((u - 12) / 6) % roll.length]!
+            : keyed(u, [
+                [end - 24, 19],
+                [end, 27.99],
+              ]);
+      // A little see-through, so whoever is inside never quite disappears
+      fx.draw(g, v, 'Crimson_Smokescreen_Order', f, x, y0, { size: spec.r / 1450, alpha: 0.82 });
+    } else if (spec.kind === 'burst' && u >= 0) {
+      fx.draw(
+        g,
+        v,
+        'Last_Breath_Protocol',
+        keyed(u, [
+          [0, 12],
+          [4, 14],
+          [end + 10, 20.99],
+        ]),
+        x,
+        y0 - v.px(1000),
+        {
+          size: spec.r / 1150,
+        },
+      );
+    }
   }
 
   /* ------------------------------------------------------- Yomi's void (the pack's VFX clips) */
