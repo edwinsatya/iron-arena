@@ -28,6 +28,7 @@ import {
   waterCurl,
 } from './fxdraw';
 import { fireball, fireColumn, fireDome, firePool, fireRing, meteorRock, rocks, shockRing } from './fire';
+import { keyed, type VfxSet } from './vfx';
 import { hexA, type View2D } from './view';
 
 export interface EffectCallbacks {
@@ -46,6 +47,36 @@ type Fx = {
 
 const TAU = Math.PI * 2;
 
+/* Clip timing from the packs' VFX updates: [frames since the effect landed, clip frame]. */
+const PILLAR_KEYS = [
+  [-3, 0],
+  [0, 3],
+  [3, 5],
+  [20, 12],
+  [36, 19.99],
+] as const;
+const RING_KEYS = [
+  [0, 0],
+  [4, 3],
+  [10, 7],
+  [28, 15],
+  [34, 17.99],
+] as const;
+const METEOR_KEYS = [
+  [0, 4],
+  [4, 6],
+  [12, 8],
+  [30, 11.99],
+] as const;
+const BIG_METEOR_KEYS = [
+  [0, 3],
+  [34, 29],
+  [50, 36.99],
+] as const;
+/** Frames the ring of fire burns: drawn in code, or the pack's clip (it plays longer). */
+const RING_END = 20;
+const RING_END_VFX = 34;
+
 /**
  * 2D effects: sparks, slashes, rings, damage numbers, projectiles and skill areas. One-shot
  * effects come from GameState.recentEvents and are diffed against what was shown, so a rollback
@@ -59,8 +90,14 @@ export class Effects2D {
   flash = 0;
   /** Areas seen last frame, so the fire can linger after one ends (see trackAreas). */
   private areaSeen = new Map<string, GameState['areas'][number]>();
+  /** Pixel-art effect clips by hero id (packs with a VFX update; see vfx.ts). */
+  private vfx = new Map<string, VfxSet>();
 
   constructor(private cb: EffectCallbacks = {}) {}
+
+  setVfx(id: string, set: VfxSet): void {
+    this.vfx.set(id, set);
+  }
 
   sync(state: GameState): void {
     const live = new Set<string>();
@@ -385,6 +422,24 @@ export class Effects2D {
       const k = a.age / Math.max(1, spec.delay);
       if (spec.kind === 'pillar' || spec.kind === 'meteor') {
         this.scorch(g, v, a.x, spec.r, k, seed);
+        // The pack's rune circle opens where a meteor will land
+        const fx = this.vfx.get('homura');
+        if (fx && spec.kind === 'meteor' && spec.r < 1500)
+          fx.draw(
+            g,
+            v,
+            'Infernal_Cataclysm_Gothic',
+            keyed(k, [
+              [0, 1],
+              [1, 3.99],
+            ]),
+            v.sx(a.x),
+            v.sy(0),
+            {
+              size: spec.r / 1000,
+              squash: 0.8,
+            },
+          );
         continue;
       }
       const color = LOOKS[ROSTER[a.char]!.id]?.color ?? '#ffffff';
@@ -780,7 +835,10 @@ export class Effects2D {
       // Kaen Pillar bursts out of the ground just before it can hit, so it's up when it does
       else if (spec.kind === 'pillar' && a.age >= spec.delay - 3)
         this.firePillar(g, v, a.x, spec.r, a.age - spec.delay, a.action * 7 + a.spec);
-      else if (spec.kind === 'brand' || spec.kind === 'lock') {
+      else if (spec.kind === 'void') {
+        const fx = this.vfx.get(ROSTER[a.char]!.id);
+        if (fx) this.voidFx(g, v, fx, a, spec, a.age - spec.delay, 'over');
+      } else if (spec.kind === 'brand' || spec.kind === 'lock') {
         const l = LOOKS[ROSTER[a.char]!.id]!;
         const t = a.age / Math.max(1, spec.delay);
         if (spec.kind === 'brand') this.reticle(g, v, a.x, spec.r, t, l.color);
@@ -1032,6 +1090,13 @@ export class Effects2D {
         break;
       }
       case 'void': {
+        const fx = this.vfx.get(ROSTER[a.char]!.id);
+        if (fx) {
+          g.save();
+          g.globalAlpha = 1;
+          this.voidFx(g, v, fx, a, spec, a.age - spec.delay, 'under');
+          g.restore();
+        }
         // Grave hands reaching out of a dark rift
         g.fillStyle = hexA('#1a0b26', 0.75);
         g.beginPath();
@@ -1065,6 +1130,12 @@ export class Effects2D {
         glow.addColorStop(1, hexA('#c04cff', 0));
         g.fillStyle = glow;
         g.fillRect(x - rx, y0 - rx, rx * 2, rx * 1.2);
+        if (fx) {
+          g.save();
+          g.globalAlpha = 1;
+          this.voidFx(g, v, fx, a, spec, a.age - spec.delay, 'over');
+          g.restore();
+        }
         break;
       }
       case 'reap': {
@@ -1477,6 +1548,15 @@ export class Effects2D {
     const rx = v.px(r);
     const big = r >= 880;
     const a = 1 - die;
+    const fx = this.vfx.get('homura');
+    if (fx) {
+      // The pack's Inferno Pillar on a glowing pool, rocks and embers thrown up around it
+      firePool(g, x, y0, rx * 1.15, this.time, a * 0.8, seed);
+      fx.draw(g, v, 'Inferno_Pillar', keyed(u, PILLAR_KEYS), x, y0, { size: r / 700 });
+      rocks(g, x, y0, rx * 1.5, v.px(big ? 2600 : 1800), v.px(big ? 80 : 60), u / 30, big ? 9 : 6, seed);
+      embers(g, x, y0 - v.px(300), rx * 2, v.px(3000), this.time, 12, '#ffd27a', seed);
+      return;
+    }
     const rise = 1 - (1 - Math.min(1, Math.max(0, (u + 3) / 4))) ** 3;
     const H = v.px(big ? 3600 : 2500) * rise * (1 - die * 0.7);
     firePool(g, x, y0, rx * 1.15, this.time, a, seed);
@@ -1500,9 +1580,23 @@ export class Effects2D {
     part: 'back' | 'front' | 'all',
     seed: number,
   ) {
-    const die = Math.min(1, Math.max(0, (u - 6) / 14));
-    if (die >= 1) return;
     const x = v.sx(wx);
+    const fx = this.vfx.get('homura');
+    if (fx) {
+      // The pack's Protective Fire Ring, flattened onto the floor: far half behind her
+      if (u >= RING_END_VFX) return;
+      fx.draw(g, v, 'Protective_Fire_Ring', keyed(u, RING_KEYS), x, v.sy(0), {
+        size: r / 1270,
+        squash: 0.5,
+        ...(part === 'all' ? {} : { part }),
+      });
+      if (part === 'back') return;
+      shockRing(g, x, v.sy(0), v.px(r) * 1.1, Math.min(1, u / 16));
+      embers(g, x, v.sy(0), v.px(r) * 2, v.px(1600), this.time, 10, '#ffd27a', seed);
+      return;
+    }
+    const die = Math.min(1, Math.max(0, (u - 6) / (RING_END - 6)));
+    if (die >= 1) return;
     const grow = 1 - (1 - Math.min(1, u / 10)) ** 2;
     const R = v.px(r) * (0.5 + 0.55 * grow);
     // Born at her waist where the staff swept it, it drops to the floor as it spreads
@@ -1532,6 +1626,41 @@ export class Effects2D {
     const y0 = v.sy(0);
     const rx = v.px(r);
     const a = 1 - die;
+    const fx = this.vfx.get('homura');
+    if (fx) {
+      // Infernal Cataclysm: a burst of flame for each meteor, a firestorm for the big one
+      firePool(g, x, y0, rx * 1.1, this.time, a * 0.8, seed);
+      if (big) fx.draw(g, v, 'Infernal_Cataclysm_Area', keyed(u, BIG_METEOR_KEYS), x, y0, { size: r / 1300 });
+      else
+        fx.draw(g, v, 'Infernal_Cataclysm_Gothic', keyed(u, METEOR_KEYS), x, y0, {
+          size: r / 1000,
+          squash: 0.8,
+        });
+      shockRing(g, x, y0, rx * (big ? 1.6 : 1.3), Math.min(1, u / (big ? 22 : 16)));
+      rocks(
+        g,
+        x,
+        y0,
+        rx * 1.6,
+        v.px(big ? 3200 : 1800),
+        v.px(big ? 110 : 70),
+        u / (big ? 40 : 26),
+        big ? 12 : 6,
+        seed,
+      );
+      embers(
+        g,
+        x,
+        y0 - v.px(300),
+        rx * 2.2,
+        v.px(big ? 4000 : 2600),
+        this.time,
+        big ? 18 : 10,
+        '#ffd27a',
+        seed,
+      );
+      return;
+    }
     const rise = 1 - (1 - Math.min(1, (u + 2) / 5)) ** 3;
     const H = v.px(big ? 4200 : 2400) * rise * (1 - die * 0.75);
     firePool(g, x, y0, rx * 1.1, this.time, a, seed);
@@ -1597,7 +1726,7 @@ export class Effects2D {
     embers(g, x, y0, rx * 1.4, v.px(900), this.time, 8, '#ffb347', seed);
   }
 
-  /** Track areas between frames: when one of Homura's ends, its fire burns on for a moment. */
+  /** Track areas between frames: when one of Homura's (or Yomi's void) ends, it burns on for a moment. */
   private trackAreas(s: GameState) {
     const live = new Set<string>();
     for (const a of s.areas) {
@@ -1622,12 +1751,16 @@ export class Effects2D {
       spec.kind === 'pillar'
         ? 36
         : spec.kind === 'firering'
-          ? 20
+          ? this.vfx.has('homura')
+            ? RING_END_VFX
+            : RING_END
           : spec.kind === 'meteor'
             ? spec.r >= 1500
               ? 50
               : 30
-            : 0;
+            : spec.kind === 'void' && this.vfx.has(ROSTER[a.char]!.id)
+              ? spec.active + 12
+              : 0;
     if (to <= from) return;
     this.fx.push({
       age: 0,
@@ -1635,10 +1768,116 @@ export class Effects2D {
       draw: (g, v, k) => {
         const u = from + k * (to - from);
         if (spec.kind === 'pillar') this.firePillar(g, v, a.x, spec.r, u, seed);
-        else if (spec.kind === 'firering') this.flameRing(g, v, a.x, spec.r, u, 'all', seed);
+        else if (spec.kind === 'void') {
+          const fx = this.vfx.get(ROSTER[a.char]!.id);
+          if (fx) {
+            this.voidFx(g, v, fx, a, spec, u, 'under');
+            this.voidFx(g, v, fx, a, spec, u, 'over');
+          }
+        } else if (spec.kind === 'firering') this.flameRing(g, v, a.x, spec.r, u, 'all', seed);
         else this.meteorBlast(g, v, a.x, spec.r, u, seed);
       },
     });
+  }
+
+  /* ------------------------------------------------------- Yomi's void (the pack's VFX clips) */
+
+  /**
+   * Grave Hands: a ring of void crescents spins up around the hands. Yomi Gate: the gate opens
+   * around the target with claws raking through it, and the last cut tears it apart. `u` frames
+   * since the area went live (negative while it gathers); 'under' is drawn behind the hands.
+   */
+  private voidFx(
+    g: CanvasRenderingContext2D,
+    v: View2D,
+    fx: VfxSet,
+    a: GameState['areas'][number],
+    spec: ReturnType<typeof areaSpec>,
+    u: number,
+    layer: 'under' | 'over',
+  ) {
+    const hero = ROSTER[a.char]!;
+    const x = v.sx(a.x);
+    const y0 = v.sy(0);
+    const end = spec.active;
+    if (hero.actions[a.action]?.id !== hero.ultimate) {
+      // Grave Hands: the star gathers over the spot, then the ring turns around the hands
+      const cy = y0 - v.px(spec.r);
+      const size = spec.r / 1200;
+      if (u < 0 && layer === 'over')
+        fx.draw(
+          g,
+          v,
+          'Void_Arcane_Surge',
+          keyed(u, [
+            [-spec.delay, 0],
+            [0, 7.99],
+          ]),
+          x,
+          cy,
+          { size },
+        );
+      else if (u >= 0 && layer === 'under')
+        fx.draw(
+          g,
+          v,
+          'Void_Arcane_Surge',
+          keyed(u, [
+            [0, 8],
+            [end + 12, 18.99],
+          ]),
+          x,
+          cy,
+          { size },
+        );
+      return;
+    }
+    const cy = y0 - v.px(1100);
+    if (a.spec === 0) {
+      // The gate: a mote of void swells, stretches and splits into two great crescents that
+      // hold open (looping) while the claws rake, then fade
+      if (layer === 'under') {
+        const f =
+          u < 0
+            ? keyed(u, [
+                [-spec.delay, 3],
+                [0, 7.99],
+              ])
+            : u < 8
+              ? keyed(u, [
+                  [0, 8],
+                  [8, 12],
+                ])
+              : u < end - 8
+                ? 12 + (Math.floor((u - 8) / 3) % 4)
+                : keyed(u, [
+                    [end - 8, 16],
+                    [end + 6, 19.99],
+                  ]);
+        fx.draw(g, v, 'Void_Awakening', f, x, cy, { size: spec.r / 1465 });
+      } else if (u >= 0 && u < end) {
+        // A flash as it opens, then the claws rake on every hit
+        const f = u < 2 ? 0 : 1 + (Math.floor(u / 2) % 12);
+        fx.draw(g, v, 'Void_Triple_Claw', f, x, cy + v.px(100), { size: spec.r / 2100 });
+      }
+    } else if (layer === 'over') {
+      // The last cut: a flash, then the great claws tear outwards
+      fx.draw(
+        g,
+        v,
+        'Void_Triple_Claw',
+        keyed(u, [
+          [0, 0],
+          [2, 13],
+          [end + 12, 23.99],
+        ]),
+        x,
+        cy,
+        {
+          size: spec.r / 1580,
+        },
+      );
+    }
   }
 
   /** A burning rock streaking down onto x (k: 0 → 1 as it lands), trailing smoke. */

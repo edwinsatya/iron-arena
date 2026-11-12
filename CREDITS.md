@@ -15,9 +15,9 @@ Every hero but Kamakiri is drawn with free character packs by **elie automata** 
 | Akari | Young Swordswoman (free complete pack) |
 | Reo | Shield Knight (free pack) |
 | Kage | Black Assassin (free pack) |
-| Homura | Fire Witch (free pack) |
+| Homura | Fire Witch (free pack) and its free VFX update |
 | Gōkai | Tentaclebeard Admiral (free pack) |
-| Yomi | Faceless Void Reaper (free pack) |
+| Yomi | Faceless Void Reaper (free pack) and its free VFX update |
 | Kuma | Black Bear Bandit (free pack) |
 | Karasu | Plague Doctor (free pack; missing moves built from its frames) |
 | Kurage | Abyssal Jelly (free complete pack) |

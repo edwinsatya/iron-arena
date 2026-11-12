@@ -29,6 +29,8 @@ export interface Atlas {
   facing: 1 | -1;
   anims: Record<string, AtlasAnim>;
   art: Record<string, string>;
+  /** The pack's effect clips (see vfx.ts), when it has a VFX update. */
+  vfx?: string;
 }
 
 /** The frame an action "lands" — first strike, shot, area, teleport, buff or counter window. */

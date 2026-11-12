@@ -88,6 +88,15 @@ interface HeroCfg {
   hover?: number;
   /** Who drew the pack (default elie automata). */
   credit?: string;
+  /** The pack's stand-alone VFX update (a separate zip of camera-facing clips). */
+  vfx?: VfxCfg;
+}
+
+interface VfxCfg {
+  pack: string;
+  /** Clip folder under VFX/ → its anchor in the source canvas (the point drawn at the spot the
+   * effect is placed: the ground under a column, the middle of a ring). */
+  clips: Record<string, [number, number]>;
 }
 
 const HEROES: HeroCfg[] = [
@@ -229,6 +238,10 @@ const HEROES: HeroCfg[] = [
     id: 'yomi',
     pack: 'faceless-void-reaper-FREE',
     height: 1.8,
+    vfx: {
+      pack: 'faceless-void-reaper-VFX-FREE',
+      clips: { Void_Arcane_Surge: [128, 128], Void_Awakening: [128, 128], Void_Triple_Claw: [128, 128] },
+    },
     face: { src: 'Idle', dir: 'south-east', frame: 0 },
     anims: {
       idle: { src: 'Idle', fps: 10, loop: true },
@@ -255,6 +268,16 @@ const HEROES: HeroCfg[] = [
     id: 'homura',
     pack: 'fire-witch-FREE',
     height: 1.72,
+    vfx: {
+      pack: 'fire-witch-VFX-FREE',
+      clips: {
+        Fireball_Radial_Burst: [128, 128],
+        Inferno_Pillar: [128, 206],
+        Protective_Fire_Ring: [128, 132],
+        Infernal_Cataclysm_Gothic: [128, 183],
+        Infernal_Cataclysm_Area: [128, 212],
+      },
+    },
     face: { src: 'Idle', dir: 'south-east', frame: 0 },
     anims: {
       idle: { src: 'Idle', fps: 10, loop: true },
@@ -1050,12 +1073,15 @@ async function hero(cfg: HeroCfg) {
     art.face = 'face.webp';
   }
 
+  const vfxFile = cfg.vfx ? await vfx(cfg.vfx, out, pxPerM) : null;
+
   const atlas = {
     sheets,
     pxPerM: Math.round(pxPerM * 100) / 100,
     facing: 1,
     anims,
     art,
+    ...(vfxFile ? { vfx: vfxFile } : {}),
     credit: cfg.credit ?? 'elie automata',
   };
   writeFileSync(join(out, 'atlas.json'), JSON.stringify(atlas));
@@ -1064,6 +1090,73 @@ async function hero(cfg: HeroCfg) {
       .map((n) => `${n}:${anims[n]!.frames.length}@${anims[n]!.hit}`)
       .join(' ')}  art: ${Object.keys(art).join(', ')}`,
   );
+}
+
+/**
+ * The pack's VFX update: every clip's frames trimmed and packed into vfx<N>.png with vfx.json
+ * ([sheet, x, y, w, h, anchorX, anchorY] per frame, w = 0 for an empty frame). Drawn at the
+ * hero's own pixel density (pxPerM), so the effects match the sprite's pixels.
+ */
+async function vfx(cfg: VfxCfg, out: string, pxPerM: number): Promise<string | null> {
+  if (!existsSync(join(SRC, `${cfg.pack}.zip`)) && !existsSync(join(WORK, cfg.pack))) {
+    console.warn(`  (no vfx) ${SRC}/${cfg.pack}.zip not found`);
+    return null;
+  }
+  const dir = unzip(cfg.pack);
+  const packer = new Packer();
+  const pieces: { img: Img; box: [number, number, number, number]; at: [number, number, number] }[] = [];
+  const clips: Record<string, { frames: Frame[] }> = {};
+  for (const [name, [ax, ay]] of Object.entries(cfg.clips)) {
+    const files = list(join(dir, 'VFX', name));
+    if (!files.length) throw new Error(`${cfg.pack}: no frames in VFX/${name}`);
+    const frames: Frame[] = [];
+    for (const f of files) {
+      const img = await load(f);
+      const box = bbox(img);
+      if (!box) {
+        frames.push([0, 0, 0, 0, 0, 0, 0]);
+        continue;
+      }
+      const w = box[2] - box[0];
+      const h = box[3] - box[1];
+      const at = packer.place(w, h);
+      pieces.push({ img, box, at });
+      frames.push([at[0], at[1], at[2], w, h, ax - box[0], ay - box[1]]);
+    }
+    clips[name] = { frames };
+  }
+  const sheets: string[] = [];
+  for (let s = 0; s < packer.sheets.length; s++) {
+    const used = pieces.filter((p) => p.at[0] === s);
+    const h = Math.max(...used.map((p) => p.at[2] + (p.box[3] - p.box[1])));
+    const w = Math.max(...used.map((p) => p.at[1] + (p.box[2] - p.box[0])));
+    const composites = await Promise.all(
+      used.map(async (p) => ({
+        input: await sharp(p.img.data, { raw: { width: p.img.w, height: p.img.h, channels: 4 } })
+          .extract({ left: p.box[0], top: p.box[1], width: p.box[2] - p.box[0], height: p.box[3] - p.box[1] })
+          .png()
+          .toBuffer(),
+        left: p.at[1],
+        top: p.at[2],
+      })),
+    );
+    const name = `vfx${s}.png`;
+    await sharp({ create: { width: w, height: h, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+      .composite(composites)
+      .png({ compressionLevel: 9, palette: false })
+      .toFile(join(out, name));
+    sheets.push(name);
+  }
+  writeFileSync(
+    join(out, 'vfx.json'),
+    JSON.stringify({ sheets, pxPerM: Math.round(pxPerM * 100) / 100, clips }),
+  );
+  console.log(
+    `  vfx ${sheets.length} sheet(s), ${Object.keys(clips)
+      .map((n) => `${n}:${clips[n]!.frames.length}`)
+      .join(' ')}`,
+  );
+  return 'vfx.json';
 }
 
 async function main() {

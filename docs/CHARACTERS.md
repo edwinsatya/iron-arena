@@ -16,6 +16,10 @@ select screen and ultimate cut-in use.
 3. Run `pnpm sprites`. It writes `apps/web/public/sprites/<hero>/`: `atlas.json`, `sheet0.png`
    (trimmed frames with feet anchors and each attack's contact frame), `face.webp`, and for
    complete packs `art.webp` and `card-s1/s2/s3/ult.webp`.
+   A pack's VFX update (a separate `*-VFX-FREE.zip` of camera-facing effect clips) goes in the
+   hero's `vfx` entry: each clip folder and its anchor (the ground under a column, the middle of
+   a ring). It becomes `vfx.json` + `vfx0.png`, drawn at the hero's pixel density by
+   `render2d/vfx.ts`; without the zip the effects fall back to the ones drawn in code.
 4. Give the hero gameplay data in `packages/sim/data/heroes/` (and add it to `roster.ts` and
    `SELECTABLE_FIGHTERS`), then map each action to an animation in `apps/web/src/game/looks.ts`.
 
@@ -42,6 +46,20 @@ where the flame on her staff is in every frame (measured from the pack), so ever
 from it. `glide` gives her quick light steps over the idle frames instead of a walk cycle. Her
 fire (pillars, the ring, fireballs, meteors) is drawn in `render2d/fire.ts`. The paid Full pack
 has real Fireball, Fire Ring, Fire Pillar and Death animations that could replace the puppetry.
+
+The free VFX updates replace the biggest effects with the packs' own pixel art (timing in
+`effects2d.ts`, keyed to each area's age; the code-drawn versions stay as the fallback):
+
+| Hero | Clip | Plays as |
+|---|---|---|
+| Homura | Inferno Pillar | Kaen Pillar, Flare Burst |
+| Homura | Protective Fire Ring (flattened onto the floor, far half behind her) | Hōen Ward, Blaze Step |
+| Homura | Infernal Cataclysm (Gothic) | Ryūsei Meteor's small strikes: the rune circle where each lands, then the flame |
+| Homura | Infernal Cataclysm (Area) | Ryūsei Meteor's last strike: the firestorm |
+| Homura | Fireball Radial Burst | From the staff as Great Fireball and Ryūsei Meteor go off |
+| Yomi | Void Arcane Surge | Grave Hands: the star over the spot, then the ring of crescents |
+| Yomi | Void Awakening (frames 3+; the first three show the reaper himself) | Yomi Gate opening and holding |
+| Yomi | Void Triple Claw | Yomi Gate's raking hits and the last cut |
 
 ### Building missing moves from a pack's own frames
 
@@ -92,9 +110,9 @@ catch the enemy through guard, hold them, cut and kick them away.
 - **Akari, Dawn Blade** (Young Swordswoman): Shōten Rising, Senkō Flash, Kabuto-wari; ultimate Reimei Sky Blade
 - **Reo, Aegis Knight** (Shield Knight): Hakō Wave, Shōryū Rising, Kōbō Aegis; ultimate Akatsuki Daybreak
 - **Kage, Hooded Shadow** (Black Assassin): Senbon Fan, Shunpo Behind, Utsusemi Decoy; ultimate Senjin Thousand Cuts
-- **Homura, Ember Witch** (Fire Witch, free pack: idle only; her casting is drawn in code): Kaen Pillar, Homura Wave, Hōen Ward; ultimate Ryūsei Meteor
+- **Homura, Ember Witch** (Fire Witch, free pack: idle only; her casting is drawn in code, her big spells use the pack's VFX update): Kaen Pillar, Homura Wave, Hōen Ward; ultimate Ryūsei Meteor
 - **Gōkai, Drowned Admiral** (Tentaclebeard Admiral): Uzushio Maelstrom, Tsunami Wall, Barnacle Hide; ultimate Daikaishō Leviathan
-- **Yomi, Faceless Reaper** (Faceless Void Reaper): Yamigiri Crescent, Soul Snatch, Grave Hands; ultimate Yomi Gate
+- **Yomi, Faceless Reaper** (Faceless Void Reaper, plus its VFX update for Grave Hands and Yomi Gate): Yamigiri Crescent, Soul Snatch, Grave Hands; ultimate Yomi Gate
 - **Kuma, Black Bear Bandit** (Black Bear Bandit): Grizzly Roar, Frenzy Claws, Hibernate; ultimate Ōkuma Rampage
 - **Karasu, Plague Doctor** (Plague Doctor, free pack: idle, walk, jump, one lantern swing): Ekibyō Flask, Kurobane Swarm, Miasma Veil; ultimate Kokushibyō. Every missing move is built from the pack's own frames (see below)
 - **Kamakiri, Void Mantis** (Void Mantis Pixel Art v1.0, free pack): Kamaitachi, Hanemai Dive, Kamae Snare; ultimate Kokū Harvest

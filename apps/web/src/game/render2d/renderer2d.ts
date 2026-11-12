@@ -26,6 +26,7 @@ import {
   type SpriteHero,
 } from './sprites';
 import { buildStage2D, drawBackdrop, GROUND, type Stage2D } from './stage2d';
+import { keyed, loadVfx, type VfxSet } from './vfx';
 import { hexA, View2D } from './view';
 
 export type Quality = 'low' | 'medium' | 'high';
@@ -67,6 +68,8 @@ export class GameRenderer {
   private flashEl: HTMLDivElement;
   private lastState: GameState | null = null;
   private heroes = new Map<string, SpriteHero | null>();
+  /** Pixel-art effect clips of the heroes whose packs have a VFX update. */
+  private vfx = new Map<string, VfxSet>();
   private loading = new Map<string, Promise<void>>();
   private flashT = [0, 0];
   /** Canvas position of each hero's staff flame this frame (heroes with a staffTip in looks.ts). */
@@ -140,9 +143,17 @@ export class GameRenderer {
     if (this.loading.has(id)) return;
     this.loading.set(
       id,
-      loadSpriteHero(id).then((h) => {
-        this.heroes.set(id, h);
-      }),
+      loadSpriteHero(id)
+        .then((h) => {
+          this.heroes.set(id, h);
+          return h?.atlas.vfx ? loadVfx(id, h.atlas.vfx) : null;
+        })
+        .then((fx) => {
+          if (fx) {
+            this.vfx.set(id, fx);
+            this.effects.setVfx(id, fx);
+          }
+        }),
     );
   }
 
@@ -526,6 +537,23 @@ export class GameRenderer {
       const k = t <= imp ? 0.25 + 0.75 * (t / Math.max(1, imp)) : 1 - (t - imp) / 8;
       flare(g, tip[0], tip[1], v.px(big ? 250 : 190) * (0.6 + 0.5 * k), this.time, k, i * 5);
     }
+    // Great Fireball and Ryūsei Meteor: the pack's radial burst flies out from the staff
+    const fx = this.vfx.get(ROSTER[f.char]!.id);
+    if (fx && tip && (id === 'hm_charge' || id === 'hm_ult') && t >= imp && t < imp + 16)
+      fx.draw(
+        g,
+        v,
+        'Fireball_Radial_Burst',
+        keyed(t - imp, [
+          [0, 0],
+          [16, 7.99],
+        ]),
+        tip[0],
+        tip[1],
+        {
+          size: id === 'hm_ult' ? 0.7 : 0.5,
+        },
+      );
     if (id === 'hm_s3') this.witchSweep(g, f, i, t, imp, dir, 'front');
   }
 
