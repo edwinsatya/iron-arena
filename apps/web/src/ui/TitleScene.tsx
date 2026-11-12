@@ -69,9 +69,11 @@ export function TitleScene({ heroes }: { heroes: CompiledHero[] }) {
       v.groundY = H * GROUND;
       drawBackdrop(b, stage, v, dpr);
       stage.floor(b, v, 0);
-      // As many heroes as fit, centred at the front of the quay
-      bodyH = Math.max(64, Math.min(150, H * 0.17, W * 0.2));
-      const minGap = bodyH * 0.62;
+      // The whole roster when it fits (figures shrink to make room, down to 64px tall),
+      // otherwise as many as fit; centred at the front of the quay
+      const GAP = 0.62;
+      bodyH = Math.max(64, Math.min(150, H * 0.17, W * 0.2, (W * 0.94) / (heroes.length * GAP)));
+      const minGap = bodyH * GAP;
       shown = Math.max(1, Math.min(heroes.length, Math.floor((W * 0.94) / minGap)));
       spacing = Math.min(bodyH * 0.95, (W * 0.94) / shown);
       x0 = W / 2 - (spacing * (shown - 1)) / 2;
