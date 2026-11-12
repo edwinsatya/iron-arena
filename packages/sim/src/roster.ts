@@ -1,10 +1,12 @@
 import { akari } from '../data/heroes/akari';
+import { amane } from '../data/heroes/amane';
 import { karasu } from '../data/heroes/karasu';
 import { benika } from '../data/heroes/benika';
 import { dummy } from '../data/heroes/dummy';
 import { homura } from '../data/heroes/homura';
 import { hyoga } from '../data/heroes/hyoga';
 import { hyoshin } from '../data/heroes/hyoshin';
+import { ikazuchi } from '../data/heroes/ikazuchi';
 import { gokai } from '../data/heroes/gokai';
 import { kage } from '../data/heroes/kage';
 import { kamakiri } from '../data/heroes/kamakiri';
@@ -14,6 +16,7 @@ import { kurage } from '../data/heroes/kurage';
 import { lysa } from '../data/heroes/lysa';
 import { raika } from '../data/heroes/raika';
 import { reo } from '../data/heroes/reo';
+import { tsuno } from '../data/heroes/tsuno';
 import { yomi } from '../data/heroes/yomi';
 import type { CompiledHero, HeroData } from './types';
 
@@ -69,6 +72,9 @@ export const ROSTER: readonly CompiledHero[] = [
   kurage,
   kemuri,
   raika,
+  ikazuchi,
+  amane,
+  tsuno,
   dummy,
 ].map((h, i) => compileHero(h, i));
 

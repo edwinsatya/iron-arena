@@ -476,3 +476,100 @@ describe('Kemuri and Raika', () => {
     }
   });
 });
+
+describe('Ikazuchi, Amane and Tsuno', () => {
+  it('Kohaku Charge Imprint brands a far enemy and stuns them', () => {
+    const s = setup('ikazuchi', 'dummy', -3500, 3500);
+    const d = s.fighters[1];
+    tap(s, 0, BTN.SKILL1);
+    let dizzy = false;
+    run(s, 60, 0, () => {
+      if (d.state === FS.DIZZY) dizzy = true;
+      return 0;
+    });
+    expect(d.hp).toBeLessThan(1000);
+    expect(dizzy).toBe(true);
+  });
+
+  it('Kairo Circuit Relay strikes again and again around him', () => {
+    const s = setup('ikazuchi', 'dummy', 0, 900);
+    const d = s.fighters[1];
+    tap(s, 0, BTN.SKILL2);
+    let hits = 0;
+    let hp = d.hp;
+    run(s, 70, 0, () => {
+      if (d.hp !== hp) hits++;
+      hp = d.hp;
+      return 0;
+    });
+    expect(hits).toBeGreaterThanOrEqual(3);
+  });
+
+  it('Raiun Stormcloak grounds an attack and answers with a discharge', () => {
+    const s = setup('ikazuchi', 'kemuri', 0, 850);
+    tap(s, 0, BTN.SKILL3);
+    run(s, 2);
+    tap(s, 1, BTN.ATTACK);
+    run(s, 50);
+    expect(s.fighters[0].hp).toBe(1000);
+    expect(s.fighters[1].hp).toBeLessThan(1020);
+  });
+
+  it('Sunspoke Verdict comes down three times on a far enemy and lifts them', () => {
+    const s = setup('amane', 'dummy', -3500, 3500);
+    const d = s.fighters[1];
+    tap(s, 0, BTN.SKILL1);
+    let hits = 0;
+    let hp = d.hp;
+    let launched = false;
+    run(s, 70, 0, () => {
+      if (d.hp !== hp) hits++;
+      hp = d.hp;
+      if (d.y > 0) launched = true;
+      return 0;
+    });
+    expect(hits).toBe(3);
+    expect(launched).toBe(true);
+  });
+
+  it('Habataki Wingbeat throws the enemy away; Featherbound Oath heals and steadies her', () => {
+    const s = setup('amane', 'dummy', -1500, 1500);
+    tap(s, 0, BTN.SKILL2);
+    run(s, 40);
+    expect(s.fighters[1].hp).toBeLessThan(1000);
+    expect(s.fighters[1].x).toBeGreaterThan(1700);
+
+    const h = setup('amane', 'dummy', -3000, 3000);
+    h.fighters[0].hp = 500;
+    tap(h, 0, BTN.SKILL3);
+    run(h, 20);
+    expect(h.fighters[0].hp).toBe(580);
+    expect(h.fighters[0].buffArmor).toBe(1);
+  });
+
+  it('Surefoot Leap comes down on the enemy; Trail Charge runs them over from afar', () => {
+    const s = setup('tsuno', 'dummy', -1800, 1800);
+    tap(s, 0, BTN.SKILL1);
+    run(s, 80);
+    expect(s.fighters[1].hp).toBeLessThan(1000);
+
+    const t = setup('tsuno', 'dummy', -2500, 2500);
+    tap(t, 0, BTN.SKILL2);
+    let down = false;
+    run(t, 60, 0, () => {
+      if (t.fighters[1].state === FS.DOWN || t.fighters[1].state === FS.LAUNCHED) down = true;
+      return 0;
+    });
+    expect(t.fighters[1].hp).toBeLessThan(1000);
+    expect(down).toBe(true);
+  });
+
+  it('Winter Coat shoves foes away and armours Tsuno', () => {
+    const s = setup('tsuno', 'dummy', 0, 900);
+    tap(s, 0, BTN.SKILL3);
+    run(s, 20);
+    expect(s.fighters[1].hp).toBeLessThan(1000);
+    expect(s.fighters[0].buffArmor).toBe(1);
+    expect(s.fighters[0].buffFrames).toBeGreaterThan(180);
+  });
+});

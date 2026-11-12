@@ -54,6 +54,9 @@ export interface Look {
     | 'lantern'
     | 'sting'
     | 'gauntlet'
+    | 'rod'
+    | 'staff'
+    | 'horn'
     | 'none';
   /** Sprite animation per action id. */
   actions: Record<string, AnimRef>;
@@ -430,6 +433,66 @@ export const LOOKS: Record<string, Look> = {
       ra_s2: 'lock',
       ra_s3: 'decoy',
       ra_ult: 'ult',
+    },
+  },
+  ikazuchi: {
+    color: '#ffb21e',
+    glow: '#fff1b0',
+    weapon: 'rod',
+    altHue: 200,
+    win: { anim: 'win', hold: 8 },
+    actions: {
+      ik_b1: 'jab',
+      ik_b2: 'knuckle',
+      ik_b3: 'discharge',
+      ik_dash: { anim: 'knuckle', puppet: 'lunge' },
+      ik_air: 'jab',
+      ik_charge: 'discharge',
+      ik_s1: 'imprint',
+      ik_s2: 'relay',
+      // Wrapped in the cloak until it is struck
+      ik_s3: { anim: 'cloak', until: 10, after: 'guard' },
+      ik_s3_strike: 'reversal',
+      ik_ult: { anim: 'theorem', cycle: [26, 12] },
+    },
+  },
+  amane: {
+    color: '#ffd76a',
+    glow: '#fffaf0',
+    weapon: 'staff',
+    altHue: 300,
+    win: { anim: 'win', hold: 8 },
+    actions: {
+      am_b1: 'staff',
+      am_b2: 'wing',
+      am_b3: 'point',
+      am_dash: { anim: 'wing', puppet: 'lunge' },
+      am_air: 'wing',
+      am_charge: 'staff',
+      am_s1: 'verdict',
+      am_s2: 'wingbeat',
+      am_s3: 'oath',
+      am_ult: 'halo',
+    },
+  },
+  tsuno: {
+    color: '#9fd4ff',
+    glow: '#f2fbff',
+    weapon: 'horn',
+    altHue: 30,
+    win: 'win',
+    actions: {
+      ts_b1: 'butt',
+      ts_b2: 'rear',
+      ts_b3: 'butt',
+      ts_dash: 'ram',
+      ts_air: 'rear',
+      ts_charge: { anim: 'butt', puppet: 'lunge' },
+      ts_s1: 'jump',
+      ts_s2: 'trail',
+      ts_s3: 'hunker',
+      // Rears up, then the stampede
+      ts_ult: { anim: 'rear', swap: [20, 'ram'] },
     },
   },
   dummy: {

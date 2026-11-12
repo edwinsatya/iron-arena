@@ -126,6 +126,21 @@ export class Sfx {
           this.burst({ freq: 7000, q: 6, dur: 0.12, gain: 0.25, sweepTo: 3500 });
           this.tone(140, 90, 0.16, 0.18, 'sawtooth');
         }
+        if (weapon === 'rod') {
+          // A crack of static off the rod
+          this.burst({ freq: 6500, q: 4, dur: 0.1, gain: 0.3, sweepTo: 2500 });
+          this.tone(220, 70, 0.14, 0.16, 'sawtooth');
+        }
+        if (weapon === 'staff') {
+          // A bright chime of the staff's crystal
+          this.tone(1320, 1760, 0.22, 0.14, 'sine');
+          this.burst({ freq: 5200, q: 6, dur: 0.1, gain: 0.18, sweepTo: 6400 });
+        }
+        if (weapon === 'horn') {
+          // Horns on bone: a heavy knock
+          this.thump(95, 0.18, 0.75);
+          this.burst({ freq: 1400, q: 3, dur: 0.07, gain: 0.3, sweepTo: 900 });
+        }
         if (weapon === 'lantern') {
           // Iron lantern clank and a crackle of fire
           this.burst({ freq: 2600, q: 7, dur: 0.12, gain: 0.3, sweepTo: 2200 });

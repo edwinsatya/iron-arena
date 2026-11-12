@@ -832,6 +832,27 @@ export class GameRenderer {
         v.sy(o.y + 1000),
         { size: 1.15 },
       );
+    } else if (id === 'ik_s3' && t <= 40) {
+      // Raiun Stormcloak: an amber dome of insulation rises around him, crackles, and lets go
+      this.vfx.get('ikazuchi')?.draw(
+        g,
+        v,
+        'Defensive_Buff',
+        t < 34
+          ? t < 10
+            ? keyed(t, [
+                [0, 0],
+                [10, 3],
+              ])
+            : 3 + (Math.floor(t / 3) % 9)
+          : keyed(t, [
+              [34, 17],
+              [40, 19.99],
+            ]),
+        v.sx(f.x),
+        v.sy(f.y),
+        { size: 0.55, alpha: 0.55 },
+      );
     } else if ((id === 're_s1' || id === 're_charge') && t >= 8 && t <= 18) {
       // Sword glints before the wave leaves
       const k = (t - 8) / 10;

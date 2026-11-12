@@ -23,6 +23,9 @@ Every hero but Kamakiri is drawn with free character packs by **elie automata** 
 | Kurage | Abyssal Jelly (free complete pack) |
 | Kemuri | Cyberpunk Street Assassin (free complete pack) |
 | Raika | Cyberpunk Sword Huntress (free complete pack) |
+| Ikazuchi | Lightning Academy Magister (free complete pack, with its VFX clips) |
+| Amane | Sanctuary Seraph (free complete pack) |
+| Tsuno | Northern Pack Goat (free complete pack; every attack built from its frames) |
 | Training dummy | Wasteland Juggernaut (free pack) |
 
 Licence (from the packs): *Commercial and non-commercial use and modifications allowed. Credit "elie automata". Distribution within finished projects allowed. No standalone resale, sharing or redistribution of original or modified assets.*

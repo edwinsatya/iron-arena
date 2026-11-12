@@ -54,7 +54,8 @@ export type ProjectileKind =
   | 'spark'
   | 'bolt'
   | 'fireball'
-  | 'flamewall';
+  | 'flamewall'
+  | 'feather';
 
 export interface ProjectileSpec {
   frame: number;
@@ -109,7 +110,14 @@ export type AreaKind =
   | 'brand'
   | 'lock'
   | 'decoy'
-  | 'seam';
+  | 'seam'
+  | 'arc'
+  | 'imprint'
+  | 'circuit'
+  | 'reversal'
+  | 'theorem'
+  | 'verdict'
+  | 'halo';
 
 /** A ground circle that hits everyone inside after a telegraph. */
 export interface AreaSpec {
@@ -192,6 +200,9 @@ export type Weapon =
   | 'lantern'
   | 'sting'
   | 'gauntlet'
+  | 'rod'
+  | 'staff'
+  | 'horn'
   | 'none';
 /** Melee roles close in; Archer keeps its distance (the CPU plays them differently). */
 export type Role = 'Berserker' | 'Archer' | 'Guardian' | 'Knight' | 'Assassin' | 'Mage' | 'Dummy';

@@ -103,6 +103,27 @@ The two cyberpunk packs have an animation for every skill, so little is built:
 | Kemuri, Smoke Gauntlet | Idle, walk, one punch, four skills and a death that ends on her knees (complete pack, plus stand-alone VFX clips of her four skills, used for them) | The four-hit combo (the punch without its wind-up, the punch from three quarters, the ultimate's straight arm, the full punch), the hammer fist (the punch seen from the front), guard (fists up), flinch and knockdown (the stumble, then the kneeling frames tipped onto her back) |
 | Raika, Plasma Huntress | Idle, walk, six skills and a death (complete pack) | The quick cut, the thrust and the lunge (the big moves without their wind-ups), Seam Cut (the pack's alternate side view of Plasma Seam Ripper: a low sweep, then the thrust), guard (the gauntlet held out), the victory pose (the Calibration, seen from the front) |
 
+Three more complete packs:
+
+| Hero | The pack has | Made from it |
+|---|---|---|
+| Ikazuchi, Amber Magister | Idle, walk, six spells and a death (complete pack, plus six stand-alone VFX clips, used for his skills) | The rod jab (the discharge without its wind-up), the bronze hook (the polarity punch re-timed), guard (wrapped in the stormcloak), flinch (the first death frames), the victory pose (the circuit relay, seen from the front) |
+| Amane, Sunwing Seraph | Idle, walk, five holy skills and a death (complete pack) | The wing buffet (the wingbeat re-timed), Sunpoint (the verdict without the halo's wind-up), guard (wings drawn around her from the oath), flinch (the first death frames), the victory pose (the oath, seen from the front) |
+| Tsuno, Northern Packgoat | Loaded and unloaded idles, walks and a stride, nothing else (complete pack). It fights loaded | Run (the stride), jump (stride frames, forelegs up, then nose down), guard (head down, horns forward), the horn butt (rocking back, then the stride tilted forward and pushed ahead), the forehoof stomp (rearing up on the idle frame, then slamming down), the charge and the trail charge (nose to the ground, then the stride at a gallop), flinch (tilts), knockdown (bowled over onto its back, legs in the air) |
+
+Ikazuchi's clips (`magisterArea` in `effects2d.ts`, the code-drawn versions as the fallback):
+
+| Clip | Plays as |
+|---|---|
+| Outward Projectiles | Arc Discharge: amber darts fly out of the rod's burst |
+| Distant Target | Kohaku Charge Imprint: the sigil writes itself on the enemy's chest, then discharges |
+| Stationary Area | Kairo Circuit Relay: bolts on both sides of him for as long as it holds |
+| Defensive Buff | Raiun Stormcloak: the amber dome while the counter stance is up (`renderer2d.ts`) |
+| Defensive Counter | Polarity Reversal: the grounded blow comes back |
+| Area Ultimate | Raimei Resonance Theorem: the rune circle over the enemy, ringing out on the proof |
+
+Amane's verdict, halo and feathers are drawn in code (`seraphArea`, the `feather` projectile).
+
 Raika's decoy is drawn with her own idle frame: the renderer leaves it standing where the skill's
 area is until it bursts (`drawDecoys` in `renderer2d.ts`).
 
@@ -127,3 +148,6 @@ catch the enemy through guard, hold them, cut and kick them away.
 - **Kurage, Abyssal Jelly** (Abyssal Jelly, free complete pack): Shiden Bolt, Abyssal Tether, Hakkō Pulse; ultimate Shinkai Gaze
 - **Kemuri, Smoke Gauntlet** (Cyberpunk Street Assassin, free complete pack): Hibana Brand, Shimyaku Priming, Kurenai Smokescreen; ultimate Imawa Last Breath
 - **Raika, Plasma Huntress** (Cyberpunk Sword Huntress, free complete pack): Shisen Seam Ripper, Jiryoku Polarity Lock, Gen'ei Mantle Decoy; ultimate Shūen Last Circuit
+- **Ikazuchi, Amber Magister** (Lightning Academy Magister, free complete pack, with its VFX clips): Kohaku Charge Imprint, Kairo Circuit Relay, Raiun Stormcloak; ultimate Raimei Resonance Theorem
+- **Amane, Sunwing Seraph** (Sanctuary Seraph, free complete pack): Nichirin Sunspoke Verdict, Habataki Wingbeat, Hane Featherbound Oath; ultimate Tenrin Unbroken Halo
+- **Tsuno, Northern Packgoat** (Northern Pack Goat, free complete pack: idles, walks and a stride; every attack is built from those frames): Gakemichi Surefoot Leap, Kemonomichi Trail Charge, Fuyugomori Winter Coat; ultimate Ōnadare Mountain Stampede

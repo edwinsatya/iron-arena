@@ -29,6 +29,9 @@ import {
 } from './fxdraw';
 import { fireball, fireColumn, fireDome, firePool, fireRing, meteorRock, rocks, shockRing } from './fire';
 import { keyed, type VfxSet } from './vfx';
+
+/** Ikazuchi's areas, drawn by magisterArea (the pack's clips, or code without them). */
+const MAGISTER_KINDS = new Set<string>(['arc', 'imprint', 'circuit', 'reversal', 'theorem']);
 import { hexA, type View2D } from './view';
 
 export interface EffectCallbacks {
@@ -786,6 +789,39 @@ export class Effects2D {
         embers(g, 0, -H * 0.3, r * 2.4, H, this.time, 14, '#ffd27a', seed);
         break;
       }
+      case 'feather': {
+        // Amane's feathers: white plumes with a gold quill, a streak of light behind them
+        g.rotate(ang);
+        const L = Math.max(14, r * 2.4);
+        const tr = g.createLinearGradient(-L * 3, 0, 0, 0);
+        tr.addColorStop(0, hexA(look.color, 0));
+        tr.addColorStop(1, hexA(look.glow, 0.55));
+        g.fillStyle = tr;
+        g.beginPath();
+        g.moveTo(0, -L * 0.18);
+        g.lineTo(-L * 3, 0);
+        g.lineTo(0, L * 0.18);
+        g.fill();
+        g.rotate(Math.sin(this.time * 18 + p.age * 0.7 + p.spec) * 0.18);
+        g.shadowColor = look.color;
+        g.shadowBlur = 10;
+        g.fillStyle = '#fbf7ee';
+        g.beginPath();
+        g.moveTo(L * 0.55, 0);
+        g.quadraticCurveTo(L * 0.1, -L * 0.32, -L * 0.6, -L * 0.12);
+        g.lineTo(-L * 0.45, 0);
+        g.lineTo(-L * 0.6, L * 0.12);
+        g.quadraticCurveTo(L * 0.1, L * 0.3, L * 0.55, 0);
+        g.fill();
+        g.shadowBlur = 0;
+        g.strokeStyle = look.color;
+        g.lineWidth = Math.max(1, L * 0.06);
+        g.beginPath();
+        g.moveTo(L * 0.5, 0);
+        g.lineTo(-L * 0.75, 0);
+        g.stroke();
+        break;
+      }
       case 'wave': {
         const dir = (p.vx >= 0 ? 1 : -1) * v.flip;
         g.scale(dir, 1);
@@ -845,7 +881,8 @@ export class Effects2D {
         if (spec.kind === 'brand' && kfx) this.kemuriArea(g, v, kfx, a, spec, a.age - spec.delay);
         else if (spec.kind === 'brand') this.reticle(g, v, a.x, spec.r, t, l.color);
         else this.polarity(g, v, a.x, spec.r, t, l.color, l.glow, false);
-      }
+      } else if (MAGISTER_KINDS.has(spec.kind)) this.magisterArea(g, v, a, spec, a.age - spec.delay);
+      else if (spec.kind === 'verdict' || spec.kind === 'halo') this.seraphArea(g, v, a, spec, a.age - spec.delay);
       return;
     }
     const k = (a.age - spec.delay) / Math.max(1, spec.active);
@@ -1421,6 +1458,18 @@ export class Effects2D {
         }
         break;
       }
+      case 'arc':
+      case 'imprint':
+      case 'circuit':
+      case 'reversal':
+      case 'theorem':
+        g.globalAlpha = 1;
+        this.magisterArea(g, v, a, spec, a.age - spec.delay);
+        break;
+      case 'verdict':
+      case 'halo':
+        this.seraphArea(g, v, a, spec, a.age - spec.delay);
+        break;
       case 'smoke': {
         g.fillStyle = hexA('#2b2340', 0.6);
         for (let n = 0; n < 7; n++) {
@@ -1784,7 +1833,9 @@ export class Effects2D {
               ? spec.active + 12
               : (spec.kind === 'brand' || spec.kind === 'burst') && this.kemuriFx(a)
                 ? spec.active + 10
-                : 0;
+                : MAGISTER_KINDS.has(spec.kind) || spec.kind === 'halo'
+                  ? spec.active + 12
+                  : 0;
     if (to <= from) return;
     this.fx.push({
       age: 0,
@@ -1802,6 +1853,8 @@ export class Effects2D {
             this.voidFx(g, v, fx, a, spec, u, 'over');
           }
         } else if (spec.kind === 'firering') this.flameRing(g, v, a.x, spec.r, u, 'all', seed);
+        else if (MAGISTER_KINDS.has(spec.kind)) this.magisterArea(g, v, a, spec, u);
+        else if (spec.kind === 'halo') this.seraphArea(g, v, a, spec, u);
         else this.meteorBlast(g, v, a.x, spec.r, u, seed);
       },
     });
@@ -1879,6 +1932,286 @@ export class Effects2D {
         },
       );
     }
+  }
+
+  /* ------------------------------------------- Ikazuchi's lightning (the pack's VFX clips) */
+
+  /**
+   * Arc Discharge: amber darts fly out from the rod. Charge Imprint: the sigil writes itself on
+   * the enemy's chest, then discharges. Circuit Relay: bolts keep striking the ground around him.
+   * Polarity Reversal: the grounded blow comes back as a burst. Resonance Theorem: a rune circle
+   * over the enemy, bolts on every hit, then it rings out. `u` frames since the area went live.
+   * Without the pack's clips the same moments are drawn in code.
+   */
+  private magisterArea(
+    g: CanvasRenderingContext2D,
+    v: View2D,
+    a: GameState['areas'][number],
+    spec: ReturnType<typeof areaSpec>,
+    u: number,
+  ) {
+    const fx = this.vfx.get(ROSTER[a.char]!.id);
+    const look = LOOKS[ROSTER[a.char]!.id]!;
+    const x = v.sx(a.x);
+    const y0 = v.sy(0);
+    const cy = v.sy(1050);
+    const rx = v.px(spec.r);
+    const end = spec.active;
+    const out = Math.max(0, 1 - Math.max(0, u - end) / 12);
+    g.save();
+    switch (spec.kind) {
+      case 'arc': {
+        if (u < 0) break;
+        const f = keyed(u, [
+          [0, 2],
+          [end + 12, 13.99],
+        ]);
+        if (fx) fx.draw(g, v, 'Outward_Projectiles', f, x, cy, { size: spec.r / 950 });
+        else if (u < end) starBurst(g, x, cy, rx * 1.2, Math.min(1, u / end), look.color, look.glow, a.action);
+        if (u < end)
+          for (let q = 0; q < 3; q++) {
+            const ang = hash(q * 2.7 + a.age) * TAU;
+            lightning(g, x, cy, x + Math.cos(ang) * rx, cy + Math.sin(ang) * rx * 0.7, 1.4, this.time, look.color, q + a.age);
+          }
+        break;
+      }
+      case 'imprint': {
+        const f =
+          u < 0
+            ? keyed(u, [
+                [-spec.delay, 3],
+                [0, 13.99],
+              ])
+            : keyed(u, [
+                [0, 14],
+                [3, 15],
+                [end + 12, 19.99],
+              ]);
+        if (fx) fx.draw(g, v, 'Distant_Target', f, x, cy, { size: spec.r / 600 });
+        else if (u < 0) this.reticle(g, v, a.x, spec.r, 1 + u / Math.max(1, spec.delay), look.color);
+        else if (u < end) starBurst(g, x, cy, rx * 1.4, Math.min(1, u / end), look.color, look.glow, a.action);
+        // The sigil discharges: a bolt from above into it
+        if (u >= 0 && u < end + 2) {
+          g.globalAlpha = out;
+          lightning(g, x + rx * 0.2, cy - v.px(2600), x, cy, 3, this.time, look.color, a.age);
+          lightning(g, x - rx * 0.1, cy - v.px(2200), x, cy, 1.6, this.time + 0.3, '#ffffff', a.age + 5);
+        }
+        break;
+      }
+      case 'circuit': {
+        if (u < 0) break;
+        const fade = u < end ? 1 : out;
+        if (fx) {
+          // The bolts flicker through the clip for as long as the relay holds
+          const f = u < end ? (u * 0.75) % 17 : keyed(u - end, [
+            [0, 14],
+            [12, 17.99],
+          ]);
+          g.globalAlpha = fade;
+          fx.draw(g, v, 'Stationary_Area', f, x - rx * 0.45, y0, { size: spec.r / 1900 });
+          fx.draw(g, v, 'Stationary_Area', (f + 7) % 17, x + rx * 0.45, y0, { size: spec.r / 1900, flip: true });
+        } else if (u < end) {
+          for (let q = 0; q < 3; q++) {
+            const bx = x + (hash(q * 3.1 + Math.floor(u / 3)) - 0.5) * rx * 1.6;
+            lightning(g, bx, y0 - v.px(2800), bx, y0, 3, this.time, look.color, q + a.age);
+          }
+        }
+        // The circuit's ring on the floor
+        g.globalAlpha = 0.8 * fade;
+        g.strokeStyle = look.color;
+        g.lineWidth = 3;
+        g.shadowColor = look.color;
+        g.shadowBlur = 12;
+        g.beginPath();
+        g.ellipse(x, y0, rx, rx * 0.16, 0, 0, TAU);
+        g.stroke();
+        g.shadowBlur = 0;
+        embers(g, x, y0, rx * 1.6, v.px(1800), this.time, 12, look.glow, a.action);
+        break;
+      }
+      case 'reversal': {
+        if (u < 0) break;
+        const f = keyed(u, [
+          [0, 3],
+          [4, 8],
+          [end + 12, 23.99],
+        ]);
+        if (fx) fx.draw(g, v, 'Defensive_Counter', f, x, cy, { size: spec.r / 1250 });
+        else if (u < end) starBurst(g, x, cy, rx * 1.3, Math.min(1, u / end), look.color, look.glow, a.action);
+        break;
+      }
+      case 'theorem': {
+        const last = a.spec === 1;
+        const size = spec.r / 1550;
+        const ccy = v.sy(1150);
+        let f: number;
+        if (u < 0) f = keyed(u, [
+          [-spec.delay, last ? 11 : 2],
+          [0, last ? 12 : 4],
+        ]);
+        else if (!last) f = u < end ? 4 + (Math.floor(u / 3) % 8) : keyed(u - end, [
+          [0, 16],
+          [12, 19.99],
+        ]);
+        else f = keyed(u, [
+          [0, 12],
+          [3, 13],
+          [8, 15],
+          [end + 12, 19.99],
+        ]);
+        if (fx) fx.draw(g, v, 'Area_Ultimate', f, x, ccy, { size });
+        else {
+          g.globalAlpha = out;
+          g.strokeStyle = look.color;
+          g.lineWidth = 4;
+          g.shadowColor = look.color;
+          g.shadowBlur = 16;
+          for (const rr of [1, 0.75]) {
+            g.beginPath();
+            g.arc(x, ccy, rx * rr * (last && u >= 0 ? 1 + u / 20 : 1), 0, TAU);
+            g.stroke();
+          }
+          g.shadowBlur = 0;
+        }
+        // A bolt from the sky on every hit, a storm of them on the proof
+        if (u >= 0 && u < end) {
+          g.globalAlpha = 1;
+          const n = last ? 4 : 1;
+          const tick = spec.every ? u % spec.every : u;
+          if (last || tick < 4)
+            for (let q = 0; q < n; q++) {
+              const bx = x + (q - (n - 1) / 2) * rx * 0.4 + (hash(a.age + q) - 0.5) * rx * 0.3;
+              lightning(g, bx, v.sy(4200), x, ccy, last ? 4 : 2.6, this.time, look.color, a.age + q);
+              lightning(g, bx, v.sy(4200), x, ccy, 1.2, this.time + 0.2, '#ffffff', a.age + q + 7);
+            }
+          if (last) starBurst(g, x, ccy, rx * 1.5, Math.min(1, u / end), look.color, '#ffffff', a.action);
+        }
+        break;
+      }
+    }
+    g.restore();
+  }
+
+  /* ------------------------------------------------------------- Amane's light (code-drawn) */
+
+  /**
+   * Sunspoke Verdict: a sun wheel turns over the enemy, then a spoke of light comes down.
+   * Unbroken Halo: a halo sinks around the enemy and spins, burning, then shatters outward.
+   */
+  private seraphArea(
+    g: CanvasRenderingContext2D,
+    v: View2D,
+    a: GameState['areas'][number],
+    spec: ReturnType<typeof areaSpec>,
+    u: number,
+  ) {
+    const look = LOOKS[ROSTER[a.char]!.id]!;
+    const x = v.sx(a.x);
+    const y0 = v.sy(0);
+    const rx = v.px(spec.r);
+    const end = spec.active;
+    g.save();
+    if (spec.kind === 'verdict') {
+      const wy = v.sy(3000);
+      const k = u < 0 ? 1 + u / Math.max(1, spec.delay) : 1;
+      // The wheel overhead, its spokes lighting one by one
+      const W = rx * 0.55;
+      g.globalAlpha = u < 0 ? 0.4 + 0.6 * k : Math.max(0, 1 - u / (end + 4));
+      g.translate(x, wy);
+      g.rotate(this.time * 1.5 + a.spec);
+      g.strokeStyle = look.color;
+      g.lineWidth = 3;
+      g.shadowColor = look.color;
+      g.shadowBlur = 14;
+      g.beginPath();
+      g.arc(0, 0, W, 0, TAU);
+      g.stroke();
+      for (let n = 0; n < 8; n++) {
+        if (n / 8 > k) break;
+        const ang = (n / 8) * TAU;
+        g.beginPath();
+        g.moveTo(Math.cos(ang) * W * 0.25, Math.sin(ang) * W * 0.25);
+        g.lineTo(Math.cos(ang) * W * 1.45, Math.sin(ang) * W * 1.45);
+        g.stroke();
+      }
+      g.restore();
+      g.save();
+      if (u < 0) {
+        // A thin guide line to the spot
+        g.strokeStyle = hexA(look.glow, 0.25 + 0.4 * k);
+        g.lineWidth = 2;
+        g.beginPath();
+        g.moveTo(x, wy);
+        g.lineTo(x, y0);
+        g.stroke();
+      } else if (u < end + 4) {
+        // The spoke comes down: a spear of light, white at the core
+        const kk = u / (end + 4);
+        const w = rx * 0.45 * (1 - kk * 0.6);
+        const gr = g.createLinearGradient(x - w, 0, x + w, 0);
+        gr.addColorStop(0, hexA(look.color, 0));
+        gr.addColorStop(0.5, hexA('#fffdf4', 0.95 * (1 - kk)));
+        gr.addColorStop(1, hexA(look.color, 0));
+        g.fillStyle = gr;
+        g.fillRect(x - w, wy, w * 2, y0 - wy);
+        rays(g, x, y0, rx * 1.4, 7, this.time, look.glow);
+        if (u < end) starBurst(g, x, y0 - v.px(300), rx, u / end, look.color, '#ffffff', a.action + a.spec);
+      }
+    } else {
+      // The halo
+      const last = a.spec === 1;
+      const cy = v.sy(1100);
+      const sink = u < 0 ? -u / Math.max(1, spec.delay) : 0;
+      const R = rx * (last && u >= 0 ? 0.85 + u / 10 : 0.85);
+      const fade = u < end ? 1 : Math.max(0, 1 - (u - end) / 12);
+      g.globalAlpha = fade * (u < 0 ? 1 - sink * 0.7 : 1);
+      g.translate(x, cy - v.px(2600) * sink);
+      // Burning light inside
+      if (u >= 0 && !last) {
+        const glowR = R * 0.9;
+        const gr = g.createRadialGradient(0, 0, 0, 0, 0, glowR);
+        gr.addColorStop(0, hexA('#fffdf4', 0.55));
+        gr.addColorStop(0.6, hexA(look.color, 0.25));
+        gr.addColorStop(1, hexA(look.color, 0));
+        g.fillStyle = gr;
+        g.beginPath();
+        g.arc(0, 0, glowR, 0, TAU);
+        g.fill();
+      }
+      g.scale(1, 0.92);
+      g.rotate(this.time * (last ? 4 : 1.2));
+      g.shadowColor = look.color;
+      g.shadowBlur = 18;
+      g.strokeStyle = look.color;
+      g.lineWidth = Math.max(3, v.px(70));
+      g.beginPath();
+      g.arc(0, 0, R, 0, TAU);
+      g.stroke();
+      g.strokeStyle = '#fffaf0';
+      g.lineWidth = Math.max(1, v.px(25));
+      g.stroke();
+      // Its spikes, pointing in
+      g.fillStyle = look.color;
+      for (let n = 0; n < 12; n++) {
+        const ang = (n / 12) * TAU;
+        const L = R * (n % 2 ? 0.14 : 0.24);
+        g.beginPath();
+        g.moveTo(Math.cos(ang - 0.06) * R, Math.sin(ang - 0.06) * R);
+        g.lineTo(Math.cos(ang) * (R - L), Math.sin(ang) * (R - L));
+        g.lineTo(Math.cos(ang + 0.06) * R, Math.sin(ang + 0.06) * R);
+        g.fill();
+      }
+      g.shadowBlur = 0;
+      g.restore();
+      g.save();
+      g.globalAlpha = fade;
+      if (u >= 0 && last && u < end) {
+        starBurst(g, x, cy, rx * 1.6, u / end, look.color, '#ffffff', a.action);
+        rays(g, x, cy, rx * 2.4, 12, this.time, look.glow);
+      }
+      if (u >= 0) embers(g, x, cy, rx * 1.5, v.px(2400), this.time, 16, '#fff6c8', a.action + a.spec);
+    }
+    g.restore();
   }
 
   /* ------------------------------------------------------- Yomi's void (the pack's VFX clips) */

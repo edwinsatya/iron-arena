@@ -589,6 +589,163 @@ const HEROES: HeroCfg[] = [
     },
   },
   {
+    // Lightning Academy Magister (free complete pack): a rod, a bronze gauntlet and six spells,
+    // plus stand-alone VFX clips (amber dome, counter flash, target sigil, bolts, rune circle).
+    id: 'ikazuchi',
+    pack: 'lightning-academy-magister-COMPLETE-FREE',
+    height: 1.7,
+    vfx: {
+      pack: 'lightning-academy-magister-COMPLETE-FREE',
+      clips: {
+        Area_Ultimate: [128, 128],
+        Defensive_Buff: [128, 214],
+        Defensive_Counter: [128, 128],
+        Distant_Target: [128, 130],
+        Outward_Projectiles: [128, 128],
+        Stationary_Area: [128, 240],
+      },
+    },
+    anims: {
+      idle: { src: 'Idle', fps: 10, loop: true },
+      walk: { src: 'Walk', fps: 12, loop: true },
+      run: { src: 'Walk', fps: 18, loop: true, xf: () => ({ rot: -7 }) },
+      // Wrapped in the stormcloak
+      guard: { src: 'Stormcloak_Insulation', pick: [6, 7] },
+      hurt: { src: 'Death', pick: [1, 2, 3, 2, 1] },
+      death: { src: 'Death' },
+      // The rod's thrust without its wind-up
+      jab: { src: 'Gothic_Rod_Discharge', pick: [3, 5, 6, 7, 9, 11, 14, 17], hit: 2 },
+      // The gauntlet's short hook
+      knuckle: { src: 'Bronze_Polarity_Reversal', pick: [0, 4, 7, 8, 9, 10, 12, 15, 18], hit: 4 },
+      discharge: { src: 'Gothic_Rod_Discharge', hit: 6 },
+      imprint: { src: 'Amber_Charge_Imprint', hit: 8 },
+      reversal: { src: 'Bronze_Polarity_Reversal', hit: 9 },
+      relay: { src: 'Golden_Circuit_Relay', hit: 10 },
+      cloak: { src: 'Stormcloak_Insulation', hit: 11 },
+      theorem: { src: 'The_Amber_Resonance_Theorem', hit: 9 },
+      front: { src: 'Idle', dir: 'south', fps: 10, loop: true },
+      // Facing out, arms open, the circuit lit around him
+      win: { src: 'Golden_Circuit_Relay', dir: 'south', pick: [0, 2, 4, 6, 8, 10, 12, 13, 14] },
+    },
+  },
+  {
+    // Sanctuary Seraph (free complete pack): a staff, great wings and five holy skills.
+    id: 'amane',
+    pack: 'sanctuary-seraph-COMPLETE-FREE',
+    height: 1.78,
+    anims: {
+      idle: { src: 'Idle', fps: 10, loop: true },
+      walk: { src: 'Walk', fps: 12, loop: true },
+      run: { src: 'Walk', fps: 18, loop: true, xf: () => ({ rot: -6 }) },
+      // Wings drawn around her
+      guard: { src: 'Featherbound_Oath', pick: [3, 4] },
+      hurt: { src: 'Death', pick: [1, 2, 3, 2, 1] },
+      death: { src: 'Death' },
+      staff: { src: 'Gothic_Staff_Convergence' },
+      // A buffet of the wing without the whole wingbeat
+      wing: { src: 'Seraphic_Wingbeat', pick: [0, 4, 8, 11, 12, 13, 14, 17, 20, 23], hit: 4 },
+      // Pointing the verdict down without the halo's wind-up
+      point: { src: 'Sunspoke_Verdict', pick: [0, 5, 7, 8, 9, 10, 13, 16, 19], hit: 3 },
+      verdict: { src: 'Sunspoke_Verdict', hit: 8 },
+      oath: { src: 'Featherbound_Oath', hit: 10 },
+      wingbeat: { src: 'Seraphic_Wingbeat', hit: 13 },
+      halo: { src: 'The_Unbroken_Halo', hit: 12 },
+      front: { src: 'Idle', dir: 'south', fps: 10, loop: true },
+      win: { src: 'Featherbound_Oath', dir: 'south', pick: [0, 2, 4, 6, 8, 9, 10, 11, 12] },
+    },
+  },
+  {
+    // Northern Pack Goat (free complete pack): only idles, walks and a stride, loaded and
+    // unloaded. It fights loaded; every attack is built from those frames with tilts.
+    id: 'tsuno',
+    pack: 'northern-pack-goat-COMPLETE-FREE',
+    height: 1.45,
+    // The head, not the pack piled above it
+    bust: { left: 64, top: 30, size: 58 },
+    anims: {
+      idle: { src: 'Loaded_Idle', fps: 10, loop: true },
+      walk: { src: 'Loaded_Walk', fps: 12, loop: true },
+      run: { src: 'Loaded_Stride', fps: 18, loop: true, xf: () => ({ rot: -4 }) },
+      // Springing up, forelegs first; nose down on the way down
+      jump: {
+        src: 'Loaded_Stride',
+        pick: [2, 4, 6, 8, 10],
+        xf: [{ rot: 6 }, { rot: 14, dy: -2 }, { rot: 8 }, { rot: -4 }, { rot: -10 }],
+      },
+      // Head down, horns to the front, braced
+      guard: { src: 'Loaded_Idle', pick: [8, 8], xf: () => ({ rot: -9, dy: 1, ground: true }) },
+      hurt: {
+        src: 'Loaded_Idle',
+        pick: [0, 0, 0, 0, 0],
+        xf: (k) => ({ rot: [8, 16, 12, 6, 2][k], dx: [-3, -7, -5, -2, 0][k], ground: true }),
+      },
+      // Bowled over: tips back and lands with its legs in the air (getting up = reversed)
+      death: {
+        src: 'Loaded_Idle',
+        pick: [0, 0, 0, 0, 0, 0, 0, 0],
+        xf: [
+          { rot: 12, dx: -3, ground: true },
+          { rot: 40, dx: -8, ground: true },
+          { rot: 80, dx: -12, ground: true },
+          { rot: 125, dx: -14, ground: true },
+          { rot: 165, dx: -14, dy: -4, ground: true },
+          { rot: 180, dx: -14, ground: true },
+          { rot: 176, dx: -14, ground: true },
+          { rot: 180, dx: -14, ground: true },
+        ],
+      },
+      // Rocks back, then drives the horns forward
+      butt: {
+        src: 'Loaded_Stride',
+        pick: [0, 0, 1, 2, 2, 3, 4],
+        xf: [
+          { rot: 6, dx: -3 },
+          { rot: 12, dx: -8 },
+          { rot: -14, dx: 14 },
+          { rot: -10, dx: 11 },
+          { rot: -6, dx: 6 },
+          { rot: -2, dx: 2 },
+          {},
+        ],
+        hit: 2,
+      },
+      // Rears up on the hind legs and brings the forehooves down
+      rear: {
+        src: 'Loaded_Idle',
+        pick: [0, 0, 0, 0, 0, 0, 0, 0],
+        xf: [
+          { rot: 10, dx: -2, ground: true },
+          { rot: 24, dx: -5, ground: true },
+          { rot: 36, dx: -7, ground: true },
+          { rot: 40, dx: -7, dy: -2, ground: true },
+          { rot: 14, dx: 2, ground: true },
+          { rot: -8, dx: 6, ground: true },
+          { rot: -4, dx: 3, ground: true },
+          { ground: true },
+        ],
+        hit: 5,
+      },
+      // Head low, the stride at full tilt
+      ram: { src: 'Loaded_Stride', fps: 24, xf: () => ({ rot: -10, dx: 4 }) },
+      // Nose to the ground, picking up the trail, then off at a gallop
+      trail: {
+        src: 'Loaded_Stride',
+        pick: [['Loaded_Idle', 0], ['Loaded_Idle', 1], ['Loaded_Idle', 2], ['Loaded_Idle', 3], 0, 2, 4, 6, 8, 10, 12],
+        xf: (k) => (k < 4 ? { rot: -18, dx: 2, ground: true } : { rot: -10, dx: 4 }),
+        hit: 6,
+      },
+      // Hunkered down into its winter coat
+      hunker: {
+        src: 'Loaded_Idle',
+        pick: [0, 0, 0, 0, 0, 0],
+        xf: [{}, { dy: 1 }, { dy: 2 }, { dy: 3 }, { dy: 3 }, { dy: 2 }],
+        hit: 3,
+      },
+      front: { src: 'Loaded_Idle', dir: 'south', fps: 10, loop: true },
+      win: { src: 'Loaded_Idle', dir: 'south-east', fps: 10, loop: true },
+    },
+  },
+  {
     id: 'dummy',
     pack: 'wasteland-juggernaut-FREE',
     height: 1.85,

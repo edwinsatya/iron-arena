@@ -82,6 +82,9 @@ locks the screen sideways where the browser allows it (Android).
 | **Kurage** "Abyssal Jelly" | Mage (stinging tentacles; takes 14% less damage) | 1100 | **Shiden Bolt**: piercing bolt of purple lightning | **Abyssal Tether**: a tentacle lashes across the stage, drags the enemy in and stings again | **Hakkō Pulse**: the bell flares, a ring of light that leaves anyone close reeling | **Shinkai Gaze**: the deep swallows the stage, lightning stings, the great eye bursts |
 | **Kemuri** "Smoke Gauntlet" | Assassin (smoke gauntlets; four-hit combo) | 1020 | **Hibana Brand**: a cinder brand locks onto the enemy from afar, then blows them into the air | **Shimyaku Priming**: armoured burst of violet smoke throws foes back, then +25% damage and speed for 7 s | **Kurenai Smokescreen**: bursts into crimson smoke, untouchable for a moment; the cloud lingers and chokes whoever stands in it | **Imawa Last Breath**: appears at the enemy's throat, a storm of gauntlet blows, then the last one |
 | **Raika** "Plasma Huntress" | Knight (plasma sword, long reach) | 1000 | **Shisen Seam Ripper**: piercing seam of plasma along the ground | **Jiryoku Polarity Lock**: armoured; magnetic rings close on the enemy, stun them and drag them toward her | **Gen'ei Mantle Decoy**: slips backwards, the decoy left standing bursts and stuns | **Shūen Last Circuit**: a thrust across the whole stage, then every seam it cut tears open |
+| **Ikazuchi** "Amber Magister" | Mage (lightning rod and bronze gauntlet) | 1000 | **Kohaku Charge Imprint**: an amber sigil is branded on the enemy from afar, then discharges and stuns | **Kairo Circuit Relay**: armoured; bolts strike all around him again and again | **Raiun Stormcloak**: counter stance; the grounded blow comes back as an unblockable discharge | **Raimei Resonance Theorem**: a rune circle over the enemy, bolt after bolt, then the proof lands |
+| **Amane** "Sunwing Seraph" | Guardian (staff and wings) | 1020 | **Nichirin Sunspoke Verdict**: three spokes of light come down on the enemy, the last launches | **Habataki Wingbeat**: armoured; a gale of feathers throws foes away | **Hane Featherbound Oath**: heals 80, then 5 s of armour | **Tenrin Unbroken Halo**: a halo sinks around the enemy, burns, then shatters |
+| **Tsuno** "Northern Packgoat" | Berserker (horns and hooves; takes 5% less damage) | 980 | **Gakemichi Surefoot Leap**: a bound up and over that lands hooves first | **Kemonomichi Trail Charge**: sniffs out the trail, then an armoured charge across the stage | **Fuyugomori Winter Coat**: a blast of snow shoves foes back, then 3.5 s of armour and a small heal | **Ōnadare Mountain Stampede**: rears, thunders across the stage, the mountain comes down after it |
 
 Every hero also has a dash attack, an air attack and a charged attack. The in-game *Heroes &
 controls* page is generated from the data.
@@ -105,8 +108,8 @@ controls* page is generated from the data.
 
 `pnpm balance [matches] [--detail]` plays CPU-vs-CPU for every pair and prints win rates, round
 endings, a win matrix and each hero's damage by move. Last run (20 matches per pair, hard CPU, with
-wake-up protection): Hyōshin 78%, Kage 67%, Lysa 65%, Karasu 58%, Homura 55%, Reo 53%,
-Kemuri 52%, Raika 48%, Hyōga 48%, Benika 47%, Kamakiri 45%, Kurage 40%, Gōkai 37%, Kuma 36%,
-Akari 35%, Yomi 34%.
+wake-up protection): Hyōshin 79%, Lysa 67%, Kage 66%, Karasu 59%, Homura 55%, Kemuri 54%,
+Amane 54%, Reo 53%, Raika 49%, Hyōga 48%, Benika 48%, Kamakiri 46%, Tsuno 44%, Ikazuchi 44%,
+Kurage 41%, Gōkai 38%, Kuma 36%, Akari 36%, Yomi 34%.
 Tune with real players.
 The CPU keeps its distance only with heroes whose basic attack is a shot.
