@@ -1228,7 +1228,7 @@ li + li .menu-item {
 }
 .skill-list li > div > span {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -1806,7 +1806,7 @@ html.in-game body {
 }
 .skill-wrap {
   position: relative;
-  padding-bottom: 20px;
+  padding-bottom: 32px;
 }
 .skill {
   position: relative;
@@ -1871,15 +1871,17 @@ html.in-game body {
 .skill.used {
   transform: translateY(2px) scale(0.96);
 }
+/* Names wrap under their own card so neighbours never overlap; the rare third line
+   (Hane Featherbound Oath) runs into the tray's bottom margin */
 .skill-name {
   position: absolute;
-  left: -8px;
-  right: -8px;
-  bottom: -2px;
+  top: calc(100% - 29px);
+  left: -5px;
+  right: -5px;
   color: var(--bone);
-  font: 700 0.8125rem/1.1 var(--display);
+  font: 700 0.75rem/1.2 var(--display);
   text-align: center;
-  white-space: nowrap;
+  text-wrap: balance;
   text-shadow: 0 1px 0 rgba(8, 5, 12, 0.95);
 }
 .skill.ult {
