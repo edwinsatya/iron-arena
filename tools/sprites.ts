@@ -473,6 +473,82 @@ const HEROES: HeroCfg[] = [
     },
   },
   {
+    // Cyberpunk Street Assassin (free complete pack): a gauntlet brawler. One punch animation,
+    // so the combo also uses its 3/4 view, the straight arm of the ultimate and, seen from the
+    // front, the hammer fist. The death ends on her knees; the last frames tip her onto her back.
+    id: 'kemuri',
+    pack: 'cyberpunk-street-assassin-COMPLETE-FREE',
+    height: 1.72,
+    anims: {
+      idle: { src: 'Idle', fps: 10, loop: true },
+      walk: { src: 'Walk', fps: 12, loop: true },
+      run: { src: 'Walk', fps: 18, loop: true, xf: () => ({ rot: -7 }) },
+      // Fists up
+      guard: { src: 'Crimson_Smokescreen_Order', pick: [1, 2] },
+      hurt: {
+        src: 'Death',
+        pick: [7, 8, 9, 8, 7],
+        xf: [{ rot: 6, dx: -2 }, { rot: 12, dx: -5 }, { rot: 10, dx: -4 }, { rot: 5, dx: -2 }, {}],
+      },
+      death: {
+        src: 'Death',
+        pick: [8, 9, 10, 11, 12, 13, 13, 13],
+        xf: [
+          {},
+          {},
+          {},
+          {},
+          { rot: 18, dx: -4, ground: true },
+          { rot: 48, dx: -9, ground: true },
+          { rot: 80, dx: -12, dy: -4, ground: true },
+          { rot: 90, dx: -12, ground: true },
+        ],
+      },
+      // The punch without its wind-up
+      jab: { src: 'Smokestrike_Jab', pick: [0, 2, 8, 9, 10, 14, 15], hit: 2 },
+      // The other hand, seen from three quarters
+      jab2: { src: 'Smokestrike_Jab', dir: 'south-east', pick: [0, 1, 6, 7, 8, 9, 13, 15], hit: 3 },
+      // A straight right: the arm of the ultimate without the charge
+      cross: { src: 'Last_Breath_Protocol', pick: [0, 3, 5, 16, 17, 18, 20, 22, 23], hit: 3 },
+      smokestrike: { src: 'Smokestrike_Jab', hit: 8 },
+      // Facing out: a hammer fist into the floor
+      slam: { src: 'Smokestrike_Jab', dir: 'south', hit: 10 },
+      brand: { src: 'Cindertrace_Brand', hit: 12 },
+      prime: { src: 'Violet_Vein_Priming', hit: 12 },
+      screen: { src: 'Crimson_Smokescreen_Order', hit: 8 },
+      ult: { src: 'Last_Breath_Protocol', hit: 16 },
+      front: { src: 'Idle', dir: 'south', fps: 10, loop: true },
+    },
+  },
+  {
+    // Cyberpunk Sword Huntress (free complete pack): every skill has its own animation. The
+    // quick cuts of the combo and the lunge are the big moves without their wind-ups.
+    id: 'raika',
+    pack: 'cyberpunk-sword-huntress-COMPLETE-FREE',
+    height: 1.74,
+    anims: {
+      idle: { src: 'Idle', fps: 10, loop: true },
+      walk: { src: 'Walk', fps: 12, loop: true },
+      run: { src: 'Walk', fps: 18, loop: true, xf: () => ({ rot: -7 }) },
+      // The gauntlet held out, palm first
+      guard: { src: 'Gauntlet_Polarity_Lock', pick: [5, 6] },
+      hurt: { src: 'Death', pick: [5, 6, 7, 8, 9] },
+      death: { src: 'Death', range: [8, 23] },
+      cut: { src: 'Plasma_Seam_Ripper', pick: [0, 7, 9, 11, 12, 13, 14, 16, 19], hit: 4 },
+      thrust: { src: 'Magenta_Circuit_Break', pick: [0, 3, 4, 5, 6, 7, 16, 18, 19], hit: 3 },
+      ripper: { src: 'Plasma_Seam_Ripper', hit: 12 },
+      breaker: { src: 'Magenta_Circuit_Break', hit: 8 },
+      lock: { src: 'Gauntlet_Polarity_Lock', hit: 8 },
+      decoy: { src: 'Violet_Mantle_Decoy', hit: 6 },
+      // The dash of the ultimate without the charge
+      lunge: { src: 'Last_Circuit_Execution', pick: [0, 3, 15, 16, 17, 18, 20, 22, 23], hit: 2 },
+      ult: { src: 'Last_Circuit_Execution', hit: 15 },
+      front: { src: 'Idle', dir: 'south', fps: 10, loop: true },
+      // Facing out, the hunter's eye lit
+      win: { src: 'Cyan_Hunter_S_Calibration', dir: 'south', pick: [0, 1, 2, 3, 4, 5, 6, 7, 8] },
+    },
+  },
+  {
     id: 'dummy',
     pack: 'wasteland-juggernaut-FREE',
     height: 1.85,

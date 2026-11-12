@@ -116,6 +116,11 @@ export class Sfx {
           this.burst({ freq: 900, q: 0.7, dur: 0.3, gain: 0.35, type: 'lowpass', sweepTo: 300 });
         if (weapon === 'ice') this.burst({ freq: 5200, q: 5, dur: 0.18, gain: 0.3, sweepTo: 7000 });
         if (weapon === 'hammer' || weapon === 'anchor') this.thump(70, 0.25, 0.7);
+        if (weapon === 'gauntlet') {
+          // Iron knuckles and a hiss of smoke
+          this.thump(120, 0.12, 0.6);
+          this.burst({ freq: 3000, q: 1, dur: 0.14, gain: 0.2, sweepTo: 900 });
+        }
         if (weapon === 'sting') {
           // A wet slap and an electric zap
           this.burst({ freq: 7000, q: 6, dur: 0.12, gain: 0.25, sweepTo: 3500 });

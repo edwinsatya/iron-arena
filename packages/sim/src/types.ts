@@ -104,7 +104,12 @@ export type AreaKind =
   | 'pulse'
   | 'abyss'
   | 'pillar'
-  | 'firering';
+  | 'firering'
+  | 'haze'
+  | 'brand'
+  | 'lock'
+  | 'decoy'
+  | 'seam';
 
 /** A ground circle that hits everyone inside after a telegraph. */
 export interface AreaSpec {
@@ -186,6 +191,7 @@ export type Weapon =
   | 'claw'
   | 'lantern'
   | 'sting'
+  | 'gauntlet'
   | 'none';
 /** Melee roles close in; Archer keeps its distance (the CPU plays them differently). */
 export type Role = 'Berserker' | 'Archer' | 'Guardian' | 'Knight' | 'Assassin' | 'Mage' | 'Dummy';

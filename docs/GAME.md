@@ -80,6 +80,8 @@ locks the screen sideways where the browser allows it (Android).
 | **Karasu** "Plague Doctor" | Mage (lantern) | 1040 | **Ekibyō Flask**: lobbed flask bursts into a poison cloud | **Kurobane Swarm**: crows pour from the lantern and hunt the enemy | **Miasma Veil**: poison burst, scatters into crows and re-forms further back | **Kokushibyō**: a storm of plague and crows, then a pillar of green fire |
 | **Kamakiri** "Void Mantis" | Assassin (scythe forelegs) | 1040 | **Kamaitachi**: two crescents of wind, one from each scythe | **Hanemai Dive**: leaps, blinks through the void above the enemy and dives | **Kamae Snare**: the forelegs snap shut — a grab through guard, two cuts and a kick | **Kokū Harvest**: a storm of void crescents, then one last cut |
 | **Kurage** "Abyssal Jelly" | Mage (stinging tentacles; takes 14% less damage) | 1100 | **Shiden Bolt**: piercing bolt of purple lightning | **Abyssal Tether**: a tentacle lashes across the stage, drags the enemy in and stings again | **Hakkō Pulse**: the bell flares, a ring of light that leaves anyone close reeling | **Shinkai Gaze**: the deep swallows the stage, lightning stings, the great eye bursts |
+| **Kemuri** "Smoke Gauntlet" | Assassin (smoke gauntlets; four-hit combo) | 1020 | **Hibana Brand**: a cinder brand locks onto the enemy from afar, then blows them into the air | **Shimyaku Priming**: armoured burst of violet smoke throws foes back, then +25% damage and speed for 7 s | **Kurenai Smokescreen**: bursts into crimson smoke, untouchable for a moment; the cloud lingers and chokes whoever stands in it | **Imawa Last Breath**: appears at the enemy's throat, a storm of gauntlet blows, then the last one |
+| **Raika** "Plasma Huntress" | Knight (plasma sword, long reach) | 1000 | **Shisen Seam Ripper**: piercing seam of plasma along the ground | **Jiryoku Polarity Lock**: armoured; magnetic rings close on the enemy, stun them and drag them toward her | **Gen'ei Mantle Decoy**: slips backwards, the decoy left standing bursts and stuns | **Shūen Last Circuit**: a thrust across the whole stage, then every seam it cut tears open |
 
 Every hero also has a dash attack, an air attack and a charged attack. The in-game *Heroes &
 controls* page is generated from the data.
@@ -103,7 +105,8 @@ controls* page is generated from the data.
 
 `pnpm balance [matches] [--detail]` plays CPU-vs-CPU for every pair and prints win rates, round
 endings, a win matrix and each hero's damage by move. Last run (20 matches per pair, hard CPU, with
-wake-up protection): Hyōshin 76%, Kage 68%, Lysa 64%, Karasu 57%, Homura 55%, Reo 54%,
-Benika 48%, Hyōga 48%, Kamakiri 46%, Kurage 42%, Gōkai 37%, Kuma 36%, Akari 35%, Yomi 33%.
+wake-up protection): Hyōshin 78%, Kage 67%, Lysa 65%, Karasu 58%, Homura 55%, Reo 53%,
+Kemuri 52%, Raika 48%, Hyōga 48%, Benika 47%, Kamakiri 45%, Kurage 40%, Gōkai 37%, Kuma 36%,
+Akari 35%, Yomi 34%.
 Tune with real players.
 The CPU keeps its distance only with heroes whose basic attack is a shot.

@@ -21,6 +21,8 @@ Every hero but Kamakiri is drawn with free character packs by **elie automata** 
 | Kuma | Black Bear Bandit (free pack) |
 | Karasu | Plague Doctor (free pack; missing moves built from its frames) |
 | Kurage | Abyssal Jelly (free complete pack) |
+| Kemuri | Cyberpunk Street Assassin (free complete pack) |
+| Raika | Cyberpunk Sword Huntress (free complete pack) |
 | Training dummy | Wasteland Juggernaut (free pack) |
 
 Licence (from the packs): *Commercial and non-commercial use and modifications allowed. Credit "elie automata". Distribution within finished projects allowed. No standalone resale, sharing or redistribution of original or modified assets.*

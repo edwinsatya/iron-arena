@@ -382,3 +382,97 @@ describe('rounds', () => {
     expect(s.fighters[0].ult).toBeGreaterThanOrEqual(400);
   });
 });
+
+describe('Kemuri and Raika', () => {
+  it("Kemuri's four-hit combo lands every blow and launches on the last", () => {
+    const s = setup('kemuri', 'dummy', 0, 850);
+    const d = s.fighters[1];
+    let hits = 0;
+    let hp = d.hp;
+    let launched = false;
+    run(
+      s,
+      90,
+      (k) => (k % 6 < 2 ? BTN.ATTACK : 0),
+      () => {
+        if (d.hp !== hp) hits++;
+        hp = d.hp;
+        if (d.state === FS.LAUNCHED) launched = true;
+        return 0;
+      },
+    );
+    expect(hits).toBeGreaterThanOrEqual(4);
+    expect(launched).toBe(true);
+  });
+
+  it('Hibana Brand blows a far enemy into the air; the smokescreen chokes whoever stands in it', () => {
+    const s = setup('kemuri', 'dummy', -3000, 3000);
+    tap(s, 0, BTN.SKILL1);
+    run(s, 44);
+    expect(s.fighters[1].hp).toBeLessThan(1000);
+    expect(s.fighters[1].y).toBeGreaterThan(0);
+
+    const c = setup('kemuri', 'dummy', 0, 900);
+    const d = c.fighters[1];
+    tap(c, 0, BTN.SKILL3);
+    let ticks = 0;
+    let hp = d.hp;
+    run(c, 170, 0, () => {
+      if (d.hp !== hp) ticks++;
+      hp = d.hp;
+      return 0;
+    });
+    expect(ticks).toBeGreaterThanOrEqual(4);
+  });
+
+  it('Shimyaku Priming makes Kemuri faster and hit harder', () => {
+    const s = setup('kemuri', 'dummy', 0, 6000);
+    tap(s, 0, BTN.SKILL2);
+    run(s, 20);
+    const f = s.fighters[0];
+    expect(f.buffFrames).toBeGreaterThan(300);
+    expect(f.buffDamagePct).toBe(25);
+    expect(f.buffSpeedPct).toBe(25);
+  });
+
+  it('Seam Ripper crosses the stage; Polarity Lock stuns the enemy and drags them closer', () => {
+    const far = setup('raika', 'dummy', -3000, 3000);
+    tap(far, 0, BTN.SKILL1);
+    run(far, 60);
+    expect(far.fighters[1].hp).toBeLessThan(1000);
+
+    const s = setup('raika', 'dummy', -2500, 2500);
+    const d = s.fighters[1];
+    tap(s, 0, BTN.SKILL2);
+    let dizzy = false;
+    run(s, 60, 0, () => {
+      if (d.state === FS.DIZZY) dizzy = true;
+      return 0;
+    });
+    expect(dizzy).toBe(true);
+    expect(d.x).toBeLessThan(2500 - 800);
+    expect(d.x).toBeGreaterThan(s.fighters[0].x);
+  });
+
+  it("Gen'ei Mantle Decoy slips Raika backwards and the decoy stuns whoever stands by it", () => {
+    const s = setup('raika', 'dummy', 0, 900);
+    const [r, d] = s.fighters;
+    tap(s, 0, BTN.SKILL3);
+    run(s, 12);
+    expect(r.x).toBeLessThan(-2000);
+    expect(d.hp).toBe(1000);
+    run(s, 20);
+    expect(d.hp).toBeLessThan(1000);
+    expect(d.state).toBe(FS.DIZZY);
+  });
+
+  it('both ultimates connect from mid range', () => {
+    for (const id of ['kemuri', 'raika']) {
+      const s = setup(id, 'dummy', -1500, 1500);
+      s.fighters[0].ult = ULT_MAX;
+      tap(s, 0, BTN.ULT);
+      run(s, 220);
+      expect(s.fighters[1].hp, id).toBeLessThan(800);
+    }
+  });
+});

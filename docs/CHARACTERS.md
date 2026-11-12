@@ -70,6 +70,16 @@ Two more heroes are built the same way:
 | Kamakiri, Void Mantis | A walk and one slash in 8 directions; one-frame idle, flying and dead poses (stored as `<State>/<facing>.png`, which the converter reads as one-frame animations) | Idle breathing (the idle pose rising and settling), run (tilted walk), jump and hover (the flying pose), guard (blades folded, from the walk), flinch and knockdown (tilts, then the dead pose), the slash seen side-on, from three quarters (a full circle) and from the front (both blades), the slash twice, the snare (a lunge), the dive (flying pose and slash, nose down) |
 | Kurage, Abyssal Jelly | Idle, move, a tentacle lash and death (complete pack) | It floats (`hover`); guard = shrinking into its bell, flinch = the first death frames, knockdown = collapsing into a puddle (getting up re-forms it), the pulse = the bell swelling, the gaze = the front view with the great eye |
 
+The two cyberpunk packs have an animation for every skill, so little is built:
+
+| Hero | The pack has | Made from it |
+|---|---|---|
+| Kemuri, Smoke Gauntlet | Idle, walk, one punch, four skills and a death that ends on her knees (complete pack, plus stand-alone VFX frames the game doesn't use: its effects are drawn in code) | The four-hit combo (the punch without its wind-up, the punch from three quarters, the ultimate's straight arm, the full punch), the hammer fist (the punch seen from the front), guard (fists up), flinch and knockdown (the stumble, then the kneeling frames tipped onto her back) |
+| Raika, Plasma Huntress | Idle, walk, six skills and a death (complete pack) | The quick cut, the thrust and the lunge (the big moves without their wind-ups), guard (the gauntlet held out), the victory pose (the Calibration, seen from the front) |
+
+Raika's decoy is drawn with her own idle frame: the renderer leaves it standing where the skill's
+area is until it bursts (`drawDecoys` in `renderer2d.ts`).
+
 Kamakiri's snare is the game's first grab (`grab` / `release` in the action data): the forelegs
 catch the enemy through guard, hold them, cut and kick them away.
 
@@ -89,3 +99,5 @@ catch the enemy through guard, hold them, cut and kick them away.
 - **Karasu, Plague Doctor** (Plague Doctor, free pack: idle, walk, jump, one lantern swing): Ekibyō Flask, Kurobane Swarm, Miasma Veil; ultimate Kokushibyō. Every missing move is built from the pack's own frames (see below)
 - **Kamakiri, Void Mantis** (Void Mantis Pixel Art v1.0, free pack): Kamaitachi, Hanemai Dive, Kamae Snare; ultimate Kokū Harvest
 - **Kurage, Abyssal Jelly** (Abyssal Jelly, free complete pack): Shiden Bolt, Abyssal Tether, Hakkō Pulse; ultimate Shinkai Gaze
+- **Kemuri, Smoke Gauntlet** (Cyberpunk Street Assassin, free complete pack): Hibana Brand, Shimyaku Priming, Kurenai Smokescreen; ultimate Imawa Last Breath
+- **Raika, Plasma Huntress** (Cyberpunk Sword Huntress, free complete pack): Shisen Seam Ripper, Jiryoku Polarity Lock, Gen'ei Mantle Decoy; ultimate Shūen Last Circuit

@@ -148,6 +148,7 @@ export class Effects2D {
       case EV.TELEPORT: {
         const w = LOOKS[ROSTER[s.fighters[e.fighter]?.char ?? 0]!.id]?.weapon;
         if (w === 'dagger') this.smoke(e.x);
+        else if (w === 'gauntlet') this.smoke(e.x, '190, 40, 90');
         else if (w === 'lantern') {
           // Dissolves into plague smoke and a burst of crows
           this.smoke(e.x, '80, 150, 70');
@@ -779,6 +780,12 @@ export class Effects2D {
       // Kaen Pillar bursts out of the ground just before it can hit, so it's up when it does
       else if (spec.kind === 'pillar' && a.age >= spec.delay - 3)
         this.firePillar(g, v, a.x, spec.r, a.age - spec.delay, a.action * 7 + a.spec);
+      else if (spec.kind === 'brand' || spec.kind === 'lock') {
+        const l = LOOKS[ROSTER[a.char]!.id]!;
+        const t = a.age / Math.max(1, spec.delay);
+        if (spec.kind === 'brand') this.reticle(g, v, a.x, spec.r, t, l.color);
+        else this.polarity(g, v, a.x, spec.r, t, l.color, l.glow, false);
+      }
       return;
     }
     const k = (a.age - spec.delay) / Math.max(1, spec.active);
@@ -1223,6 +1230,112 @@ export class Effects2D {
         }
         break;
       }
+      case 'haze': {
+        // Kurenai Smokescreen: a bank of crimson smoke, violet at its heart, rolling and thinning
+        const u = a.age - spec.delay;
+        const grow = 1 - (1 - Math.min(1, u / 12)) ** 2;
+        const H = v.px(1700);
+        for (let n = 0; n < 26; n++) {
+          const drift = Math.sin(this.time * 0.8 + n * 1.9) * rx * 0.07;
+          // Puff centres stay inside 3/4 of the radius so the cloud's edge is where it stops hurting
+          const px = x + (hash(n * 1.3 + 4) - 0.5) * 1.5 * rx * grow + drift;
+          const py = y0 - H * (0.08 + hash(n * 2.1 + 9) * 0.9) * grow - Math.sin(this.time * 0.6 + n) * 4;
+          const pr = rx * (0.3 + hash(n * 3.7 + 2) * 0.24) * (0.6 + 0.4 * grow);
+          const c = n % 3 === 0 ? look.glow : n % 3 === 1 ? look.color : '#5a1230';
+          const puff = g.createRadialGradient(px, py, 0, px, py, pr);
+          puff.addColorStop(0, hexA(c, n % 3 === 0 ? 0.42 : 0.66));
+          puff.addColorStop(0.55, hexA(c, n % 3 === 0 ? 0.22 : 0.36));
+          puff.addColorStop(1, hexA(c, 0));
+          g.fillStyle = puff;
+          g.beginPath();
+          g.arc(px, py, pr, 0, TAU);
+          g.fill();
+        }
+        smoke(g, x, y0 - H * 0.5, rx * 0.8, this.time, 7, look.glow, a.action);
+        if (u < 8) starBurst(g, x, y0 - v.px(900), rx * 0.9, u / 8, look.color, look.glow, a.action);
+        break;
+      }
+      case 'brand': {
+        // Hibana Brand goes off: the mark flares white and throws cinders up
+        const cy = y0 - v.px(1050);
+        starBurst(g, x, cy, rx * 1.7, Math.min(1, k * 1.2), look.color, '#ffe9c0', a.action);
+        const col = g.createLinearGradient(x - rx * 0.5, 0, x + rx * 0.5, 0);
+        col.addColorStop(0, hexA(look.color, 0));
+        col.addColorStop(0.5, hexA('#fff1d6', 0.8 * (1 - k)));
+        col.addColorStop(1, hexA(look.color, 0));
+        g.fillStyle = col;
+        g.fillRect(x - rx * 0.5, y0 - v.px(3000), rx, v.px(3000));
+        embers(g, x, y0, rx * 1.8, v.px(2600), this.time, 16, '#ffc27a', a.action);
+        break;
+      }
+      case 'lock': {
+        // Jiryoku Polarity Lock snaps shut
+        this.polarity(g, v, a.x, spec.r, k, look.color, look.glow, true);
+        break;
+      }
+      case 'decoy': {
+        // The mantle left behind tears itself apart
+        const cy = y0 - v.px(950);
+        starBurst(g, x, cy, rx * 1.2, Math.min(1, k * 1.3), look.color, look.glow, a.action);
+        smoke(g, x, y0 - v.px(500), rx * 0.7, this.time, 8, '#5a2a78', a.action);
+        embers(g, x, cy, rx * 1.8, v.px(1800), this.time, 14, look.color, a.action);
+        break;
+      }
+      case 'seam': {
+        const cy = y0 - v.px(1000);
+        if (a.spec === 0) {
+          // Shūen Last Circuit: every cut of the thrust opens again, one after another
+          for (let q = 0; q < 3; q++) {
+            const n = Math.floor(a.age / 4) * 3 + q;
+            const life = (a.age % 4) / 4;
+            g.save();
+            g.translate(x + (hash(n * 1.7) - 0.5) * rx * 0.7, cy + (hash(n * 2.3) - 0.5) * v.px(1000));
+            g.rotate((hash(n * 3.9) - 0.5) * 2.4);
+            const L = rx * (1.1 + hash(n * 5.1) * 0.6);
+            g.globalAlpha = Math.max(0, fade) * (1 - life * 0.7);
+            g.shadowColor = look.color;
+            g.shadowBlur = 14;
+            for (const [w, c] of [
+              [v.px(150), look.color],
+              [v.px(60), '#ffffff'],
+            ] as const) {
+              g.fillStyle = c;
+              g.beginPath();
+              g.moveTo(-L, 0);
+              g.quadraticCurveTo(0, -w * (1 - life), L, 0);
+              g.quadraticCurveTo(0, w * (1 - life), -L, 0);
+              g.fill();
+            }
+            g.restore();
+          }
+          embers(g, x, cy, rx * 1.6, v.px(2000), this.time, 12, look.glow, a.action);
+        } else {
+          // The last seam: the air splits from the floor up and the plasma pours out
+          const open = Math.min(1, k * 2.5);
+          const H = v.px(3600) * open;
+          const W = rx * 0.3 * (1 - k * 0.6);
+          g.shadowColor = look.color;
+          g.shadowBlur = 24;
+          for (const [w, c] of [
+            [W, look.color],
+            [W * 0.45, '#ffffff'],
+          ] as const) {
+            g.fillStyle = c;
+            g.beginPath();
+            g.moveTo(x, y0);
+            for (let n = 1; n <= 8; n++)
+              g.lineTo(x + (n % 2 ? -1 : 1) * w * (0.4 + hash(n * 2.9)) * (1 - n / 9), y0 - (H * n) / 8);
+            for (let n = 7; n >= 1; n--)
+              g.lineTo(x + (n % 2 ? -1 : 1) * w * (hash(n * 2.9) - 0.6) * (1 - n / 9), y0 - (H * n) / 8);
+            g.closePath();
+            g.fill();
+          }
+          g.shadowBlur = 0;
+          starBurst(g, x, cy, rx * 1.3, Math.min(1, k * 1.4), look.color, look.glow, a.action);
+          embers(g, x, y0, rx * 2, v.px(3200), this.time, 18, look.glow, a.action);
+        }
+        break;
+      }
       case 'smoke': {
         g.fillStyle = hexA('#2b2340', 0.6);
         for (let n = 0; n < 7; n++) {
@@ -1271,6 +1384,84 @@ export class Effects2D {
         else embers(g, x, y0 - v.px(400), rx * 1.6, v.px(1600), this.time, 14, look.glow, a.age);
         break;
       }
+    }
+    g.restore();
+  }
+
+  /** Hibana Brand taking aim: brackets close on the enemy's chest around a four-pointed star. */
+  private reticle(g: CanvasRenderingContext2D, v: View2D, wx: number, r: number, k: number, color: string) {
+    const R = v.px(r) * (1.9 - 1.1 * k);
+    g.save();
+    g.translate(v.sx(wx), v.sy(1050));
+    g.strokeStyle = hexA(color, 0.45 + 0.55 * k);
+    g.lineWidth = Math.max(2, v.px(45));
+    g.lineCap = 'round';
+    g.save();
+    g.rotate(k * Math.PI * 0.75);
+    for (let q = 0; q < 4; q++) {
+      g.rotate(TAU / 4);
+      g.beginPath();
+      g.arc(0, 0, R, -0.45, 0.45);
+      g.stroke();
+      g.beginPath();
+      g.moveTo(R * 1.08, 0);
+      g.lineTo(R * 1.3, 0);
+      g.stroke();
+    }
+    g.restore();
+    // The brand itself: a star that fills in as it locks, blinking faster at the end
+    const blink = k > 0.6 ? 0.6 + 0.4 * Math.sin(this.time * 50) : 1;
+    const S = R * (0.3 + 0.35 * k);
+    g.fillStyle = hexA('#fff1d6', (0.35 + 0.6 * k) * blink);
+    g.shadowColor = color;
+    g.shadowBlur = 16;
+    g.beginPath();
+    for (let n = 0; n < 8; n++) {
+      const rr = n % 2 ? S * 0.2 : S;
+      g[n ? 'lineTo' : 'moveTo'](Math.cos((n / 8) * TAU) * rr, Math.sin((n / 8) * TAU) * rr);
+    }
+    g.closePath();
+    g.fill();
+    g.restore();
+  }
+
+  /** Jiryoku Polarity Lock: magnetic rings spin in on the enemy (k 0 → 1), then snap shut. */
+  private polarity(
+    g: CanvasRenderingContext2D,
+    v: View2D,
+    wx: number,
+    r: number,
+    k: number,
+    color: string,
+    glow: string,
+    shut: boolean,
+  ) {
+    const x = v.sx(wx);
+    const y = v.sy(1000);
+    const R = v.px(r) * (shut ? 1.05 - 0.2 * k : 2.6 - 1.55 * k);
+    g.save();
+    g.translate(x, y);
+    if (shut) {
+      const flash = g.createRadialGradient(0, 0, 0, 0, 0, R * 1.6);
+      flash.addColorStop(0, hexA('#ffffff', 0.8 * (1 - k)));
+      flash.addColorStop(0.4, hexA(color, 0.4 * (1 - k)));
+      flash.addColorStop(1, hexA(color, 0));
+      g.fillStyle = flash;
+      g.beginPath();
+      g.arc(0, 0, R * 1.6, 0, TAU);
+      g.fill();
+    }
+    g.shadowColor = color;
+    g.shadowBlur = shut ? 18 : 8;
+    for (let n = 0; n < 3; n++) {
+      g.save();
+      g.rotate((n * TAU) / 6 + (shut ? 0 : this.time * 4 * (n % 2 ? 1 : -1)));
+      g.strokeStyle = hexA(n === 1 ? glow : color, shut ? 1 : 0.3 + 0.65 * k);
+      g.lineWidth = Math.max(2, v.px(shut ? 80 : 50));
+      g.beginPath();
+      g.ellipse(0, 0, R, R * 0.36, 0, 0, TAU);
+      g.stroke();
+      g.restore();
     }
     g.restore();
   }

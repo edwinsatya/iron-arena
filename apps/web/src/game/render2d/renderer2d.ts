@@ -241,6 +241,8 @@ export class GameRenderer {
     const sky = this.skyFire(s);
     if (sky > 0) burningSky(g, v.w, v.h, sky, this.time);
 
+    this.drawDecoys(g, s);
+
     // Shadows, then heroes (the one acting drawn last, on top)
     for (const f of s.fighters) this.shadow(g, f);
     const order = [0, 1].sort((i, j) => this.priority(s, i) - this.priority(s, j));
@@ -272,6 +274,29 @@ export class GameRenderer {
     g.beginPath();
     g.ellipse(v.sx(f.x), v.sy(0), v.px(480) * k, v.px(110) * k, 0, 0, Math.PI * 2);
     g.fill();
+  }
+
+  /** Decoys (Raika's mantle): the hero's own figure left standing, flickering, until it bursts. */
+  private drawDecoys(g: CanvasRenderingContext2D, s: GameState) {
+    const v = this.v;
+    for (const a of s.areas) {
+      const spec = areaSpec(a.char, a.action, a.spec);
+      if (spec.kind !== 'decoy' || a.age >= spec.delay) continue;
+      const sprite = this.heroes.get(ROSTER[a.char]!.id);
+      const idle = sprite?.atlas.anims.idle;
+      if (!sprite || !idle) continue;
+      const facing = (s.fighters[1 - a.owner]!.x >= a.x ? 1 : -1) * v.flip;
+      const k = a.age / Math.max(1, spec.delay);
+      // Solid at first, breaking up as it is about to go
+      const alpha = 0.75 - 0.25 * k + (k > 0.6 ? 0.2 * Math.sin(this.time * 60) : 0);
+      const pick: SpritePick = { anim: idle, frame: 0, sx: 1, sy: 1, rot: 0, alpha: 1 };
+      const alt = a.owner === 1 && s.fighters[0]!.char === a.char;
+      sprite.drawPick(g, pick, v.sx(a.x), v.sy(0), sprite.scaleFor(v), facing, {
+        alpha,
+        alt,
+        flash: 0.25 * k,
+      });
+    }
   }
 
   private drawHero(g: CanvasRenderingContext2D, s: GameState, i: number, dt: number) {

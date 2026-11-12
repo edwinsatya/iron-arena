@@ -53,6 +53,7 @@ export interface Look {
     | 'claw'
     | 'lantern'
     | 'sting'
+    | 'gauntlet'
     | 'none';
   /** Sprite animation per action id. */
   actions: Record<string, AnimRef>;
@@ -386,6 +387,48 @@ export const LOOKS: Record<string, Look> = {
       jl_s2: { anim: 'pulse', puppet: 'raise' },
       jl_s3: 'attack',
       jl_ult: { anim: 'front', puppet: 'raise' },
+    },
+  },
+  kemuri: {
+    color: '#ff3b6b',
+    glow: '#e7a8ff',
+    weapon: 'gauntlet',
+    altHue: 150,
+    win: 'front',
+    actions: {
+      // One punch in the pack: the combo also uses its 3/4 view and the ultimate's straight arm
+      ke_b1: 'jab',
+      ke_b2: 'jab2',
+      ke_b3: 'cross',
+      ke_b4: 'smokestrike',
+      ke_dash: { anim: 'cross', puppet: 'lunge' },
+      // Facing out: the hammer fist
+      ke_air: 'slam',
+      ke_charge: 'slam',
+      ke_s1: 'brand',
+      ke_s2: 'prime',
+      ke_s3: 'screen',
+      // Blow after blow: the charged arm drawn back and driven out again
+      ke_ult: { anim: 'ult', cycle: [28, 7] },
+    },
+  },
+  raika: {
+    color: '#ff58e0',
+    glow: '#c6f7ff',
+    weapon: 'sword',
+    altHue: 140,
+    win: { anim: 'win', hold: 8 },
+    actions: {
+      ra_b1: 'cut',
+      ra_b2: 'thrust',
+      ra_b3: 'ripper',
+      ra_dash: 'lunge',
+      ra_air: 'cut',
+      ra_charge: 'breaker',
+      ra_s1: 'ripper',
+      ra_s2: 'lock',
+      ra_s3: 'decoy',
+      ra_ult: 'ult',
     },
   },
   dummy: {
