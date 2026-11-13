@@ -495,6 +495,27 @@ export const LOOKS: Record<string, Look> = {
       ts_ult: { anim: 'rear', swap: [20, 'ram'] },
     },
   },
+  shirogane: {
+    color: '#8fb8ff',
+    glow: '#fff3cf',
+    weapon: 'sword',
+    altHue: 160,
+    win: { anim: 'win', hold: 8 },
+    actions: {
+      sg_b1: 'cut',
+      sg_b2: 'cut2',
+      sg_b3: 'slash',
+      sg_dash: { anim: 'cut', puppet: 'lunge' },
+      sg_air: 'slash',
+      // Facing out: the wide sweep
+      sg_charge: 'sweep',
+      sg_s1: 'cast',
+      // Facing out: the blade coiled overhead and brought down
+      sg_s2: 'coil',
+      sg_s3: 'bless',
+      sg_ult: 'judgment',
+    },
+  },
   dummy: {
     color: '#b8b2c8',
     glow: '#ffffff',

@@ -627,6 +627,7 @@ export class GameRenderer {
     const f = s.fighters[i]!;
     const o = s.fighters[1 - i]!;
     const dir = (f.fx >= 0 ? 1 : -1) * v.flip;
+    if (id.startsWith('kg_')) this.rogueVfx(g, f, o, id, t);
     if (id === 'hy_s3') {
       // Rime Bastion: ice crystals burst up around him
       const k = Math.min(1, Math.max(0, (t - 8) / 6));
@@ -860,6 +861,86 @@ export class GameRenderer {
       g.beginPath();
       g.arc(v.sx(f.x) + dir * v.px(500), v.sy(f.y + 1100), v.px(260) * (0.5 + k), 0, Math.PI * 2);
       g.fill();
+    }
+  }
+
+  /**
+   * Kage's clips from the Hooded Rogue's VFX update (nothing is drawn without them): the venom
+   * that blooms under a victim of Shunpo Behind, the violet shroud of Utsusemi Decoy (left
+   * behind, empty, when the counter fires) and the chains of Umbral Gravebind holding the target
+   * through Senjin Thousand Cuts.
+   */
+  private rogueVfx(
+    g: CanvasRenderingContext2D,
+    f: GameState['fighters'][number],
+    o: GameState['fighters'][number],
+    id: string,
+    t: number,
+  ) {
+    const fx = this.vfx.get('kage');
+    if (!fx) return;
+    const v = this.v;
+    if (id === 'kg_s2' && t >= 12 && o.state === FS.DIZZY) {
+      // The cut was poisoned: venom splashes and spreads under them while they reel
+      fx.draw(
+        g,
+        v,
+        'Venomshade_Miasma',
+        keyed(t, [
+          [12, 0],
+          [17, 4],
+          [30, 13],
+          [36, 17.99],
+        ]),
+        v.sx(o.x),
+        v.sy(o.y),
+        { size: 0.75, alpha: 0.9 },
+      );
+    } else if (id === 'kg_s3') {
+      // Wrapped in the shroud for as long as the decoy waits, then it falls away
+      const fr =
+        t < 10
+          ? keyed(t, [
+              [0, 0],
+              [10, 9],
+            ])
+          : t <= 32
+            ? 9 + (Math.floor(t / 4) % 6)
+            : keyed(t, [
+                [32, 15],
+                [42, 22.99],
+              ]);
+      fx.draw(g, v, 'Veil_of_the_Forgotten', fr, v.sx(f.x), v.sy(f.y), { size: 1.35, alpha: 0.85 });
+    } else if (id === 'kg_s3_strike' && t < 12) {
+      // The empty shroud where he stood, in front of the enemy, collapsing
+      fx.draw(
+        g,
+        v,
+        'Veil_of_the_Forgotten',
+        keyed(t, [
+          [0, 14],
+          [12, 22.99],
+        ]),
+        v.sx(2 * o.x - f.x),
+        v.sy(0),
+        { size: 1.35, alpha: 0.85 },
+      );
+    } else if (id === 'kg_ult' && t >= 4 && t < 92) {
+      // Runes ring the target, hooked chains rise and hold them, sinking away before the burst
+      const fr =
+        t < 20
+          ? keyed(t, [
+              [4, 0],
+              [14, 7],
+              [20, 10],
+            ])
+          : t < 78
+            ? 10 + (Math.floor((t - 20) / 3) % 12)
+            : keyed(t, [
+                [78, 22],
+                [92, 29.99],
+              ]);
+      fx.draw(g, v, 'Umbral_Gravebind', fr, v.sx(o.x), v.sy(0), { size: 0.85, alpha: 0.95 });
     }
   }
 

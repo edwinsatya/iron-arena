@@ -1,7 +1,7 @@
 # Heroes and sprite packs
 
 Heroes are pixel-art sprites from free packs, all by **elie automata** (itch.io) except Kamakiri's
-(the Void Mantis pack, see CREDITS.md). Each pack has every animation in 8 directions; the game
+(the Void Mantis pack) and Shirogane's (the Female Hero pack), see CREDITS.md. Each pack has every animation in 8 directions; the game
 uses the side view (`east`, mirrored for facing left).
 Complete packs also have painted art: portraits, full-length art and skill cards, which the HUD,
 select screen and ultimate cut-in use.
@@ -64,6 +64,9 @@ The free VFX updates replace the biggest effects with the packs' own pixel art (
 | Kemuri | Violet Vein Priming | Shimyaku Priming, at her chest, bursting on the strike |
 | Kemuri | Crimson Smokescreen Order (a little see-through, so nobody fully vanishes) | Kurenai Smokescreen: the canister, the ring of smoke, the bank rolling for as long as it lasts |
 | Kemuri | Last Breath Protocol | Imawa Last Breath: the cage around the target through the barrage, flaring and shattering on the last blow |
+| Kage | Venomshade Miasma (Hooded Rogue Assassin VFX update) | Shunpo Behind: when the cut stuns, a kunai strikes the floor and a venom pool spreads under the victim |
+| Kage | Veil of the Forgotten | Utsusemi Decoy: the violet shroud closes round him while the decoy waits, falls away after; when the counter fires, the empty shroud collapses where he stood |
+| Kage | Umbral Gravebind | Senjin Thousand Cuts: runes ring the target, hooked chains rise and hold them through the cuts, sinking away before the burst |
 
 Painted art (portraits, full art, skill boards) is in every complete pack but the game doesn't use
 it: since the tournament redesign every portrait, skill icon and cut-in is made from the sprites so
@@ -85,8 +88,9 @@ idle, walk, jump and one lantern swing:
 | Plague attacks, ultimate | Frames recoloured: the lantern, flames, sparks and their light turn green (`plague`) |
 
 Options per animation: `pick` (frames in any order, repeats, `[folder, frame]` from another
-animation), `dir` (another facing), `plague` (fire → green), `xf` (tilt, shift, `ground`) and
-`noHover`. Per hero: `hover` (floats that many pixels above the floor), `bust` (a manual crop when
+animation), `dir` (another facing), `flip` (mirror a camera-facing view whose swing goes the wrong
+way), `pack` (frames from a separate animation-update zip of the same character), `plague`
+(fire → green), `xf` (tilt, shift, `ground`) and `noHover`. Per hero: `hover` (floats that many pixels above the floor), `bust` (a manual crop when
 the automatic portrait misses the head) and `credit`.
 
 Two more heroes are built the same way:
@@ -122,6 +126,12 @@ Ikazuchi's clips (`magisterArea` in `effects2d.ts`, the code-drawn versions as t
 | Defensive Counter | Polarity Reversal: the grounded blow comes back |
 | Area Ultimate | Raimei Resonance Theorem: the rune circle over the enemy, ringing out on the proof |
 
+One more, from a pack with a separate animation update:
+
+| Hero | The pack has | Made from it |
+|---|---|---|
+| Shirogane, Silver Paladin | Female Hero Pixel Art v1.1: idle, walk, run, jump, guard, a diagonal slash, hurt and death in 8 directions, two more slashes facing the camera only; its New Animations update adds Basic Holy Spell Cast and Dawnpiercer Judgment (256 px canvas instead of 320, same size, read with `pack`) | The quick cut (the slash without its wind-up), the return cut (the slash from three quarters), the overhead coil and the sweep (the camera-facing slashes, mirrored with `flip` so they swing forward), knockdown (the death kneels; its last frames tip her onto her back), the blessing (the spell cast seen from the front), the victory pose (the judgment from the front, the dawn coming down on her hand) |
+
 Amane's verdict, halo and feathers are drawn in code (`seraphArea`, the `feather` projectile).
 
 Raika's decoy is drawn with her own idle frame: the renderer leaves it standing where the skill's
@@ -138,7 +148,7 @@ catch the enemy through guard, hold them, cut and kick them away.
 - **Hyōshin, Glacial Heart** (Glacial Heart): Hyōsō Bolt, Frost Barrier, Death Shatter; ultimate Absolute Zero
 - **Akari, Dawn Blade** (Young Swordswoman): Shōten Rising, Senkō Flash, Kabuto-wari; ultimate Reimei Sky Blade
 - **Reo, Aegis Knight** (Shield Knight): Hakō Wave, Shōryū Rising, Kōbō Aegis; ultimate Akatsuki Daybreak
-- **Kage, Hooded Shadow** (Black Assassin): Senbon Fan, Shunpo Behind, Utsusemi Decoy; ultimate Senjin Thousand Cuts
+- **Kage, Hooded Shadow** (Black Assassin, plus the Hooded Rogue Assassin VFX update for Shunpo Behind, Utsusemi Decoy and Senjin): Senbon Fan, Shunpo Behind, Utsusemi Decoy; ultimate Senjin Thousand Cuts
 - **Homura, Ember Witch** (Fire Witch, free pack: idle only; her casting is drawn in code, her big spells use the pack's VFX update): Kaen Pillar, Homura Wave, Hōen Ward; ultimate Ryūsei Meteor
 - **Gōkai, Drowned Admiral** (Tentaclebeard Admiral): Uzushio Maelstrom, Tsunami Wall, Barnacle Hide; ultimate Daikaishō Leviathan
 - **Yomi, Faceless Reaper** (Faceless Void Reaper, plus its VFX update for Grave Hands and Yomi Gate): Yamigiri Crescent, Soul Snatch, Grave Hands; ultimate Yomi Gate
@@ -151,3 +161,4 @@ catch the enemy through guard, hold them, cut and kick them away.
 - **Ikazuchi, Amber Magister** (Lightning Academy Magister, free complete pack, with its VFX clips): Kohaku Charge Imprint, Kairo Circuit Relay, Raiun Stormcloak; ultimate Raimei Resonance Theorem
 - **Amane, Sunwing Seraph** (Sanctuary Seraph, free complete pack): Nichirin Sunspoke Verdict, Habataki Wingbeat, Hane Featherbound Oath; ultimate Tenrin Unbroken Halo
 - **Tsuno, Northern Packgoat** (Northern Pack Goat, free complete pack: idles, walks and a stride; every attack is built from those frames): Gakemichi Surefoot Leap, Kemonomichi Trail Charge, Fuyugomori Winter Coat; ultimate Ōnadare Mountain Stampede
+- **Shirogane, Silver Paladin** (Female Hero Pixel Art v1.1 and its holy-spell update, free packs): Hōkō Holy Bolt, Tenchū Dawn Pillar, Kago Dawn Blessing; ultimate Shinpan Dawnpiercer Judgment

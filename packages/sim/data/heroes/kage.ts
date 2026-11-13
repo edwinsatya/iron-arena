@@ -2,7 +2,8 @@ import type { HeroData } from '../../src/types';
 
 /**
  * Kage — "Hooded Shadow". A dagger assassin: the fastest feet, thrown kunai, a step behind the
- * enemy and a decoy that punishes attacks. Fragile. Sprites: Hooded Rogue by elie automata.
+ * enemy and a decoy that punishes attacks. Fragile. Sprites: Black Assassin by elie automata;
+ * his skills use the Hooded Rogue Assassin VFX update (render only).
  */
 export const kage: HeroData = {
   id: 'kage',
@@ -123,7 +124,7 @@ export const kage: HeroData = {
     {
       id: 'kg_s2',
       name: 'Shunpo Behind',
-      blurb: 'Blink behind the enemy and cut before they turn',
+      blurb: 'Blink behind the enemy: a venomed cut before they turn leaves them reeling',
       total: 36,
       cooldown: 480,
       invuln: [0, 14],

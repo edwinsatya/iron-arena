@@ -72,7 +72,7 @@ locks the screen sideways where the browser allows it (Android).
 | **Hyōshin** "Glacial Heart" | Mage (ice) | 1040 | **Hyōsō Bolt**: piercing bolt that freezes in place | **Frost Barrier**: repelling ice sphere, then armour | **Death Shatter**: bursts into cutting shards, re-forms far away | **Absolute Zero**: teleports in, blizzard vortex drags everything in |
 | **Akari** "Dawn Blade" | Knight (sword) | 940 | **Shōten Rising**: rising launcher that jumps after them | **Senkō Flash**: invulnerable dash-through cut that stuns | **Kabuto-wari**: armoured guard-breaking overhead | **Reimei Sky Blade**: chant, then a blade of light falls from the sky |
 | **Reo** "Aegis Knight" | Knight (sword and shield) | 980 | **Hakō Wave**: piercing sword wave | **Shōryū Rising**: rising launcher | **Kōbō Aegis**: shield counter, unblockable riposte | **Akatsuki Daybreak**: teleports in, seven light cuts, pillar of dawn |
-| **Kage** "Hooded Shadow" | Assassin (daggers) | 1000 | **Senbon Fan**: three kunai | **Shunpo Behind**: blink behind, stunning cut | **Utsusemi Decoy**: smoke counter, unblockable strike from behind | **Senjin Thousand Cuts**: teleports in, cuts from every side |
+| **Kage** "Hooded Shadow" | Assassin (daggers) | 1000 | **Senbon Fan**: three kunai | **Shunpo Behind**: blink behind, a venomed cut that stuns | **Utsusemi Decoy**: smoke counter, unblockable strike from behind | **Senjin Thousand Cuts**: teleports in, cuts from every side |
 | **Homura** "Ember Witch" | Mage (fire) | 1000 | **Kaen Pillar**: the ground under the enemy burns, then erupts in pillars of fire | **Homura Wave**: rolling wall of flame | **Hōen Ward**: a ring of fire swept around her throws attackers away, +20% damage | **Ryūsei Meteor**: the sky burns, meteors track the enemy, then the big one |
 | **Gōkai** "Drowned Admiral" | Guardian (anchor) | 910 | **Uzushio Maelstrom**: whirlpool under the enemy pulls them in | **Tsunami Wall**: rolling wave | **Barnacle Hide**: armour and a heal | **Daikaishō Leviathan**: tentacles rise around the enemy |
 | **Yomi** "Faceless Reaper" | Knight (scythe) | 1060 | **Yamigiri Crescent**: piercing void crescent | **Soul Snatch**: long hook pulls the enemy in, stunned | **Grave Hands**: hands burst up under the enemy | **Yomi Gate**: teleports in, the underworld opens |
@@ -85,6 +85,7 @@ locks the screen sideways where the browser allows it (Android).
 | **Ikazuchi** "Amber Magister" | Mage (lightning rod and bronze gauntlet) | 1000 | **Kohaku Charge Imprint**: an amber sigil is branded on the enemy from afar, then discharges and stuns | **Kairo Circuit Relay**: armoured; bolts strike all around him again and again | **Raiun Stormcloak**: counter stance; the grounded blow comes back as an unblockable discharge | **Raimei Resonance Theorem**: a rune circle over the enemy, bolt after bolt, then the proof lands |
 | **Amane** "Sunwing Seraph" | Guardian (staff and wings) | 1020 | **Nichirin Sunspoke Verdict**: three spokes of light come down on the enemy, the last launches | **Habataki Wingbeat**: armoured; a gale of feathers throws foes away | **Hane Featherbound Oath**: heals 80, then 5 s of armour | **Tenrin Unbroken Halo**: a halo sinks around the enemy, burns, then shatters |
 | **Tsuno** "Northern Packgoat" | Berserker (horns and hooves; takes 5% less damage) | 980 | **Gakemichi Surefoot Leap**: a bound up and over that lands hooves first | **Kemonomichi Trail Charge**: sniffs out the trail, then an armoured charge across the stage | **Fuyugomori Winter Coat**: a blast of snow shoves foes back, then 3.5 s of armour and a small heal | **Ōnadare Mountain Stampede**: rears, thunders across the stage, the mountain comes down after it |
+| **Shirogane** "Silver Paladin" | Knight (longsword and holy light; takes 5% less damage) | 1050 | **Hōkō Holy Bolt**: a bolt of light from the palm that leaves the enemy reeling | **Tenchū Dawn Pillar**: armoured overhead, then a pillar of dawn bursts up and launches | **Kago Dawn Blessing**: heals 80, then 6 s of +20% damage and +10% speed | **Shinpan Dawnpiercer Judgment**: a lance of light pierces the stage and stuns, the dawn pins them, then bursts |
 
 Every hero also has a dash attack, an air attack and a charged attack. The in-game *Heroes &
 controls* page is generated from the data.
@@ -108,8 +109,8 @@ controls* page is generated from the data.
 
 `pnpm balance [matches] [--detail]` plays CPU-vs-CPU for every pair and prints win rates, round
 endings, a win matrix and each hero's damage by move. Last run (20 matches per pair, hard CPU, with
-wake-up protection): Hyōshin 79%, Lysa 67%, Kage 66%, Karasu 59%, Homura 55%, Kemuri 54%,
-Amane 54%, Reo 53%, Raika 49%, Hyōga 48%, Benika 48%, Kamakiri 46%, Tsuno 44%, Ikazuchi 44%,
-Kurage 41%, Gōkai 38%, Kuma 36%, Akari 36%, Yomi 34%.
+wake-up protection): Hyōshin 79%, Lysa 68%, Kage 66%, Karasu 60%, Homura 56%, Kemuri 54%,
+Amane 54%, Reo 53%, Raika 49%, Hyōga 49%, Shirogane 49%, Benika 47%, Kamakiri 46%, Tsuno 44%,
+Ikazuchi 44%, Kurage 40%, Gōkai 38%, Kuma 35%, Akari 35%, Yomi 34%.
 Tune with real players.
 The CPU keeps its distance only with heroes whose basic attack is a shot.

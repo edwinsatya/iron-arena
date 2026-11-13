@@ -4,7 +4,7 @@ Game design, code, stages, effects and hero names/skill names in IRON ARENA are 
 
 ## Character sprites and art — elie automata
 
-Every hero but Kamakiri is drawn with free character packs by **elie automata** ([itch.io](https://elie-automata.itch.io/)):
+Every hero but Kamakiri and Shirogane is drawn with free character packs by **elie automata** ([itch.io](https://elie-automata.itch.io/)):
 
 | Hero | Pack |
 |---|---|
@@ -14,7 +14,7 @@ Every hero but Kamakiri is drawn with free character packs by **elie automata** 
 | Hyōshin | Glacial Heart (free complete pack) |
 | Akari | Young Swordswoman (free complete pack) |
 | Reo | Shield Knight (free pack) |
-| Kage | Black Assassin (free pack) |
+| Kage | Black Assassin (free pack) and the Hooded Rogue Assassin free VFX update |
 | Homura | Fire Witch (free pack) and its free VFX update |
 | Gōkai | Tentaclebeard Admiral (free pack) |
 | Yomi | Faceless Void Reaper (free pack) and its free VFX update |
@@ -36,6 +36,13 @@ So the raw zips stay out of git (`assets-src/sprites/` is ignored). `pnpm sprite
 
 Kamakiri is drawn with the free **Void Mantis Pixel Art (v1.0)** pack; its readme names no author.
 Its licence: *Free for personal and commercial projects. Do not resell or redistribute as a game asset. Credit is appreciated but not required. Modify as needed. No NFT use.* The missing moves are built from its frames, and the raw zip stays out of git like the others.
+
+## Shirogane — Female Hero Pixel Art
+
+Shirogane is drawn with the free **Female Hero Pixel Art (v1.1)** pack and its free *Female Hero — New Animations*
+update (Basic Holy Spell Cast, Dawnpiercer Judgment); their readmes name no author. Their licence is the same as
+Void Mantis's: *Free for personal and commercial projects. Do not resell or redistribute as a game asset. Credit is
+appreciated but not required. Modify as needed. No NFT use.* The raw zips stay out of git.
 
 ## Code & libraries
 

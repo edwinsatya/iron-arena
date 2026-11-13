@@ -16,6 +16,7 @@ import { kurage } from '../data/heroes/kurage';
 import { lysa } from '../data/heroes/lysa';
 import { raika } from '../data/heroes/raika';
 import { reo } from '../data/heroes/reo';
+import { shirogane } from '../data/heroes/shirogane';
 import { tsuno } from '../data/heroes/tsuno';
 import { yomi } from '../data/heroes/yomi';
 import type { CompiledHero, HeroData } from './types';
@@ -75,6 +76,7 @@ export const ROSTER: readonly CompiledHero[] = [
   ikazuchi,
   amane,
   tsuno,
+  shirogane,
   dummy,
 ].map((h, i) => compileHero(h, i));
 

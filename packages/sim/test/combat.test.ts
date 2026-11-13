@@ -564,6 +564,44 @@ describe('Ikazuchi, Amane and Tsuno', () => {
     expect(down).toBe(true);
   });
 
+  it('Holy Bolt reaches a far enemy; Dawn Pillar launches; Dawn Blessing mends and sharpens', () => {
+    const s = setup('shirogane', 'dummy', -3000, 3000);
+    tap(s, 0, BTN.SKILL1);
+    let reeling = false;
+    run(s, 50, 0, () => {
+      if (s.fighters[1].state === FS.DIZZY) reeling = true;
+      return 0;
+    });
+    expect(s.fighters[1].hp).toBeLessThan(1000);
+    expect(reeling).toBe(true);
+
+    const p = setup('shirogane', 'dummy', -1000, 1000);
+    tap(p, 0, BTN.SKILL2);
+    let launched = false;
+    run(p, 50, 0, () => {
+      if (p.fighters[1].y > 0) launched = true;
+      return 0;
+    });
+    expect(p.fighters[1].hp).toBeLessThan(950);
+    expect(launched).toBe(true);
+
+    const b = setup('shirogane', 'dummy', -3000, 3000);
+    b.fighters[0].hp = 500;
+    tap(b, 0, BTN.SKILL3);
+    run(b, 24);
+    expect(b.fighters[0].hp).toBe(580);
+    expect(b.fighters[0].buffDamagePct).toBe(20);
+    expect(b.fighters[0].buffSpeedPct).toBe(10);
+  });
+
+  it('Dawnpiercer Judgment pierces the stage from afar', () => {
+    const s = setup('shirogane', 'dummy', -4000, 4000);
+    s.fighters[0].ult = ULT_MAX;
+    tap(s, 0, BTN.ULT);
+    run(s, 220);
+    expect(s.fighters[1].hp).toBeLessThan(820);
+  });
+
   it('Winter Coat shoves foes away and armours Tsuno', () => {
     const s = setup('tsuno', 'dummy', 0, 900);
     tap(s, 0, BTN.SKILL3);

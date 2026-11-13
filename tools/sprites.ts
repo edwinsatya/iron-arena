@@ -35,6 +35,11 @@ interface AnimCfg {
   pick?: (number | [string, number])[];
   /** Facing folder (default east = side view; south faces the camera). */
   dir?: string;
+  /** Mirror the frames (a camera-facing view whose swing goes to the wrong side). */
+  flip?: boolean;
+  /** From another zip: a separate animation update of the same character (its Animations/
+   * folder). Drawn at the same size, so only the canvas may differ (the feet are found again). */
+  pack?: string;
   /** A turn on the spot: frame `pick[0] ?? 0` of every direction, clockwise from east. */
   spin?: boolean;
   /** Recolour the fire (lantern glass, flames, sparks and the light they cast) sickly green. */
@@ -206,6 +211,15 @@ const HEROES: HeroCfg[] = [
     pack: 'Black-Assassin-FREE',
     animDir: 'animations',
     height: 1.75,
+    // The Hooded Rogue's VFX update: a rune ring of hooked chains, a violet shroud, a venom pool
+    vfx: {
+      pack: 'hooded-rogue-assassin-VFX-FREE',
+      clips: {
+        Umbral_Gravebind: [128, 152],
+        Veil_of_the_Forgotten: [128, 191],
+        Venomshade_Miasma: [128, 160],
+      },
+    },
     face: { src: 'idle', dir: 'south-east', frame: 0 },
     anims: {
       idle: { src: 'idle', fps: 10, loop: true },
@@ -730,7 +744,19 @@ const HEROES: HeroCfg[] = [
       // Nose to the ground, picking up the trail, then off at a gallop
       trail: {
         src: 'Loaded_Stride',
-        pick: [['Loaded_Idle', 0], ['Loaded_Idle', 1], ['Loaded_Idle', 2], ['Loaded_Idle', 3], 0, 2, 4, 6, 8, 10, 12],
+        pick: [
+          ['Loaded_Idle', 0],
+          ['Loaded_Idle', 1],
+          ['Loaded_Idle', 2],
+          ['Loaded_Idle', 3],
+          0,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+        ],
         xf: (k) => (k < 4 ? { rot: -18, dx: 2, ground: true } : { rot: -10, dx: 4 }),
         hit: 6,
       },
@@ -743,6 +769,64 @@ const HEROES: HeroCfg[] = [
       },
       front: { src: 'Loaded_Idle', dir: 'south', fps: 10, loop: true },
       win: { src: 'Loaded_Idle', dir: 'south-east', fps: 10, loop: true },
+    },
+  },
+  {
+    // Female Hero Pixel Art v1.1 (a free pack with no author named): an armoured knight with a
+    // longsword, every move in 8 directions (two extra slashes face the camera only), plus its
+    // separate update with two holy spells (256 px canvas instead of 320, same size on screen).
+    id: 'shirogane',
+    pack: 'Female_Hero_Pixel_Art_v1.1',
+    animDir: 'Female_Hero_Pixel_Art_v1.1',
+    height: 1.72,
+    credit: 'Female Hero Pixel Art v1.1',
+    face: { src: 'Idle', dir: 'south-east', frame: 0 },
+    anims: {
+      idle: { src: 'Idle', fps: 8, loop: true },
+      walk: { src: 'Walk', fps: 12, loop: true },
+      run: { src: 'Run', fps: 14, loop: true },
+      jump: { src: 'Jump' },
+      // Sword held out, braced
+      guard: { src: 'Guard', pick: [0, 4] },
+      hurt: { src: 'Hurt', pick: [1, 2, 3, 4, 6, 8] },
+      // She drops to her knees; the last frames tip her onto her back (getting up = reversed)
+      death: {
+        src: 'Death',
+        pick: [0, 2, 4, 5, 6, 7, 7, 7],
+        xf: [
+          {},
+          {},
+          {},
+          {},
+          { rot: 14, dx: -3, ground: true },
+          { rot: 40, dx: -8, ground: true },
+          { rot: 72, dx: -12, ground: true },
+          { rot: 88, dx: -12, ground: true },
+        ],
+      },
+      // The diagonal slash without its wind-up
+      cut: { src: 'Attack', pick: [0, 2, 3, 4, 5, 6, 8], hit: 2 },
+      // The same slash from three quarters, the blade swung back across
+      cut2: { src: 'Attack', dir: 'south-east', hit: 6 },
+      slash: { src: 'Attack', hit: 3 },
+      // Facing out: the blade coiled overhead, then brought down (mirrored so it swings forward)
+      coil: { src: 'Attack2', dir: 'south', flip: true, hit: 6 },
+      // Facing out: wound up low, then a wide sweep (mirrored so it sweeps forward)
+      sweep: { src: 'Attack3', dir: 'south', flip: true, hit: 7 },
+      // The palm pushed out, a spark of light leaving it
+      cast: { src: 'Basic_Holy_Spell_Cast', pack: 'female-hero-NEW-ANIMATIONS-FREE', hit: 4 },
+      // Facing out: light gathering between her hands
+      bless: { src: 'Basic_Holy_Spell_Cast', pack: 'female-hero-NEW-ANIMATIONS-FREE', dir: 'south', hit: 11 },
+      // The hand raised to gather the dawn, then pointed: the flash
+      judgment: { src: 'Dawnpiercer_Judgment', pack: 'female-hero-NEW-ANIMATIONS-FREE', hit: 15 },
+      front: { src: 'Idle', dir: 'south', fps: 8, loop: true },
+      // Facing out, the hand raised and the dawn coming down on it
+      win: {
+        src: 'Dawnpiercer_Judgment',
+        pack: 'female-hero-NEW-ANIMATIONS-FREE',
+        dir: 'south',
+        pick: [0, 2, 4, 5, 6, 7, 8, 9, 10],
+      },
     },
   },
   {
@@ -947,6 +1031,15 @@ function plague(im: Img): Img {
   return { data, w: im.w, h: im.h };
 }
 
+/** Left–right mirror image. */
+function mirror(im: Img): Img {
+  const data = Buffer.alloc(im.data.length);
+  for (let y = 0; y < im.h; y++)
+    for (let x = 0; x < im.w; x++)
+      im.data.copy(data, (y * im.w + (im.w - 1 - x)) * 4, (y * im.w + x) * 4, (y * im.w + x) * 4 + 4);
+  return { data, w: im.w, h: im.h };
+}
+
 /** Tilt and shift a frame around its feet (nearest neighbour, so the pixels stay crisp). */
 function transform(im: Img, foot: [number, number], xf: Xf): Img {
   const W = im.w + PAD * 2;
@@ -1038,7 +1131,12 @@ async function hero(cfg: HeroCfg) {
   const out = join(OUT, cfg.id);
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
-  const anim = (src: string, facing: string) => list(join(dir, cfg.animDir ?? 'Animations', src, facing));
+  const anim = (src: string, facing: string, pack?: string) =>
+    list(
+      pack
+        ? join(unzip(pack), 'Animations', src, facing)
+        : join(dir, cfg.animDir ?? 'Animations', src, facing),
+    );
 
   // Feet anchor and scale from the first idle frame
   const idle0 = await load(anim(cfg.anims.idle!.src, 'east')[0]!);
@@ -1054,14 +1152,14 @@ async function hero(cfg: HeroCfg) {
     let files: string[];
     if (a.spin) {
       const at = typeof a.pick?.[0] === 'number' ? a.pick[0] : 0;
-      files = SPIN.map((d) => anim(a.src, d)[at]!);
+      files = SPIN.map((d) => anim(a.src, d, a.pack)[at]!);
     } else {
-      files = anim(a.src, a.dir ?? 'east');
+      files = anim(a.src, a.dir ?? 'east', a.pack);
       if (a.range) files = files.slice(a.range[0], a.range[1] + 1);
       if (a.pick) {
         const all = files;
         files = a.pick
-          .map((i) => (typeof i === 'number' ? all[i] : anim(i[0], a.dir ?? 'east')[i[1]]))
+          .map((i) => (typeof i === 'number' ? all[i] : anim(i[0], a.dir ?? 'east', a.pack)[i[1]]))
           .filter((f): f is string => !!f);
       }
     }
@@ -1075,6 +1173,7 @@ async function hero(cfg: HeroCfg) {
     let fy = footY;
     const first = await load(files[0]!);
     if (first.w !== idle0.w || first.h !== idle0.h) [fx, fy] = feet(first);
+    if (a.flip) fx = first.w - 1 - fx;
     const foot: [number, number] = [fx, fy];
     const lift = a.noHover ? 0 : (cfg.hover ?? 0);
     const moved = !!a.xf || lift > 0;
@@ -1084,6 +1183,7 @@ async function hero(cfg: HeroCfg) {
     }
     for (const [k, f] of files.entries()) {
       let img = await load(f);
+      if (a.flip) img = mirror(img);
       if (a.plague) img = plague(img);
       if (moved) {
         const xf = (typeof a.xf === 'function' ? a.xf(k, files.length) : a.xf?.[k]) ?? {};
@@ -1281,7 +1381,9 @@ async function vfx(cfg: VfxCfg, out: string, pxPerM: number): Promise<string | n
   const pieces: { img: Img; box: [number, number, number, number]; at: [number, number, number] }[] = [];
   const clips: Record<string, { frames: Frame[] }> = {};
   for (const [name, [ax, ay]] of Object.entries(cfg.clips)) {
-    const files = list(join(dir, 'VFX', name));
+    // Newer updates keep each clip's single camera view in a `south` folder
+    let files = list(join(dir, 'VFX', name));
+    if (!files.length) files = list(join(dir, 'VFX', name, 'south'));
     if (!files.length) throw new Error(`${cfg.pack}: no frames in VFX/${name}`);
     const frames: Frame[] = [];
     for (const f of files) {
