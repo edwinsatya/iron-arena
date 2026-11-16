@@ -69,7 +69,7 @@ locks the screen sideways where the browser allows it (Android).
 | **Benika** "Crimson Axemaiden" | Berserker (war axe) | 960 | **Chiwari Shatter**: smash, the ground erupts ahead | **Tsumuji Whirl**: moving whirlwind, pulls then flings | **Otakebi War Cry**: blast away, +25% damage and speed | **Guren Judgment**: teleports in, crimson blades rain in her circle |
 | **Lysa** "Windfeather Scout" | Archer (bow) | 1010 | **Hayate Piercer**: piercing arrow | **Kazekiri Dash**: invulnerable dash-kick, launches | **Konoha Vortex**: vanishes backwards, leaves cutting leaves | **Takanome Volley**: marks the target, homing arrows, final rain |
 | **Hyōga** "Glacierbreaker" | Guardian (ice hammer) | 990 | **Hyōtsui Hammerfall**: hammer drop, ice spikes burst ahead | **Fubuki Cyclone**: pulling spin, leaves foes dizzy | **Hyōheki Bastion**: ice wall shove, 4 s armor, small heal | **Eikyū Permafrost**: the floor freezes over, then shatters |
-| **Hyōshin** "Glacial Heart" | Mage (ice) | 1040 | **Hyōsō Bolt**: piercing bolt that freezes in place | **Frost Barrier**: repelling ice sphere, then armour | **Death Shatter**: bursts into cutting shards, re-forms far away | **Absolute Zero**: teleports in, blizzard vortex drags everything in |
+| **Hyōshin** "Glacial Heart" | Mage (ice) | 1040 | **Hyōsō Bolt**: piercing bolt that freezes in place | **Frost Barrier**: repelling ice sphere, then armour | **Death Shatter**: bursts into cutting shards, re-forms far away | **Absolute Zero**: teleports in, a frozen abyss opens on the floor and drags everything in, then bursts |
 | **Akari** "Dawn Blade" | Knight (sword) | 940 | **Shōten Rising**: rising launcher that jumps after them | **Senkō Flash**: invulnerable dash-through cut that stuns | **Kabuto-wari**: armoured guard-breaking overhead | **Reimei Sky Blade**: chant, then a blade of light falls from the sky |
 | **Reo** "Aegis Knight" | Knight (sword and shield) | 980 | **Hakō Wave**: piercing sword wave | **Shōryū Rising**: rising launcher | **Kōbō Aegis**: shield counter, unblockable riposte | **Akatsuki Daybreak**: teleports in, seven light cuts, pillar of dawn |
 | **Kage** "Hooded Shadow" | Assassin (daggers) | 1000 | **Senbon Fan**: three kunai | **Shunpo Behind**: blink behind, a venomed cut that stuns | **Utsusemi Decoy**: smoke counter, unblockable strike from behind | **Senjin Thousand Cuts**: teleports in, cuts from every side |
@@ -86,6 +86,8 @@ locks the screen sideways where the browser allows it (Android).
 | **Amane** "Sunwing Seraph" | Guardian (staff and wings) | 1020 | **Nichirin Sunspoke Verdict**: three spokes of light come down on the enemy, the last launches | **Habataki Wingbeat**: armoured; a gale of feathers throws foes away | **Hane Featherbound Oath**: heals 80, then 5 s of armour | **Tenrin Unbroken Halo**: a halo sinks around the enemy, burns, then shatters |
 | **Tsuno** "Northern Packgoat" | Berserker (horns and hooves; takes 5% less damage) | 980 | **Gakemichi Surefoot Leap**: a bound up and over that lands hooves first | **Kemonomichi Trail Charge**: sniffs out the trail, then an armoured charge across the stage | **Fuyugomori Winter Coat**: a blast of snow shoves foes back, then 3.5 s of armour and a small heal | **Ōnadare Mountain Stampede**: rears, thunders across the stage, the mountain comes down after it |
 | **Shirogane** "Silver Paladin" | Knight (longsword and holy light; takes 5% less damage) | 1050 | **Hōkō Holy Bolt**: a bolt of light from the palm that leaves the enemy reeling | **Tenchū Dawn Pillar**: armoured overhead, then a pillar of dawn bursts up and launches | **Kago Dawn Blessing**: heals 80, then 6 s of +20% damage and +10% speed | **Shinpan Dawnpiercer Judgment**: a lance of light pierces the stage and stuns, the dawn pins them, then bursts |
+| **Rōga** "Winter Chieftain" | Berserker (crystal war-axe; slow, takes 5% less damage) | 1040 | **Tōga Glacierfang Cleave**: armoured lunging overhead that launches | **Fuyubure Frostfall Decree**: the axe strikes the ground and a line of ice spikes runs out, the last one launches | **Ōkami Wolfblood Oath**: the wolf spirit howls foes back, then 6 s of armour and +15% damage | **Tōkan Crown of Endless Winter**: a crown of ice erupts under the enemy, holds them, then shatters |
+| **Mitsume** "Recon Sentinel" | Archer (optic beams; light on its legs) | 980 | **Shōjun Tri-Lens Lock**: a reticle locks on from across the stage, the marked spot is struck and the target stunned | **Denpa Signal Burst**: armoured; a pulse of signal throws everything nearby away | **Kansoku Sensor Calibration**: repairs 60, then 7 s of +15% damage and speed | **Kanshi Surveillance Array**: panels box the enemy in, every lens fires, then the array slams shut |
 
 Every hero also has a dash attack, an air attack and a charged attack. The in-game *Heroes &
 controls* page is generated from the data.
@@ -109,8 +111,8 @@ controls* page is generated from the data.
 
 `pnpm balance [matches] [--detail]` plays CPU-vs-CPU for every pair and prints win rates, round
 endings, a win matrix and each hero's damage by move. Last run (20 matches per pair, hard CPU, with
-wake-up protection): Hyōshin 79%, Lysa 68%, Kage 66%, Karasu 60%, Homura 56%, Kemuri 54%,
-Amane 54%, Reo 53%, Raika 49%, Hyōga 49%, Shirogane 49%, Benika 47%, Kamakiri 46%, Tsuno 44%,
-Ikazuchi 44%, Kurage 40%, Gōkai 38%, Kuma 35%, Akari 35%, Yomi 34%.
+wake-up protection): Hyōshin 78%, Lysa 67%, Kage 66%, Karasu 59%, Homura 56%, Amane 55%,
+Rōga 54%, Kemuri 53%, Reo 53%, Raika 49%, Hyōga 48%, Shirogane 48%, Benika 47%, Mitsume 47%,
+Kamakiri 46%, Tsuno 45%, Ikazuchi 44%, Kurage 41%, Gōkai 38%, Kuma 36%, Akari 36%, Yomi 34%.
 Tune with real players.
 The CPU keeps its distance only with heroes whose basic attack is a shot.

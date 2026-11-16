@@ -254,8 +254,10 @@ export class GameRenderer {
 
     this.drawDecoys(g, s);
 
-    // Shadows, then heroes (the one acting drawn last, on top)
+    // Shadows, the far side of what lies on the floor around a hero, then heroes (the one
+    // acting drawn last, on top)
     for (const f of s.fighters) this.shadow(g, f);
+    for (let i = 0; i < 2; i++) this.groundFx(g, s, i, 'back');
     const order = [0, 1].sort((i, j) => this.priority(s, i) - this.priority(s, j));
     for (const i of order) this.drawHero(g, s, i, dt);
 
@@ -628,6 +630,7 @@ export class GameRenderer {
     const o = s.fighters[1 - i]!;
     const dir = (f.fx >= 0 ? 1 : -1) * v.flip;
     if (id.startsWith('kg_')) this.rogueVfx(g, f, o, id, t);
+    if (id === 'hs_ult') this.groundFx(g, s, i, 'front');
     if (id === 'hy_s3') {
       // Rime Bastion: ice crystals burst up around him
       const k = Math.min(1, Math.max(0, (t - 8) / 6));
@@ -854,6 +857,41 @@ export class GameRenderer {
         v.sy(f.y),
         { size: 0.55, alpha: 0.55 },
       );
+    } else if (id === 'rg_s3' && t >= 6 && t <= 44) {
+      // Ōkami Wolfblood Oath: a shield of frost forms before him (the wolf is behind him,
+      // groundFx)
+      const fx = this.vfx.get('roga');
+      if (t >= 10)
+        fx?.draw(
+          g,
+          v,
+          'Oath_Shield',
+          keyed(t, [
+            [10, 0],
+            [16, 3],
+            [36, 15],
+            [44, 18.99],
+          ]),
+          v.sx(f.x) + dir * v.px(700),
+          v.sy(f.y + 1000),
+          { size: 0.55, alpha: 0.9 },
+        );
+    } else if (id === 'mi_s3' && t <= 30) {
+      // Kansoku Sensor Calibration: the reticle closes on its own lens and flashes as it takes
+      this.vfx.get('mitsume')?.draw(
+        g,
+        v,
+        'Recon_Sensor_Calibration',
+        keyed(t, [
+          [0, 3],
+          [14, 9],
+          [18, 11],
+          [30, 15.99],
+        ]),
+        v.sx(f.x) + dir * v.px(350),
+        v.sy(f.y + 800),
+        { size: 0.8 },
+      );
     } else if ((id === 're_s1' || id === 're_charge') && t >= 8 && t <= 18) {
       // Sword glints before the wave leaves
       const k = (t - 8) / 10;
@@ -942,6 +980,64 @@ export class GameRenderer {
               ]);
       fx.draw(g, v, 'Umbral_Gravebind', fr, v.sx(o.x), v.sy(0), { size: 0.85, alpha: 0.95 });
     }
+  }
+
+  /**
+   * Effects around a hero mid-move, in two layers: the far one before the heroes are drawn
+   * ('back'), the near one over them ('front'). Absolute Zero: the Glacial Heart VFX update's
+   * vortex opens on the floor under Hyōshin, churns while it drags the enemy in, flashes white on
+   * the last blow and shatters away. Wolfblood Oath: the wolf spirit rises behind Rōga and howls.
+   */
+  private groundFx(g: CanvasRenderingContext2D, s: GameState, i: number, part: 'back' | 'front') {
+    const f = s.fighters[i]!;
+    if (f.state !== FS.ACTION) return;
+    const a = actionOf(f);
+    if (a?.id === 'rg_s3' && part === 'back' && f.actionFrame >= 6 && f.actionFrame <= 40) {
+      const v = this.v;
+      this.vfx.get('roga')?.draw(
+        g,
+        v,
+        'Oath_Wolf',
+        keyed(f.actionFrame, [
+          [6, 0],
+          [16, 8],
+          [34, 20],
+          [40, 22.99],
+        ]),
+        v.sx(f.x),
+        v.sy(f.y + 2350),
+        { size: 0.45, alpha: 0.8 },
+      );
+    }
+    if (a?.id !== 'hs_ult') return;
+    const fx = this.vfx.get('hyoshin');
+    const t = f.actionFrame;
+    if (!fx || t < 4) return;
+    const fr =
+      t < 20
+        ? keyed(t, [
+            [4, 0],
+            [10, 2],
+            [20, 8.99],
+          ])
+        : t < 84
+          ? 9 + (Math.floor((t - 20) / 3) % 11)
+          : keyed(t, [
+              [84, 19],
+              [90, 20],
+              [94, 22],
+              [98, 24],
+              [110, 31],
+              [116, 34.99],
+            ]);
+    const v = this.v;
+    // The near half a little see-through, so the heroes standing in it stay readable
+    fx.draw(g, v, 'Absolute_Zero', fr, v.sx(f.x), v.sy(0), {
+      size: 0.95,
+      squash: 0.45,
+      part,
+      alpha: part === 'front' ? 0.8 : 1,
+    });
   }
 
   /** A green lantern light (Karasu): a soft halo with a white-hot core. */

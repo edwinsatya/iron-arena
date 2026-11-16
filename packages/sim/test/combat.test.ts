@@ -611,3 +611,81 @@ describe('Ikazuchi, Amane and Tsuno', () => {
     expect(s.fighters[0].buffFrames).toBeGreaterThan(180);
   });
 });
+
+describe('Rōga and Mitsume', () => {
+  it('Glacierfang Cleave launches; Frostfall Decree runs out across the floor', () => {
+    const s = setup('roga', 'dummy', -1200, 1200);
+    tap(s, 0, BTN.SKILL1);
+    let launched = false;
+    run(s, 50, 0, () => {
+      if (s.fighters[1].y > 0) launched = true;
+      return 0;
+    });
+    expect(s.fighters[1].hp).toBeLessThan(950);
+    expect(launched).toBe(true);
+
+    // The last spike of the decree reaches a foe three metres away
+    const d = setup('roga', 'dummy', -1600, 1600);
+    tap(d, 0, BTN.SKILL2);
+    run(d, 50);
+    expect(d.fighters[1].hp).toBeLessThan(1000);
+  });
+
+  it('Wolfblood Oath shoves foes back, then armours and sharpens Rōga', () => {
+    const s = setup('roga', 'dummy', 0, 900);
+    tap(s, 0, BTN.SKILL3);
+    run(s, 22);
+    expect(s.fighters[1].hp).toBeLessThan(1000);
+    expect(s.fighters[0].buffArmor).toBe(1);
+    expect(s.fighters[0].buffDamagePct).toBe(15);
+  });
+
+  it('Crown of Endless Winter closes on a far enemy and launches them', () => {
+    const s = setup('roga', 'dummy', -4000, 4000);
+    s.fighters[0].ult = ULT_MAX;
+    tap(s, 0, BTN.ULT);
+    run(s, 220);
+    expect(s.fighters[1].hp).toBeLessThan(820);
+  });
+
+  it('Tri-Lens Lock stuns a far enemy; Signal Burst throws a close one away', () => {
+    const s = setup('mitsume', 'dummy', -3500, 3500);
+    tap(s, 0, BTN.SKILL1);
+    let dizzy = false;
+    run(s, 60, 0, () => {
+      if (s.fighters[1].state === FS.DIZZY) dizzy = true;
+      return 0;
+    });
+    expect(s.fighters[1].hp).toBeLessThan(1000);
+    expect(dizzy).toBe(true);
+
+    const b = setup('mitsume', 'dummy', 0, 800);
+    tap(b, 0, BTN.SKILL2);
+    run(b, 40);
+    expect(b.fighters[1].hp).toBeLessThan(1000);
+    expect(b.fighters[1].x).toBeGreaterThan(1200);
+  });
+
+  it('Sensor Calibration repairs and quickens Mitsume', () => {
+    const s = setup('mitsume', 'dummy', -3000, 3000);
+    s.fighters[0].hp = 500;
+    tap(s, 0, BTN.SKILL3);
+    run(s, 20);
+    expect(s.fighters[0].hp).toBe(560);
+    expect(s.fighters[0].buffSpeedPct).toBe(15);
+    expect(s.fighters[0].buffDamagePct).toBe(15);
+  });
+
+  it('Optic Pulse reaches across the stage; the array boxes in a far enemy', () => {
+    const s = setup('mitsume', 'dummy', -3000, 3000);
+    tap(s, 0, BTN.ATTACK);
+    run(s, 40);
+    expect(s.fighters[1].hp).toBeLessThan(1000);
+
+    const u = setup('mitsume', 'dummy', -4500, 4500);
+    u.fighters[0].ult = ULT_MAX;
+    tap(u, 0, BTN.ULT);
+    run(u, 220);
+    expect(u.fighters[1].hp).toBeLessThan(820);
+  });
+});

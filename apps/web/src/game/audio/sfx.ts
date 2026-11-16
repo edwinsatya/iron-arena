@@ -136,6 +136,11 @@ export class Sfx {
           this.tone(1320, 1760, 0.22, 0.14, 'sine');
           this.burst({ freq: 5200, q: 6, dur: 0.1, gain: 0.18, sweepTo: 6400 });
         }
+        if (weapon === 'optic') {
+          // A searing beam: a high whine dropping into a hiss
+          this.tone(1900, 480, 0.12, 0.13, 'square');
+          this.burst({ freq: 7600, q: 3, dur: 0.1, gain: 0.22, sweepTo: 3200 });
+        }
         if (weapon === 'horn') {
           // Horns on bone: a heavy knock
           this.thump(95, 0.18, 0.75);
@@ -199,6 +204,10 @@ export class Sfx {
           // A crackle of lightning leaving the tentacle
           this.tone(260, 1500, 0.12, 0.16, 'sawtooth');
           this.burst({ freq: 6200, q: 2.5, dur: 0.22, gain: 0.28, sweepTo: 2400 });
+        } else if (weapon === 'optic') {
+          // A lens charging and the beam leaving it
+          this.tone(900, 2400, 0.07, 0.12, 'square');
+          this.tone(2400, 1200, 0.16, 0.14, 'sawtooth', 0.06);
         } else if (weapon === 'lantern') {
           // Glass clinks, wings flutter
           this.tone(2300, 2900, 0.08, 0.14, 'triangle');

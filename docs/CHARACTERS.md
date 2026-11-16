@@ -67,6 +67,7 @@ The free VFX updates replace the biggest effects with the packs' own pixel art (
 | Kage | Venomshade Miasma (Hooded Rogue Assassin VFX update) | Shunpo Behind: when the cut stuns, a kunai strikes the floor and a venom pool spreads under the victim |
 | Kage | Veil of the Forgotten | Utsusemi Decoy: the violet shroud closes round him while the decoy waits, falls away after; when the counter fires, the empty shroud collapses where he stood |
 | Kage | Umbral Gravebind | Senjin Thousand Cuts: runes ring the target, hooked chains rise and hold them through the cuts, sinking away before the burst |
+| Hyōshin | Absolute Zero — Frozen Abyss Vortex (Glacial Heart VFX update; flattened onto the floor, far half behind the fighters) | Absolute Zero: the vortex opens under him, churns while it drags the enemy in, flashes white on the last blow and shatters away (`groundFx` in `renderer2d.ts`; the code-drawn ice spikes of that last blow are skipped while it plays) |
 
 Painted art (portraits, full art, skill boards) is in every complete pack but the game doesn't use
 it: since the tournament redesign every portrait, skill icon and cut-in is made from the sprites so
@@ -134,6 +135,27 @@ One more, from a pack with a separate animation update:
 
 Amane's verdict, halo and feathers are drawn in code (`seraphArea`, the `feather` projectile).
 
+Two more complete packs with their own VFX clips:
+
+| Hero | The pack has | Made from it |
+|---|---|---|
+| Rōga, Winter Chieftain | Northern Gothic War Chieftain: idle, walk, run, jump, six axe moves and a death (complete pack, plus three VFX clips) | The fang chop (the cleave without its wind-up), the crystal hew (the execution's downstroke without the axe held aloft), the frostfall slam (the decree, quicker), guard (behind the fur mantle, from the iron guard), flinch (the first death frames), the victory pose (the oath, seen from the front) |
+| Mitsume, Recon Sentinel | Quadrupedal Recon Drone: idle, walk, jump, five lens moves and a death (complete pack, plus two VFX clips) | The quick optic flicks (the pulse without its charge), run (the walk, faster), jump (crouch, legs flung out), the pounce (jump frames lifted), guard (legs anchored), flinch (the first death frames, tilted), the victory pose (the target lock, seen from the front) |
+
+Their clips (`northArea` in `effects2d.ts`, the oath and calibration in `renderer2d.ts`; code-drawn
+versions as the fallback):
+
+| Hero | Clip | Plays as |
+|---|---|---|
+| Rōga | Crown of the Endless Winter | Tōkan Crown: spikes break the floor under the enemy, the crown closes round them through the hits, bursts on the last and sinks away |
+| Rōga | Wolfblood Frost Oath — Wolf / Shield | Ōkami Wolfblood Oath: the wolf spirit rises behind him and howls; a shield of frost forms before him |
+| Mitsume | Recon Sensor Calibration | Shōjun Tri-Lens Lock: the reticle closes on the target's chest and flashes on the strike; also at its own lens for Kansoku Sensor Calibration |
+| Mitsume | Surveillance Dominion Array | Kanshi Surveillance Array: the panels box the target in, flare each time the lenses fire, slam shut on the last hit |
+
+Some packs leave stray marker pixels in their frames (green tracking dots in the drone, a grey
+blob in a corner of the Absolute Zero clip): `scrub` clears them in the converter. Zips whose
+folder names hold UTF-8 (an em dash) are unpacked with `tar` when macOS's `unzip` can't.
+
 Raika's decoy is drawn with her own idle frame: the renderer leaves it standing where the skill's
 area is until it bursts (`drawDecoys` in `renderer2d.ts`).
 
@@ -145,7 +167,7 @@ catch the enemy through guard, hold them, cut and kick them away.
 - **Benika, Crimson Axemaiden** (Battle Axemaiden): Chiwari Shatter, Tsumuji Whirl, Otakebi War Cry; ultimate Guren Judgment
 - **Lysa, Windfeather Scout** (Elven Bow Scout): Hayate Piercer, Kazekiri Dash, Konoha Vortex; ultimate Takanome Volley
 - **Hyōga, Glacierbreaker** (Glacierbreaker Knight): Hyōtsui Hammerfall, Fubuki Cyclone, Hyōheki Bastion; ultimate Eikyū Permafrost
-- **Hyōshin, Glacial Heart** (Glacial Heart): Hyōsō Bolt, Frost Barrier, Death Shatter; ultimate Absolute Zero
+- **Hyōshin, Glacial Heart** (Glacial Heart, plus its VFX update for Absolute Zero): Hyōsō Bolt, Frost Barrier, Death Shatter; ultimate Absolute Zero
 - **Akari, Dawn Blade** (Young Swordswoman): Shōten Rising, Senkō Flash, Kabuto-wari; ultimate Reimei Sky Blade
 - **Reo, Aegis Knight** (Shield Knight): Hakō Wave, Shōryū Rising, Kōbō Aegis; ultimate Akatsuki Daybreak
 - **Kage, Hooded Shadow** (Black Assassin, plus the Hooded Rogue Assassin VFX update for Shunpo Behind, Utsusemi Decoy and Senjin): Senbon Fan, Shunpo Behind, Utsusemi Decoy; ultimate Senjin Thousand Cuts
@@ -162,3 +184,5 @@ catch the enemy through guard, hold them, cut and kick them away.
 - **Amane, Sunwing Seraph** (Sanctuary Seraph, free complete pack): Nichirin Sunspoke Verdict, Habataki Wingbeat, Hane Featherbound Oath; ultimate Tenrin Unbroken Halo
 - **Tsuno, Northern Packgoat** (Northern Pack Goat, free complete pack: idles, walks and a stride; every attack is built from those frames): Gakemichi Surefoot Leap, Kemonomichi Trail Charge, Fuyugomori Winter Coat; ultimate Ōnadare Mountain Stampede
 - **Shirogane, Silver Paladin** (Female Hero Pixel Art v1.1 and its holy-spell update, free packs): Hōkō Holy Bolt, Tenchū Dawn Pillar, Kago Dawn Blessing; ultimate Shinpan Dawnpiercer Judgment
+- **Rōga, Winter Chieftain** (Northern Gothic War Chieftain, free complete pack, with its VFX clips): Tōga Glacierfang Cleave, Fuyubure Frostfall Decree, Ōkami Wolfblood Oath; ultimate Tōkan Crown of Endless Winter
+- **Mitsume, Recon Sentinel** (Quadrupedal Recon Drone, free complete pack, with its VFX clips): Shōjun Tri-Lens Lock, Denpa Signal Burst, Kansoku Sensor Calibration; ultimate Kanshi Surveillance Array

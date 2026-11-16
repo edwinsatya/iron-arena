@@ -95,13 +95,20 @@ interface HeroCfg {
   credit?: string;
   /** The pack's stand-alone VFX update (a separate zip of camera-facing clips). */
   vfx?: VfxCfg;
+  /** Stray pixels the pack left in its frames (marker dots): cleared before anything else. */
+  scrub?: Scrub;
 }
+
+/** True for a pixel to clear: its colour and where it is on the source canvas. */
+type Scrub = (r: number, g: number, b: number, x: number, y: number) => boolean;
 
 interface VfxCfg {
   pack: string;
-  /** Clip folder under VFX/ → its anchor in the source canvas (the point drawn at the spot the
-   * effect is placed: the ground under a column, the middle of a ring). */
-  clips: Record<string, [number, number]>;
+  /** Clip name → its anchor in the source canvas (the point drawn at the spot the effect is
+   * placed: the ground under a column, the middle of a ring). The name is the folder under VFX/,
+   * or `src` names the folder when it is awkward to type. */
+  clips: Record<string, [number, number] | { src: string; at: [number, number] }>;
+  scrub?: Scrub;
 }
 
 const HEROES: HeroCfg[] = [
@@ -159,6 +166,13 @@ const HEROES: HeroCfg[] = [
     art: 'Glacial_Heart_',
     cards: [0, 1, 3, 2],
     faceFromArt: { left: 222, top: 330, size: 580 },
+    // Its VFX update: the Absolute Zero vortex (a whirlpool of ice seen from above at an angle)
+    vfx: {
+      pack: 'glacial-heart-VFX-FREE',
+      clips: { Absolute_Zero: { src: 'Absolute_Zero_—_Frozen_Abyss_Vortex', at: [128, 148] } },
+      // A small grey blob in the top-left corner of every frame
+      scrub: (_r, _g, _b, x, y) => x < 8 && y < 8,
+    },
     anims: {
       idle: { src: 'Idle', fps: 10, loop: true },
       bolt: { src: 'Glacial_Bolt', hit: 10 },
@@ -830,6 +844,94 @@ const HEROES: HeroCfg[] = [
     },
   },
   {
+    // Northern Gothic War Chieftain (free complete pack): a crystal war-axe, a white fur mantle and
+    // six moves, plus VFX clips for the ultimate's crown of ice and the oath's shield and wolf.
+    id: 'roga',
+    pack: 'northern-gothic-war-chieftain-COMPLETE-FREE',
+    height: 2.0,
+    vfx: {
+      pack: 'northern-gothic-war-chieftain-COMPLETE-FREE',
+      clips: {
+        Crown_of_the_Endless_Winter: [128, 172],
+        Oath_Shield: { src: 'Wolfblood_Frost_Oath_-_Shield', at: [128, 128] },
+        Oath_Wolf: { src: 'Wolfblood_Frost_Oath_-_Wolf', at: [128, 128] },
+      },
+    },
+    anims: {
+      idle: { src: 'Idle', fps: 8, loop: true },
+      walk: { src: 'Walk', fps: 12, loop: true },
+      run: { src: 'Run', fps: 14, loop: true },
+      jump: { src: 'Jump' },
+      // Behind the fur mantle, the axe across his body
+      guard: { src: 'Whitefur_Iron_Guard', pick: [12, 13] },
+      hurt: { src: 'Death', pick: [1, 2, 3, 2, 1] },
+      death: { src: 'Death', range: [0, 14] },
+      // The cleave without its long wind-up
+      chop: { src: 'Glacierfang_Cleave', pick: [0, 3, 5, 6, 7, 8, 10, 13, 16, 19], hit: 3 },
+      // The execution's downstroke without the axe held aloft
+      hew: { src: 'Crystal_Axe_Execution', pick: [0, 6, 16, 17, 18, 19, 21, 23], hit: 3 },
+      // The decree's slam, quicker
+      slam: { src: 'Frostfall_War_Decree', pick: [0, 3, 6, 8, 9, 10, 11, 12, 14, 17, 20, 23], hit: 5 },
+      cleave: { src: 'Glacierfang_Cleave', hit: 6 },
+      execute: { src: 'Crystal_Axe_Execution', hit: 17 },
+      decree: { src: 'Frostfall_War_Decree', hit: 10 },
+      oath: { src: 'Wolfblood_Frost_Oath', hit: 16 },
+      crown: { src: 'Crown_of_the_Endless_Winter', hit: 15 },
+      front: { src: 'Idle', dir: 'south', fps: 8, loop: true },
+      // Facing out, the oath's frost running up the axe arm
+      win: { src: 'Wolfblood_Frost_Oath', dir: 'south', pick: [0, 4, 8, 12, 14, 15, 16, 17] },
+    },
+  },
+  {
+    // Quadrupedal Recon Drone (free complete pack): a four-legged machine with three red lenses,
+    // six moves and two VFX clips (a target reticle, the surveillance array's panels).
+    id: 'mitsume',
+    pack: 'quadrupedal-recon-drone-COMPLETE-FREE',
+    height: 1.35,
+    // The portrait faces out: the three lenses; the bust is the head, not the hull behind it
+    face: { src: 'Idle', dir: 'south', frame: 0 },
+    bust: { left: 110, top: 74, size: 64 },
+    // Green tracking dots left in the frames (nothing on the drone is that green)
+    scrub: (r, g, b) => g > 90 && r < 40 && b < 70 && g > r * 3,
+    vfx: {
+      pack: 'quadrupedal-recon-drone-COMPLETE-FREE',
+      clips: { Recon_Sensor_Calibration: [128, 128], Surveillance_Dominion_Array: [128, 226] },
+    },
+    anims: {
+      idle: { src: 'Idle', fps: 10, loop: true },
+      walk: { src: 'Walk', fps: 14, loop: true },
+      run: { src: 'Walk', fps: 22, loop: true, xf: () => ({ rot: -4 }) },
+      // Crouched on its legs, then legs flung out in the air
+      jump: { src: 'Jump', pick: [2, 5, 6, 7, 8] },
+      // Legs splayed and anchored
+      guard: { src: 'Anchored_Signal_Burst', pick: [1, 2] },
+      hurt: {
+        src: 'Death',
+        pick: [1, 2, 3, 2, 1],
+        xf: [{ rot: 6, dx: -2 }, { rot: 12, dx: -5 }, { rot: 9, dx: -4 }, { rot: 4, dx: -2 }, {}],
+      },
+      // Smoke, sparks, and the legs give way (getting up = put back together)
+      death: { src: 'Death' },
+      // Quick shots: the lens flash, then the beam
+      zap: { src: 'Optic_Pulse', pick: [5, 6, 7, 12, 13, 14], hit: 4 },
+      pulse: { src: 'Optic_Pulse', hit: 13 },
+      // A skittering pounce: crouch, legs out, land on the target
+      hop: {
+        src: 'Jump',
+        pick: [2, 4, 5, 6, 7, 8, 9],
+        xf: [{}, { dy: -6 }, { dy: -12 }, { dy: -12 }, { dy: -8 }, { dy: -3 }, {}],
+        hit: 4,
+      },
+      burst: { src: 'Anchored_Signal_Burst', hit: 8 },
+      lock: { src: 'Tri-Lens_Target_Lock', hit: 7 },
+      calibrate: { src: 'Recon_Sensor_Calibration', hit: 10 },
+      array: { src: 'Surveillance_Dominion_Array', hit: 10 },
+      front: { src: 'Idle', dir: 'south', fps: 10, loop: true },
+      // Facing out, the three lenses lit
+      win: { src: 'Tri-Lens_Target_Lock', dir: 'south', pick: [0, 2, 4, 6, 8, 10, 12, 14] },
+    },
+  },
+  {
     id: 'dummy',
     pack: 'wasteland-juggernaut-FREE',
     height: 1.85,
@@ -846,9 +948,20 @@ interface Img {
   h: number;
 }
 
-async function load(file: string): Promise<Img> {
+async function loadRaw(file: string): Promise<Img> {
   const { data, info } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   return { data, w: info.width, h: info.height };
+}
+
+/** Clears the pixels `scrub` picks (stray marker dots in a pack). */
+function scrubbed(im: Img, scrub?: Scrub): Img {
+  if (!scrub) return im;
+  for (let y = 0; y < im.h; y++)
+    for (let x = 0; x < im.w; x++) {
+      const i = (y * im.w + x) * 4;
+      if (im.data[i + 3]! > 0 && scrub(im.data[i]!, im.data[i + 1]!, im.data[i + 2]!, x, y)) im.data[i + 3] = 0;
+    }
+  return im;
 }
 
 /** Bounding box of pixels with alpha > 8, or null. */
@@ -1090,7 +1203,12 @@ function unzip(pack: string): string {
     const zip = join(SRC, `${pack}.zip`);
     if (!existsSync(zip)) throw new Error(`missing ${zip}`);
     mkdirSync(dir, { recursive: true });
-    execFileSync('unzip', ['-qo', zip, '-d', dir]);
+    try {
+      execFileSync('unzip', ['-qo', zip, '-d', dir], { stdio: ['ignore', 'ignore', 'pipe'] });
+    } catch {
+      // Info-ZIP 6.0 (macOS) can't create folders with UTF-8 names (an em dash); bsdtar can
+      execFileSync('tar', ['-xf', zip, '-C', dir]);
+    }
   }
   return dir;
 }
@@ -1137,6 +1255,8 @@ async function hero(cfg: HeroCfg) {
         ? join(unzip(pack), 'Animations', src, facing)
         : join(dir, cfg.animDir ?? 'Animations', src, facing),
     );
+
+  const load = async (file: string) => scrubbed(await loadRaw(file), cfg.scrub);
 
   // Feet anchor and scale from the first idle frame
   const idle0 = await load(anim(cfg.anims.idle!.src, 'east')[0]!);
@@ -1380,14 +1500,16 @@ async function vfx(cfg: VfxCfg, out: string, pxPerM: number): Promise<string | n
   const packer = new Packer();
   const pieces: { img: Img; box: [number, number, number, number]; at: [number, number, number] }[] = [];
   const clips: Record<string, { frames: Frame[] }> = {};
-  for (const [name, [ax, ay]] of Object.entries(cfg.clips)) {
+  for (const [name, clip] of Object.entries(cfg.clips)) {
+    const src = Array.isArray(clip) ? name : clip.src;
+    const [ax, ay] = Array.isArray(clip) ? clip : clip.at;
     // Newer updates keep each clip's single camera view in a `south` folder
-    let files = list(join(dir, 'VFX', name));
-    if (!files.length) files = list(join(dir, 'VFX', name, 'south'));
-    if (!files.length) throw new Error(`${cfg.pack}: no frames in VFX/${name}`);
+    let files = list(join(dir, 'VFX', src));
+    if (!files.length) files = list(join(dir, 'VFX', src, 'south'));
+    if (!files.length) throw new Error(`${cfg.pack}: no frames in VFX/${src}`);
     const frames: Frame[] = [];
     for (const f of files) {
-      const img = await load(f);
+      const img = scrubbed(await loadRaw(f), cfg.scrub);
       const box = bbox(img);
       if (!box) {
         frames.push([0, 0, 0, 0, 0, 0, 0]);

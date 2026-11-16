@@ -32,6 +32,8 @@ import { keyed, type VfxSet } from './vfx';
 
 /** Ikazuchi's areas, drawn by magisterArea (the pack's clips, or code without them). */
 const MAGISTER_KINDS = new Set<string>(['arc', 'imprint', 'circuit', 'reversal', 'theorem']);
+/** Rōga's crown and Mitsume's scan, signal and array (their packs' clips, or code without them). */
+const NORTH_KINDS = new Set<string>(['crown', 'scan', 'signal', 'array']);
 import { hexA, type View2D } from './view';
 
 export interface EffectCallbacks {
@@ -789,6 +791,41 @@ export class Effects2D {
         embers(g, 0, -H * 0.3, r * 2.4, H, this.time, 14, '#ffd27a', seed);
         break;
       }
+      case 'laser': {
+        // Mitsume's beams: a red streak with a white-hot core, a flare at the head
+        g.rotate(ang);
+        const big = spec.r >= 300;
+        const len = v.px(big ? 2200 : 1300);
+        const W = Math.max(3, r * (big ? 0.5 : 0.4));
+        const glow = g.createLinearGradient(-len, 0, 0, 0);
+        glow.addColorStop(0, hexA(look.color, 0));
+        glow.addColorStop(1, hexA(look.color, 0.75));
+        g.fillStyle = glow;
+        g.shadowColor = look.color;
+        g.shadowBlur = 16;
+        g.beginPath();
+        g.moveTo(0, -W);
+        g.lineTo(-len, -W * 0.3);
+        g.lineTo(-len, W * 0.3);
+        g.lineTo(0, W);
+        g.closePath();
+        g.fill();
+        g.shadowBlur = 0;
+        const core = g.createLinearGradient(-len * 0.8, 0, 0, 0);
+        core.addColorStop(0, 'rgba(255, 255, 255, 0)');
+        core.addColorStop(1, '#ffffff');
+        g.fillStyle = core;
+        g.fillRect(-len * 0.8, -W * 0.28, len * 0.8, W * 0.56);
+        const head = g.createRadialGradient(0, 0, 0, 0, 0, W * 2.6);
+        head.addColorStop(0, '#ffffff');
+        head.addColorStop(0.35, hexA(look.color, 0.85));
+        head.addColorStop(1, hexA(look.color, 0));
+        g.fillStyle = head;
+        g.beginPath();
+        g.arc(0, 0, W * 2.6 * (1 + 0.15 * Math.sin(this.time * 40 + p.age)), 0, TAU);
+        g.fill();
+        break;
+      }
       case 'feather': {
         // Amane's feathers: white plumes with a gold quill, a streak of light behind them
         g.rotate(ang);
@@ -883,6 +920,7 @@ export class Effects2D {
         else this.polarity(g, v, a.x, spec.r, t, l.color, l.glow, false);
       } else if (MAGISTER_KINDS.has(spec.kind)) this.magisterArea(g, v, a, spec, a.age - spec.delay);
       else if (spec.kind === 'verdict' || spec.kind === 'halo') this.seraphArea(g, v, a, spec, a.age - spec.delay);
+      else if (NORTH_KINDS.has(spec.kind)) this.northArea(g, v, a, spec, a.age - spec.delay);
       return;
     }
     const k = (a.age - spec.delay) / Math.max(1, spec.active);
@@ -928,6 +966,8 @@ export class Effects2D {
         break;
       }
       case 'frost': {
+        // Absolute Zero's last blow: the vortex clip (renderer2d) bursts instead
+        if (ROSTER[a.char]!.id === 'hyoshin' && spec.r >= 2000 && this.vfx.has('hyoshin')) break;
         for (let i = -3; i <= 3; i++) {
           const sx = x + (i / 3) * rx * 0.85;
           const h = v.px(500 + (3 - Math.abs(i)) * 260) * Math.min(1, k * 5);
@@ -1470,6 +1510,13 @@ export class Effects2D {
       case 'halo':
         this.seraphArea(g, v, a, spec, a.age - spec.delay);
         break;
+      case 'crown':
+      case 'scan':
+      case 'signal':
+      case 'array':
+        g.globalAlpha = 1;
+        this.northArea(g, v, a, spec, a.age - spec.delay);
+        break;
       case 'smoke': {
         g.fillStyle = hexA('#2b2340', 0.6);
         for (let n = 0; n < 7; n++) {
@@ -1833,7 +1880,7 @@ export class Effects2D {
               ? spec.active + 12
               : (spec.kind === 'brand' || spec.kind === 'burst') && this.kemuriFx(a)
                 ? spec.active + 10
-                : MAGISTER_KINDS.has(spec.kind) || spec.kind === 'halo'
+                : MAGISTER_KINDS.has(spec.kind) || NORTH_KINDS.has(spec.kind) || spec.kind === 'halo'
                   ? spec.active + 12
                   : 0;
     if (to <= from) return;
@@ -1855,6 +1902,7 @@ export class Effects2D {
         } else if (spec.kind === 'firering') this.flameRing(g, v, a.x, spec.r, u, 'all', seed);
         else if (MAGISTER_KINDS.has(spec.kind)) this.magisterArea(g, v, a, spec, u);
         else if (spec.kind === 'halo') this.seraphArea(g, v, a, spec, u);
+        else if (NORTH_KINDS.has(spec.kind)) this.northArea(g, v, a, spec, u);
         else this.meteorBlast(g, v, a.x, spec.r, u, seed);
       },
     });
@@ -2085,6 +2133,198 @@ export class Effects2D {
               lightning(g, bx, v.sy(4200), x, ccy, 1.2, this.time + 0.2, '#ffffff', a.age + q + 7);
             }
           if (last) starBurst(g, x, ccy, rx * 1.5, Math.min(1, u / end), look.color, '#ffffff', a.action);
+        }
+        break;
+      }
+    }
+    g.restore();
+  }
+
+  /* -------------------------------- Rōga's crown and Mitsume's lenses (the packs' VFX clips) */
+
+  /**
+   * Crown of Endless Winter: ice spikes break the floor under the enemy and a crown of crystal
+   * closes round them, holding through the hits; on the last it bursts white and sinks away.
+   * Tri-Lens Lock: a reticle closes on the target's chest, goes solid, and the strike flashes.
+   * Signal Burst: rings of red signal race out over the floor. Surveillance Array: panels box the
+   * target in, flaring each time the lenses fire, and slam shut on the last hit.
+   * `u` frames since the area went live (negative while it gathers). Without the clips the same
+   * moments are drawn in code.
+   */
+  private northArea(
+    g: CanvasRenderingContext2D,
+    v: View2D,
+    a: GameState['areas'][number],
+    spec: ReturnType<typeof areaSpec>,
+    u: number,
+  ) {
+    const fx = this.vfx.get(ROSTER[a.char]!.id);
+    const look = LOOKS[ROSTER[a.char]!.id]!;
+    const x = v.sx(a.x);
+    const y0 = v.sy(0);
+    const cy = v.sy(1000);
+    const rx = v.px(spec.r);
+    const end = spec.active;
+    const out = Math.max(0, 1 - Math.max(0, u - end) / 12);
+    const last = a.spec === 1;
+    g.save();
+    switch (spec.kind) {
+      case 'crown': {
+        let f: number;
+        if (u < 0)
+          f = last
+            ? 12
+            : keyed(u, [
+                [-spec.delay, 0],
+                [0, 3.99],
+              ]);
+        else if (!last) f = u < 6 ? keyed(u, [
+          [0, 4],
+          [6, 9.99],
+        ]) : 10 + (Math.floor((u - 6) / 3) % 20);
+        else
+          f = keyed(u, [
+            [0, 5],
+            [3, 8],
+            [6, 10],
+            [end + 12, 33.99],
+          ]);
+        if (fx) {
+          g.globalAlpha = (last ? 1 : out) * 0.92;
+          fx.draw(g, v, 'Crown_of_the_Endless_Winter', f, x, y0, { size: spec.r / 1300 });
+        } else {
+          // Spikes of ice in a ring, the tallest at the back
+          const rise = u < 0 ? 0.3 * (1 + u / Math.max(1, spec.delay)) : Math.min(1, 0.3 + u / 6);
+          g.globalAlpha = last ? Math.max(0, 1 - Math.max(0, u - end) / 12) : out;
+          for (let i = -3; i <= 3; i++) {
+            const sx = x + (i / 3) * rx * 0.8;
+            const h = v.px(700 + (3 - Math.abs(i)) * 240) * rise;
+            g.fillStyle = i % 2 ? '#bfefff' : '#e8fbff';
+            g.strokeStyle = '#4aa8e0';
+            g.lineWidth = 2;
+            g.beginPath();
+            g.moveTo(sx - v.px(160), y0);
+            g.lineTo(sx, y0 - h);
+            g.lineTo(sx + v.px(160), y0);
+            g.closePath();
+            g.fill();
+            g.stroke();
+          }
+        }
+        // The crown bursts on the verdict
+        if (last && u >= 0 && u < end) {
+          g.globalAlpha = 1;
+          starBurst(g, x, v.sy(1100), rx * 1.4, Math.min(1, u / end), look.color, '#ffffff', a.action);
+        }
+        if (u >= 0) embers(g, x, y0, rx * 1.4, v.px(2200), this.time, 12, look.glow, a.action + a.spec);
+        break;
+      }
+      case 'scan': {
+        const size = spec.r / 500;
+        const f =
+          u < 0
+            ? keyed(u, [
+                [-spec.delay, 3.5],
+                [0, 9.99],
+              ])
+            : keyed(u, [
+                [0, 10],
+                [2, 11],
+                [end + 12, 15.99],
+              ]);
+        if (fx) fx.draw(g, v, 'Recon_Sensor_Calibration', f, x, cy, { size });
+        else if (u < 0) this.reticle(g, v, a.x, spec.r, 1 + u / Math.max(1, spec.delay), look.color);
+        // The strike: three beams from on high meet at the mark
+        if (u >= 0 && u < end + 3) {
+          g.globalAlpha = out;
+          g.strokeStyle = look.color;
+          g.shadowColor = look.color;
+          g.shadowBlur = 14;
+          for (let q = -1; q <= 1; q++) {
+            g.lineWidth = q ? 3 : 6;
+            g.beginPath();
+            g.moveTo(x + q * rx * 1.6, v.sy(4200));
+            g.lineTo(x, cy);
+            g.stroke();
+          }
+          g.shadowBlur = 0;
+          starBurst(g, x, cy, rx * 1.1, Math.min(1, u / Math.max(1, end)), look.color, '#ffffff', a.action);
+        }
+        break;
+      }
+      case 'signal': {
+        if (u < 0) break;
+        // Three rings of signal racing out over the floor, a flash at the core
+        for (let q = 0; q < 3; q++) {
+          const k = (u - q * 3) / (end + 8);
+          if (k <= 0 || k >= 1) continue;
+          g.globalAlpha = (1 - k) * 0.9;
+          g.strokeStyle = q === 1 ? '#ffffff' : look.color;
+          g.lineWidth = 4 - q;
+          g.shadowColor = look.color;
+          g.shadowBlur = 12;
+          g.beginPath();
+          g.ellipse(x, y0 - v.px(300), rx * (0.25 + 0.95 * k), rx * (0.25 + 0.95 * k) * 0.3, 0, 0, TAU);
+          g.stroke();
+        }
+        g.shadowBlur = 0;
+        if (u < end) {
+          g.globalAlpha = 1;
+          starBurst(g, x, v.sy(600), rx * 0.7, Math.min(1, u / end), look.color, look.glow, a.action);
+          for (let q = 0; q < 4; q++) {
+            const ang = hash(q * 1.9 + a.age) * TAU;
+            lightning(g, x, v.sy(600), x + Math.cos(ang) * rx, v.sy(600) + Math.sin(ang) * rx * 0.3, 1.4, this.time, look.color, q + a.age);
+          }
+        }
+        break;
+      }
+      case 'array': {
+        const size = spec.r / 1300;
+        const tick = spec.every ? u % spec.every : u;
+        let f: number;
+        if (u < 0) f = last ? 10 : keyed(u, [
+          [-spec.delay, 0],
+          [0, 2],
+        ]);
+        else if (!last) f = u < end ? (tick < 4 ? 5 + tick : 1 + (Math.floor(u / 3) % 4)) : 3;
+        else f = keyed(u, [
+          [0, 11],
+          [3, 12],
+          [end + 12, 13.99],
+        ]);
+        if (fx) {
+          g.globalAlpha = last ? 1 : out;
+          fx.draw(g, v, 'Surveillance_Dominion_Array', f, x, y0, { size });
+        } else {
+          // Six red panels standing round the target
+          g.globalAlpha = last ? Math.max(0, 1 - u / (end + 12)) : out;
+          g.fillStyle = hexA(look.color, 0.75);
+          g.strokeStyle = '#1a1018';
+          g.lineWidth = 2;
+          for (let q = 0; q < 6; q++) {
+            const px = x + Math.cos((q / 6) * TAU) * rx * 0.85;
+            const ph = v.px(1500) * (0.7 + 0.3 * Math.abs(Math.sin((q / 6) * TAU)));
+            g.fillRect(px - v.px(150), y0 - ph - v.px(300), v.px(300), ph);
+            g.strokeRect(px - v.px(150), y0 - ph - v.px(300), v.px(300), ph);
+          }
+        }
+        // Every lens fires at the target
+        if (u >= 0 && u < end && (last || tick < 3)) {
+          g.globalAlpha = 1;
+          g.strokeStyle = look.color;
+          g.shadowColor = look.color;
+          g.shadowBlur = 12;
+          const n = last ? 6 : 3;
+          for (let q = 0; q < n; q++) {
+            const ang = (q / n) * TAU + a.age * 0.3;
+            g.lineWidth = last ? 4 : 2.5;
+            g.beginPath();
+            g.moveTo(x + Math.cos(ang) * rx * 0.9, cy - v.px(500) + Math.sin(ang) * rx * 0.45);
+            g.lineTo(x, cy);
+            g.stroke();
+          }
+          g.shadowBlur = 0;
+          if (last) starBurst(g, x, cy, rx * 1.5, Math.min(1, u / end), look.color, '#ffffff', a.action);
         }
         break;
       }

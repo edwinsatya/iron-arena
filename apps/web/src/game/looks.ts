@@ -57,6 +57,7 @@ export interface Look {
     | 'rod'
     | 'staff'
     | 'horn'
+    | 'optic'
     | 'none';
   /** Sprite animation per action id. */
   actions: Record<string, AnimRef>;
@@ -514,6 +515,46 @@ export const LOOKS: Record<string, Look> = {
       sg_s2: 'coil',
       sg_s3: 'bless',
       sg_ult: 'judgment',
+    },
+  },
+  roga: {
+    color: '#7fd8ff',
+    glow: '#e6fbff',
+    weapon: 'axe',
+    altHue: 200,
+    win: { anim: 'win', hold: 7 },
+    actions: {
+      rg_b1: 'chop',
+      rg_b2: 'hew',
+      rg_b3: 'slam',
+      rg_dash: { anim: 'chop', puppet: 'lunge' },
+      rg_air: 'hew',
+      rg_charge: 'execute',
+      rg_s1: 'cleave',
+      rg_s2: 'decree',
+      rg_s3: 'oath',
+      // The hand thrust out at the enemy, the frost flaring through him while the crown holds
+      rg_ult: { anim: 'crown', cycle: [30, 12] },
+    },
+  },
+  mitsume: {
+    color: '#ff3346',
+    glow: '#ffe2a0',
+    weapon: 'optic',
+    altHue: 180,
+    win: { anim: 'win', hold: 7 },
+    actions: {
+      mi_b1: 'zap',
+      mi_b2: 'zap',
+      mi_b3: 'pulse',
+      mi_dash: 'hop',
+      mi_air: 'zap',
+      mi_charge: 'pulse',
+      mi_s1: 'lock',
+      mi_s2: 'burst',
+      mi_s3: 'calibrate',
+      // The array's lenses flare over and over while the panels hold the target
+      mi_ult: { anim: 'array', cycle: [28, 16] },
     },
   },
   dummy: {

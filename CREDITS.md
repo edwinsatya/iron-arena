@@ -11,7 +11,7 @@ Every hero but Kamakiri and Shirogane is drawn with free character packs by **el
 | Benika | Battle Axemaiden (free complete pack) |
 | Lysa | Elven Bow Scout (free complete pack) |
 | Hyōga | Glacierbreaker Knight (free complete pack) |
-| Hyōshin | Glacial Heart (free complete pack) |
+| Hyōshin | Glacial Heart (free complete pack) and its free VFX update |
 | Akari | Young Swordswoman (free complete pack) |
 | Reo | Shield Knight (free pack) |
 | Kage | Black Assassin (free pack) and the Hooded Rogue Assassin free VFX update |
@@ -26,6 +26,8 @@ Every hero but Kamakiri and Shirogane is drawn with free character packs by **el
 | Ikazuchi | Lightning Academy Magister (free complete pack, with its VFX clips) |
 | Amane | Sanctuary Seraph (free complete pack) |
 | Tsuno | Northern Pack Goat (free complete pack; every attack built from its frames) |
+| Rōga | Northern Gothic War Chieftain (free complete pack, with its VFX clips) |
+| Mitsume | Quadrupedal Recon Drone (free complete pack, with its VFX clips) |
 | Training dummy | Wasteland Juggernaut (free pack) |
 
 Licence (from the packs): *Commercial and non-commercial use and modifications allowed. Credit "elie automata". Distribution within finished projects allowed. No standalone resale, sharing or redistribution of original or modified assets.*
