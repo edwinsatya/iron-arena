@@ -6,7 +6,7 @@ Game design: docs/GAME.md (current). Architecture and netcode: docs/PLAN.md (§2
 
 ## Layout
 - packages/sim — deterministic game logic (pure TS, zero runtime deps). Rules: .claude/rules/sim-determinism.md
-  - data/heroes — Benika, Lysa, Hyōga, Hyōshin, Akari, Reo, Kage, Homura, Gōkai, Yomi, Kuma, Karasu, Kamakiri, Kurage, Kemuri, Raika, Ikazuchi, Amane, Tsuno, Shirogane, Rōga, Mitsume, training dummy (actions: strikes, projectiles, areas, skills, ultimates, grabs)
+  - data/heroes — Benika, Lysa, Hyōga, Hyōshin, Akari, Reo, Kage, Homura, Gōkai, Yomi, Kuma, Karasu, Kamakiri, Kurage, Kemuri, Raika, Ikazuchi, Amane, Tsuno, Shirogane, Rōga, Mitsume, Jūki, training dummy (actions: strikes, projectiles, areas, skills, ultimates, grabs)
   - side view: everything lives on z = 0 (step() flattens); input is left/right + jump
 - packages/netcode — rollback session (GGPO-style), binary input packets, links: loopback, WebRTC, WebSocket relay
 - packages/shared — input bits, lobby/control protocol (zod), constants (title, roster ids, stages)

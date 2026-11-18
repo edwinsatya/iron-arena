@@ -88,6 +88,7 @@ locks the screen sideways where the browser allows it (Android).
 | **Shirogane** "Silver Paladin" | Knight (longsword and holy light; takes 5% less damage) | 1050 | **Hōkō Holy Bolt**: a bolt of light from the palm that leaves the enemy reeling | **Tenchū Dawn Pillar**: armoured overhead, then a pillar of dawn bursts up and launches | **Kago Dawn Blessing**: heals 80, then 6 s of +20% damage and +10% speed | **Shinpan Dawnpiercer Judgment**: a lance of light pierces the stage and stuns, the dawn pins them, then bursts |
 | **Rōga** "Winter Chieftain" | Berserker (crystal war-axe; slow, takes 5% less damage) | 1040 | **Tōga Glacierfang Cleave**: armoured lunging overhead that launches | **Fuyubure Frostfall Decree**: the axe strikes the ground and a line of ice spikes runs out, the last one launches | **Ōkami Wolfblood Oath**: the wolf spirit howls foes back, then 6 s of armour and +15% damage | **Tōkan Crown of Endless Winter**: a crown of ice erupts under the enemy, holds them, then shatters |
 | **Mitsume** "Recon Sentinel" | Archer (optic beams; light on its legs) | 980 | **Shōjun Tri-Lens Lock**: a reticle locks on from across the stage, the marked spot is struck and the target stunned | **Denpa Signal Burst**: armoured; a pulse of signal throws everything nearby away | **Kansoku Sensor Calibration**: repairs 60, then 7 s of +15% damage and speed | **Kanshi Surveillance Array**: panels box the enemy in, every lens fires, then the array slams shut |
+| **Jūki** "Siege Walker" | Guardian (hydraulic legs; the slowest hero, takes 5% less damage) | 1000 | **Atsuryoku Hydraulic Slam**: two stomps, the ground cracks, then erupts and launches | **Rōshin Reactor Charge**: the reactor spins up, then an armoured boost across the stage and through the enemy | **Teppeki Lowered Brace**: a jolt shoves foes off, then 5 s of armour and a 50 repair | **Bakushin Reactor Overload**: boosts across the stage, stamps the enemy again and again, then the reactor blows |
 
 Every hero also has a dash attack, an air attack and a charged attack. The in-game *Heroes &
 controls* page is generated from the data.
@@ -111,8 +112,9 @@ controls* page is generated from the data.
 
 `pnpm balance [matches] [--detail]` plays CPU-vs-CPU for every pair and prints win rates, round
 endings, a win matrix and each hero's damage by move. Last run (20 matches per pair, hard CPU, with
-wake-up protection): Hyōshin 78%, Lysa 67%, Kage 66%, Karasu 59%, Homura 56%, Amane 55%,
-Rōga 54%, Kemuri 53%, Reo 53%, Raika 49%, Hyōga 48%, Shirogane 48%, Benika 47%, Mitsume 47%,
-Kamakiri 46%, Tsuno 45%, Ikazuchi 44%, Kurage 41%, Gōkai 38%, Kuma 36%, Akari 36%, Yomi 34%.
+wake-up protection): Hyōshin 78%, Lysa 66%, Kage 66%, Karasu 59%, Jūki 58%, Homura 56%,
+Amane 55%, Rōga 54%, Kemuri 53%, Reo 53%, Raika 49%, Hyōga 48%, Benika 47%, Shirogane 47%,
+Mitsume 46%, Kamakiri 45%, Tsuno 45%, Ikazuchi 43%, Kurage 40%, Gōkai 38%, Kuma 36%, Akari 35%,
+Yomi 33%.
 Tune with real players.
 The CPU keeps its distance only with heroes whose basic attack is a shot.

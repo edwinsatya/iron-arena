@@ -557,6 +557,27 @@ export const LOOKS: Record<string, Look> = {
       mi_ult: { anim: 'array', cycle: [28, 16] },
     },
   },
+  juki: {
+    color: '#f2b31c',
+    glow: '#ff4a3a',
+    weapon: 'hammer',
+    altHue: 200,
+    win: { anim: 'win', hold: 8 },
+    actions: {
+      jk_b1: 'stomp',
+      jk_b2: 'stamp',
+      // Both stomps, one per strike
+      jk_b3: 'slam',
+      jk_dash: 'rush',
+      jk_air: 'stamp',
+      jk_charge: { anim: 'stomp', puppet: 'slam' },
+      jk_s1: 'slam',
+      jk_s2: 'charge',
+      jk_s3: 'brace',
+      // The boost across the stage, then stamping over and over until the reactor blows
+      jk_ult: { anim: 'charge', swap: [38, 'slam'], cycle: [42, 8] },
+    },
+  },
   dummy: {
     color: '#b8b2c8',
     glow: '#ffffff',

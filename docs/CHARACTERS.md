@@ -156,6 +156,12 @@ Some packs leave stray marker pixels in their frames (green tracking dots in the
 blob in a corner of the Absolute Zero clip): `scrub` clears them in the converter. Zips whose
 folder names hold UTF-8 (an em dash) are unpacked with `tar` when macOS's `unzip` can't.
 
+One more complete pack with only two moves:
+
+| Hero | The pack has | Made from it |
+|---|---|---|
+| Jūki, Siege Walker | Quadrupedal Combat Walker: idle, walk, Hydraulic Slam (two stomps), Reactor Charge (spin-up, then a boost smear) and a death (complete pack, no VFX clips) | The piston stomp and stamp (each stomp of the slam on its own), the reactor rush (the boost without the spin-up), run (the walk, faster), jump (the slam's rise, tilted), guard (the idle, hull down), flinch (the first sparks of the death, tilted), the lowered brace (the idle sunk on its legs), the victory pose (the slam seen from the front). The pack's own sparks and smear play in the frames; the rubble is the code-drawn `quake` |
+
 Raika's decoy is drawn with her own idle frame: the renderer leaves it standing where the skill's
 area is until it bursts (`drawDecoys` in `renderer2d.ts`).
 
@@ -186,3 +192,4 @@ catch the enemy through guard, hold them, cut and kick them away.
 - **Shirogane, Silver Paladin** (Female Hero Pixel Art v1.1 and its holy-spell update, free packs): Hōkō Holy Bolt, Tenchū Dawn Pillar, Kago Dawn Blessing; ultimate Shinpan Dawnpiercer Judgment
 - **Rōga, Winter Chieftain** (Northern Gothic War Chieftain, free complete pack, with its VFX clips): Tōga Glacierfang Cleave, Fuyubure Frostfall Decree, Ōkami Wolfblood Oath; ultimate Tōkan Crown of Endless Winter
 - **Mitsume, Recon Sentinel** (Quadrupedal Recon Drone, free complete pack, with its VFX clips): Shōjun Tri-Lens Lock, Denpa Signal Burst, Kansoku Sensor Calibration; ultimate Kanshi Surveillance Array
+- **Jūki, Siege Walker** (Quadrupedal Combat Walker, free complete pack: idle, walk, two moves and a death; the rest is built from those frames): Atsuryoku Hydraulic Slam, Rōshin Reactor Charge, Teppeki Lowered Brace; ultimate Bakushin Reactor Overload

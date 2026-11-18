@@ -689,3 +689,44 @@ describe('Rōga and Mitsume', () => {
     expect(u.fighters[1].hp).toBeLessThan(820);
   });
 });
+
+describe('Jūki', () => {
+  it('Hydraulic Slam cracks the ground twice and launches', () => {
+    const s = setup('juki', 'dummy', -800, 800);
+    tap(s, 0, BTN.SKILL1);
+    let launched = false;
+    run(s, 60, 0, () => {
+      if (s.fighters[1].y > 0) launched = true;
+      return 0;
+    });
+    expect(s.fighters[1].hp).toBeLessThan(920);
+    expect(launched).toBe(true);
+  });
+
+  it('Reactor Charge runs a far enemy down through a hit', () => {
+    const s = setup('juki', 'dummy', -2500, 2500);
+    tap(s, 0, BTN.SKILL2);
+    run(s, 60);
+    expect(s.fighters[1].hp).toBeLessThan(950);
+    expect(s.fighters[0].x).toBeGreaterThan(-500);
+  });
+
+  it('Lowered Brace shoves foes off, then armours and repairs Jūki', () => {
+    const s = setup('juki', 'dummy', 0, 900);
+    s.fighters[0].hp = 500;
+    tap(s, 0, BTN.SKILL3);
+    run(s, 20);
+    expect(s.fighters[1].hp).toBeLessThan(1000);
+    expect(s.fighters[0].hp).toBe(550);
+    expect(s.fighters[0].buffArmor).toBe(1);
+    expect(s.fighters[0].buffFrames).toBeGreaterThan(260);
+  });
+
+  it('Reactor Overload tramples a far enemy flat', () => {
+    const s = setup('juki', 'dummy', -4000, 4000);
+    s.fighters[0].ult = ULT_MAX;
+    tap(s, 0, BTN.ULT);
+    run(s, 220);
+    expect(s.fighters[1].hp).toBeLessThan(820);
+  });
+});

@@ -932,6 +932,59 @@ const HEROES: HeroCfg[] = [
     },
   },
   {
+    // Quadrupedal Combat Walker (free complete pack): a heavy four-legged machine with only an
+    // idle, a walk, two moves (a two-stomp hydraulic slam, a reactor-boosted charge) and a death.
+    // Its jump, guard, flinch and quick stomps are built from those frames.
+    id: 'juki',
+    pack: 'quadrupedal-combat-walker-COMPLETE-FREE',
+    height: 1.6,
+    // The portrait faces out: the visor, not the hull seen from the side
+    face: { src: 'Idle', dir: 'south', frame: 0 },
+    // The bust is the visor end of the hull
+    bust: { left: 108, top: 72, size: 64 },
+    anims: {
+      idle: { src: 'Idle', fps: 10, loop: true },
+      walk: { src: 'Walk', fps: 12, loop: true },
+      run: { src: 'Walk', fps: 18, loop: true, xf: () => ({ rot: -4 }) },
+      // Up on its legs, then nose down on the way down
+      jump: {
+        src: 'Hydraulic_Slam',
+        pick: [1, 2, 2, 1, 0],
+        xf: [{ rot: 4 }, { rot: 8 }, { rot: 2 }, { rot: -4 }, { rot: -8 }],
+      },
+      // Hull down, front to the enemy
+      guard: { src: 'Idle', pick: [0, 0], xf: () => ({ rot: -6 }) },
+      // The first sparks of the breakdown
+      hurt: {
+        src: 'Death',
+        pick: [1, 2, 3, 2, 1],
+        xf: [{ rot: 3, dx: -2 }, { rot: 6, dx: -4 }, { rot: 4, dx: -3 }, { rot: 2, dx: -1 }, {}],
+      },
+      // Sparks, then it keels over (getting up = put back together)
+      death: { src: 'Death' },
+      // The first stomp without the rise
+      stomp: { src: 'Hydraulic_Slam', pick: [0, 2, 3, 4, 6, 7], hit: 2 },
+      // The second stomp on its own
+      stamp: { src: 'Hydraulic_Slam', pick: [8, 9, 10, 11, 13, 15], hit: 2 },
+      // Both stomps
+      slam: { src: 'Hydraulic_Slam', hit: 3 },
+      // The reactor's glow, then the boost (frame 12 is the blur)
+      charge: { src: 'Reactor_Charge', hit: 12 },
+      // The boost without the spin-up
+      rush: { src: 'Reactor_Charge', pick: [0, 8, 10, 11, 12, 13, 14, 15], hit: 4 },
+      // Settles low on its legs and locks them
+      brace: {
+        src: 'Idle',
+        pick: [0, 0, 0, 0, 0, 0],
+        xf: [{}, { dy: 2 }, { dy: 4 }, { dy: 5 }, { dy: 5 }, { dy: 3 }],
+        hit: 3,
+      },
+      front: { src: 'Idle', dir: 'south', fps: 10, loop: true },
+      // Facing out, stamping the ground
+      win: { src: 'Hydraulic_Slam', dir: 'south', pick: [0, 1, 2, 3, 4, 5, 6, 7, 8] },
+    },
+  },
+  {
     id: 'dummy',
     pack: 'wasteland-juggernaut-FREE',
     height: 1.85,

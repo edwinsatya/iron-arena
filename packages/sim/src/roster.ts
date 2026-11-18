@@ -6,6 +6,7 @@ import { dummy } from '../data/heroes/dummy';
 import { homura } from '../data/heroes/homura';
 import { hyoga } from '../data/heroes/hyoga';
 import { hyoshin } from '../data/heroes/hyoshin';
+import { juki } from '../data/heroes/juki';
 import { ikazuchi } from '../data/heroes/ikazuchi';
 import { gokai } from '../data/heroes/gokai';
 import { kage } from '../data/heroes/kage';
@@ -81,6 +82,7 @@ export const ROSTER: readonly CompiledHero[] = [
   shirogane,
   roga,
   mitsume,
+  juki,
   dummy,
 ].map((h, i) => compileHero(h, i));
 
