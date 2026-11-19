@@ -75,6 +75,9 @@ interface HeroCfg {
   height: number;
   /** Folder holding the animations (default Animations). */
   animDir?: string;
+  /** Facing folder every animation reads by default (default east = side view). Packs drawn
+   * facing the camera only use `south` (or `south-mirrored` for the blade on the forward side). */
+  facing?: string;
   anims: Record<string, AnimCfg>;
   /** Art board file prefix (complete packs only). */
   art?: string;
@@ -106,8 +109,12 @@ interface VfxCfg {
   pack: string;
   /** Clip name → its anchor in the source canvas (the point drawn at the spot the effect is
    * placed: the ground under a column, the middle of a ring). The name is the folder under VFX/,
-   * or `src` names the folder when it is awkward to type. */
-  clips: Record<string, [number, number] | { src: string; at: [number, number] }>;
+   * or `src` names the folder when it is awkward to type, or `frames` lifts the clip out of the
+   * pack's own (camera-facing) animation frames: [folder under Animations/, frame] each. */
+  clips: Record<
+    string,
+    [number, number] | { src: string; at: [number, number] } | { frames: [string, number][]; at: [number, number] }
+  >;
   scrub?: Scrub;
 }
 
@@ -985,6 +992,96 @@ const HEROES: HeroCfg[] = [
     },
   },
   {
+    // Demonic Gothic Seraph (free complete pack): five animations, all facing the camera (idle,
+    // fly, landing, Crimson Impale, Infernal Consecration). Read from the mirrored set so the
+    // blade is on the forward side. The fly ends in a beam of red light and the landing begins
+    // with one: that beam is also lifted out as a clip for the skills' pillars.
+    id: 'shinku',
+    pack: 'demonic-gothic-seraph-COMPLETE-FREE',
+    height: 2.05,
+    animDir: 'Animations_Mirrored',
+    facing: 'south-mirrored',
+    art: '5981e458-d697-46c0-beaf-7663345a7a6e__',
+    actionCards: {
+      file: 'animation_actions.png',
+      rects: [
+        [217, 222, 296],
+        [618, 222, 296],
+        [402, 618, 296],
+        [826, 618, 296],
+      ],
+    },
+    vfx: {
+      pack: 'demonic-gothic-seraph-COMPLETE-FREE',
+      clips: {
+        // The beam comes down (the landing's first frames), then bursts and fades (the fly's last)
+        Crimson_Beam: {
+          frames: [
+            ['Landing', 0],
+            ['Landing', 1],
+            ['Landing', 2],
+            ['Fly', 12],
+            ['Fly', 13],
+          ],
+          at: [128, 192],
+        },
+      },
+    },
+    anims: {
+      idle: { src: 'Idle', fps: 10, loop: true },
+      // Wings opening on the way up, spread wide on the way down
+      jump: { src: 'Fly', pick: [1, 5, 7, 9, 11] },
+      land: { src: 'Landing', pick: [8, 11, 14, 17, 19] },
+      // Hunched low behind the wings
+      guard: { src: 'Landing', pick: [9, 10] },
+      // Knocked back into the landing's crouch
+      hurt: {
+        src: 'Landing',
+        pick: [14, 9, 7, 9, 14],
+        xf: [{ rot: 4, dx: -2 }, { rot: 9, dx: -4 }, { rot: 7, dx: -3 }, { rot: 3, dx: -1 }, {}],
+      },
+      // Down on one knee, then tipping over onto the wings (getting up = the fall reversed)
+      death: {
+        src: 'Landing',
+        pick: [16, 12, 9, 7, 7, 7, 7, 7],
+        xf: [
+          { rot: 4 },
+          { rot: 10, dx: -2 },
+          { rot: 20, dx: -4, ground: true },
+          { rot: 36, dx: -8, ground: true },
+          { rot: 55, dx: -12, ground: true },
+          { rot: 74, dx: -16, ground: true },
+          { rot: 86, dx: -18, ground: true },
+          { rot: 90, dx: -18, ground: true },
+        ],
+      },
+      // The blade raised and driven down (the impale's opening)
+      cut: { src: 'Crimson_Impale', pick: [0, 1, 2, 3, 4, 6], hit: 3 },
+      // The blade swung up at the side and planted in front (the consecration's opening)
+      brand: { src: 'Infernal_Consecration', pick: [0, 1, 2, 3, 4], hit: 2 },
+      // Wings thrown open
+      wings: { src: 'Fly', pick: [3, 4, 5, 6, 7, 8], hit: 3 },
+      // Gliding low on spread wings, leaning in
+      glide: { src: 'Fly', pick: [5, 6, 7, 8, 9, 10], xf: () => ({ rot: -14 }), hit: 2 },
+      impale: { src: 'Crimson_Impale', hit: 3 },
+      consecrate: { src: 'Infernal_Consecration', hit: 3 },
+      // Wings wide, roaring over the planted blade
+      roar: { src: 'Infernal_Consecration', pick: [4, 5, 6, 7, 8, 9, 10, 11], fps: 12, loop: true },
+      // Up into a beam of light, then down as one: the fly then the landing (contact: the beam
+      // arriving)
+      descent: {
+        src: 'Fly',
+        pick: [
+          0, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+          ...Array.from({ length: 20 }, (_, k): [string, number] => ['Landing', k]),
+        ],
+        hit: 12,
+      },
+      front: { src: 'Idle', fps: 10, loop: true },
+      win: { src: 'Infernal_Consecration', pick: [0, 1, 2, 3, 4, 5, 6, 7] },
+    },
+  },
+  {
     id: 'dummy',
     pack: 'wasteland-juggernaut-FREE',
     height: 1.85,
@@ -1312,7 +1409,7 @@ async function hero(cfg: HeroCfg) {
   const load = async (file: string) => scrubbed(await loadRaw(file), cfg.scrub);
 
   // Feet anchor and scale from the first idle frame
-  const idle0 = await load(anim(cfg.anims.idle!.src, 'east')[0]!);
+  const idle0 = await load(anim(cfg.anims.idle!.src, cfg.anims.idle!.dir ?? cfg.facing ?? 'east')[0]!);
   const ib = bbox(idle0)!;
   const footX = Math.round((ib[0] + ib[2]) / 2);
   const footY = ib[3] - 1;
@@ -1327,12 +1424,12 @@ async function hero(cfg: HeroCfg) {
       const at = typeof a.pick?.[0] === 'number' ? a.pick[0] : 0;
       files = SPIN.map((d) => anim(a.src, d, a.pack)[at]!);
     } else {
-      files = anim(a.src, a.dir ?? 'east', a.pack);
+      files = anim(a.src, a.dir ?? cfg.facing ?? 'east', a.pack);
       if (a.range) files = files.slice(a.range[0], a.range[1] + 1);
       if (a.pick) {
         const all = files;
         files = a.pick
-          .map((i) => (typeof i === 'number' ? all[i] : anim(i[0], a.dir ?? 'east', a.pack)[i[1]]))
+          .map((i) => (typeof i === 'number' ? all[i] : anim(i[0], a.dir ?? cfg.facing ?? 'east', a.pack)[i[1]]))
           .filter((f): f is string => !!f);
       }
     }
@@ -1487,7 +1584,9 @@ async function hero(cfg: HeroCfg) {
       }
     }
     const actions =
-      cfg.actionCards && files.find((f) => f.startsWith(cfg.art!) && f.endsWith(cfg.actionCards!.file));
+      cfg.actionCards &&
+      // Some packs name the board without the art prefix
+      files.find((f) => f === cfg.actionCards!.file || (f.startsWith(cfg.art!) && f.endsWith(cfg.actionCards!.file)));
     if (actions && cfg.actionCards) {
       for (const [k, [left, top, size]] of cfg.actionCards.rects.entries()) {
         const name = k === 3 ? 'card-ult.webp' : `card-s${k + 1}.webp`;
@@ -1554,12 +1653,18 @@ async function vfx(cfg: VfxCfg, out: string, pxPerM: number): Promise<string | n
   const pieces: { img: Img; box: [number, number, number, number]; at: [number, number, number] }[] = [];
   const clips: Record<string, { frames: Frame[] }> = {};
   for (const [name, clip] of Object.entries(cfg.clips)) {
-    const src = Array.isArray(clip) ? name : clip.src;
     const [ax, ay] = Array.isArray(clip) ? clip : clip.at;
-    // Newer updates keep each clip's single camera view in a `south` folder
-    let files = list(join(dir, 'VFX', src));
-    if (!files.length) files = list(join(dir, 'VFX', src, 'south'));
-    if (!files.length) throw new Error(`${cfg.pack}: no frames in VFX/${src}`);
+    let files: string[];
+    if (!Array.isArray(clip) && 'frames' in clip) {
+      files = clip.frames.map(([folder, k]) => list(join(dir, 'Animations', folder, 'south'))[k]!);
+      if (files.some((f) => !f)) throw new Error(`${cfg.pack}: missing animation frames for ${name}`);
+    } else {
+      const src = Array.isArray(clip) ? name : clip.src;
+      // Newer updates keep each clip's single camera view in a `south` folder
+      files = list(join(dir, 'VFX', src));
+      if (!files.length) files = list(join(dir, 'VFX', src, 'south'));
+      if (!files.length) throw new Error(`${cfg.pack}: no frames in VFX/${src}`);
+    }
     const frames: Frame[] = [];
     for (const f of files) {
       const img = scrubbed(await loadRaw(f), cfg.scrub);

@@ -340,7 +340,7 @@ function fromRef(
   }
   // Time-warp: frames before `hit` cover the startup, the rest the recovery
   const hit = Math.min(n - 1, anim.hit);
-  const end = r.until ?? a.total;
+  const end = r.until ?? r.end ?? a.total;
   const frame =
     t <= imp ? (hit * t) / Math.max(1, imp) : hit + ((n - 1 - hit) * (t - imp)) / Math.max(1, end - imp);
   return base(frame);
@@ -560,7 +560,7 @@ const HAS_ART: Record<string, string[]> = {
 /** A still for menus and cards: an action at its contact frame, or the first idle frame. */
 export function chooseSpriteForAction(atlas: Atlas, heroId: string, actionId: string | null): SpritePick {
   const ref = actionId ? lookFor(heroId).actions[actionId] : null;
-  const name = ref ? (typeof ref === 'string' ? ref : ref.anim) : 'idle';
+  const name = ref ? (typeof ref === 'string' ? ref : (ref.still ?? ref.anim)) : 'idle';
   const anim = atlas.anims[name] ?? atlas.anims.idle!;
   return { anim, frame: name === 'idle' ? 0 : anim.hit, sx: 1, sy: 1, rot: 0, alpha: 1 };
 }

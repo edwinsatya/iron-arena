@@ -29,6 +29,7 @@ Every hero but Kamakiri and Shirogane is drawn with free character packs by **el
 | Rōga | Northern Gothic War Chieftain (free complete pack, with its VFX clips) |
 | Mitsume | Quadrupedal Recon Drone (free complete pack, with its VFX clips) |
 | Jūki | Quadrupedal Combat Walker (free complete pack; jump, guard, flinch and quick stomps built from its frames) |
+| Shinku | Demonic Gothic Seraph (free complete pack; camera-facing only, its beam of light reused for the skills' pillars) |
 | Training dummy | Wasteland Juggernaut (free pack) |
 
 Licence (from the packs): *Commercial and non-commercial use and modifications allowed. Credit "elie automata". Distribution within finished projects allowed. No standalone resale, sharing or redistribution of original or modified assets.*

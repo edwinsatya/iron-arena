@@ -9,6 +9,8 @@
  * frame. `until`: switch to `after` from this action frame on (vanishes, stances).
  * `cycle`: from action frame `[0]` on, loop the animation every `[1]` frames (volleys, flurries).
  * `swap`: from action frame `[0]` on, show animation `[1]` instead (a turn in the middle of a move).
+ * `end`: finish the animation by this action frame (before a `swap`).
+ * `still`: the move's picture in menus and on the HUD comes from this animation instead.
  */
 export type AnimRef =
   | string
@@ -20,6 +22,12 @@ export type AnimRef =
       hold?: number;
       puppet?: Puppet;
       swap?: [number, string];
+      /** The animation's recovery ends at this action frame instead of the action's last (a
+       * `swap` takes over from there). */
+      end?: number;
+      /** Animation whose contact frame is the move's picture (skill icons, the ultimate cut-in)
+       * when its own contact frame isn't one: a beam of light, say. */
+      still?: string;
     };
 
 /**
@@ -576,6 +584,27 @@ export const LOOKS: Record<string, Look> = {
       jk_s3: 'brace',
       // The boost across the stage, then stamping over and over until the reactor blows
       jk_ult: { anim: 'charge', swap: [38, 'slam'], cycle: [42, 8] },
+    },
+  },
+  shinku: {
+    color: '#e8243c',
+    glow: '#ffb0a8',
+    weapon: 'sword',
+    altHue: 230,
+    win: { anim: 'win', hold: 7 },
+    actions: {
+      sk_b1: 'cut',
+      sk_b2: 'brand',
+      sk_b3: { anim: 'wings', puppet: 'lunge' },
+      sk_dash: 'glide',
+      sk_air: 'cut',
+      sk_charge: { anim: 'impale', puppet: 'slam' },
+      sk_s1: 'impale',
+      sk_s2: 'consecrate',
+      // Up into the beam, across the stage as light, down as a beam in front of the enemy
+      sk_s3: { anim: 'descent', still: 'wings' },
+      // The descent onto the enemy, then roaring over the planted blade while the seal burns
+      sk_ult: { anim: 'descent', end: 54, swap: [54, 'roar'], still: 'roar' },
     },
   },
   dummy: {

@@ -162,6 +162,12 @@ One more complete pack with only two moves:
 |---|---|---|
 | Jūki, Siege Walker | Quadrupedal Combat Walker: idle, walk, Hydraulic Slam (two stomps), Reactor Charge (spin-up, then a boost smear) and a death (complete pack, no VFX clips) | The piston stomp and stamp (each stomp of the slam on its own), the reactor rush (the boost without the spin-up), run (the walk, faster), jump (the slam's rise, tilted), guard (the idle, hull down), flinch (the first sparks of the death, tilted), the lowered brace (the idle sunk on its legs), the victory pose (the slam seen from the front). The pack's own sparks and smear play in the frames; the rubble is the code-drawn `quake` |
 
+And one whose every animation faces the camera:
+
+| Hero | The pack has | Made from it |
+|---|---|---|
+| Shinku, Fallen Seraph | Demonic Gothic Seraph: Idle, Fly (wings open, then it becomes a beam of red light), Landing (a beam comes down, then it crouches and rises), Crimson Impale, Infernal Consecration — South view only, plus a mirrored copy (complete pack, no VFX clips) | Read from the mirrored set (`facing: 'south-mirrored'`) so the blade is on the forward side. The cut and the hellbrand (each skill's opening), the wing rend and glide (the fly's spread wings, the glide leaning in), jump and landing (fly and landing frames), guard and flinch (the landing's crouch, tilted), the fall (the crouch tipped onto its wings), the roar (the consecration's wings-wide frames, looped), the descent (fly then landing in one animation, the beam arriving on the contact frame). The beam frames are also lifted out as the `Crimson_Beam` clip (`frames` in a VFX clip) for the `beam` area kind. Its HUD and cut-in pictures use `still` poses, since the descent's contact frame is only light |
+
 Raika's decoy is drawn with her own idle frame: the renderer leaves it standing where the skill's
 area is until it bursts (`drawDecoys` in `renderer2d.ts`).
 
@@ -193,3 +199,4 @@ catch the enemy through guard, hold them, cut and kick them away.
 - **Rōga, Winter Chieftain** (Northern Gothic War Chieftain, free complete pack, with its VFX clips): Tōga Glacierfang Cleave, Fuyubure Frostfall Decree, Ōkami Wolfblood Oath; ultimate Tōkan Crown of Endless Winter
 - **Mitsume, Recon Sentinel** (Quadrupedal Recon Drone, free complete pack, with its VFX clips): Shōjun Tri-Lens Lock, Denpa Signal Burst, Kansoku Sensor Calibration; ultimate Kanshi Surveillance Array
 - **Jūki, Siege Walker** (Quadrupedal Combat Walker, free complete pack: idle, walk, two moves and a death; the rest is built from those frames): Atsuryoku Hydraulic Slam, Rōshin Reactor Charge, Teppeki Lowered Brace; ultimate Bakushin Reactor Overload
+- **Shinku, Fallen Seraph** (Demonic Gothic Seraph, free complete pack, camera-facing only): Chishio Crimson Impale, Jōka Infernal Consecration, Tenraku Fallen Descent; ultimate Daraku Fallen Heaven

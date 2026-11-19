@@ -730,3 +730,41 @@ describe('Jūki', () => {
     expect(s.fighters[1].hp).toBeLessThan(820);
   });
 });
+
+describe('Shinku', () => {
+  it('Crimson Impale answers under a far enemy and launches them', () => {
+    const s = setup('shinku', 'dummy', -3000, 3000);
+    tap(s, 0, BTN.SKILL1);
+    let launched = false;
+    run(s, 60, 0, () => {
+      if (s.fighters[1].y > 0) launched = true;
+      return 0;
+    });
+    expect(s.fighters[1].hp).toBeLessThan(920);
+    expect(launched).toBe(true);
+  });
+
+  it('Infernal Consecration burns foes inside the seal and strengthens Shinku', () => {
+    const s = setup('shinku', 'dummy', 0, 900);
+    tap(s, 0, BTN.SKILL2);
+    run(s, 120);
+    expect(s.fighters[1].hp).toBeLessThan(960);
+    expect(s.fighters[0].buffFrames).toBeGreaterThan(100);
+  });
+
+  it('Fallen Descent comes down in front of a far enemy and knocks them flat', () => {
+    const s = setup('shinku', 'dummy', -4000, 4000);
+    tap(s, 0, BTN.SKILL3);
+    run(s, 50);
+    expect(s.fighters[0].x).toBeGreaterThan(2000);
+    expect(s.fighters[1].hp).toBeLessThan(950);
+  });
+
+  it('Fallen Heaven holds a far enemy in the seal, then the lance launches them', () => {
+    const s = setup('shinku', 'dummy', -4000, 4000);
+    s.fighters[0].ult = ULT_MAX;
+    tap(s, 0, BTN.ULT);
+    run(s, 280);
+    expect(s.fighters[1].hp).toBeLessThan(820);
+  });
+});

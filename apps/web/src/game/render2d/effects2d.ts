@@ -51,6 +51,8 @@ type Fx = {
 };
 
 const TAU = Math.PI * 2;
+/** Frames Shinku's crimson beam takes to burst and fray away after it stops hitting. */
+const BEAM_FADE = 14;
 
 /* Clip timing from the packs' VFX updates: [frames since the effect landed, clip frame]. */
 const PILLAR_KEYS = [
@@ -921,6 +923,7 @@ export class Effects2D {
       } else if (MAGISTER_KINDS.has(spec.kind)) this.magisterArea(g, v, a, spec, a.age - spec.delay);
       else if (spec.kind === 'verdict' || spec.kind === 'halo') this.seraphArea(g, v, a, spec, a.age - spec.delay);
       else if (NORTH_KINDS.has(spec.kind)) this.northArea(g, v, a, spec, a.age - spec.delay);
+      else if (spec.kind === 'beam') this.crimsonBeam(g, v, a, spec, a.age - spec.delay);
       return;
     }
     const k = (a.age - spec.delay) / Math.max(1, spec.active);
@@ -1517,6 +1520,10 @@ export class Effects2D {
         g.globalAlpha = 1;
         this.northArea(g, v, a, spec, a.age - spec.delay);
         break;
+      case 'beam':
+        g.globalAlpha = 1;
+        this.crimsonBeam(g, v, a, spec, a.age - spec.delay);
+        break;
       case 'smoke': {
         g.fillStyle = hexA('#2b2340', 0.6);
         for (let n = 0; n < 7; n++) {
@@ -1882,7 +1889,9 @@ export class Effects2D {
                 ? spec.active + 10
                 : MAGISTER_KINDS.has(spec.kind) || NORTH_KINDS.has(spec.kind) || spec.kind === 'halo'
                   ? spec.active + 12
-                  : 0;
+                  : spec.kind === 'beam'
+                    ? spec.active + BEAM_FADE
+                    : 0;
     if (to <= from) return;
     this.fx.push({
       age: 0,
@@ -1903,6 +1912,7 @@ export class Effects2D {
         else if (MAGISTER_KINDS.has(spec.kind)) this.magisterArea(g, v, a, spec, u);
         else if (spec.kind === 'halo') this.seraphArea(g, v, a, spec, u);
         else if (NORTH_KINDS.has(spec.kind)) this.northArea(g, v, a, spec, u);
+        else if (spec.kind === 'beam') this.crimsonBeam(g, v, a, spec, u);
         else this.meteorBlast(g, v, a.x, spec.r, u, seed);
       },
     });
@@ -2338,6 +2348,74 @@ export class Effects2D {
    * Sunspoke Verdict: a sun wheel turns over the enemy, then a spoke of light comes down.
    * Unbroken Halo: a halo sinks around the enemy and spins, burning, then shatters outward.
    */
+  /**
+   * Shinku's lance of crimson light (`u` frames after it can hit; negative = telegraph): a seal
+   * glows on the floor under the spot, then the pack's beam comes down on it, bursts at its foot
+   * and frays away. Drawn in code without the clip.
+   */
+  private crimsonBeam(
+    g: CanvasRenderingContext2D,
+    v: View2D,
+    a: GameState['areas'][number],
+    spec: ReturnType<typeof areaSpec>,
+    u: number,
+  ) {
+    const fx = this.vfx.get(ROSTER[a.char]!.id);
+    const look = LOOKS[ROSTER[a.char]!.id]!;
+    const x = v.sx(a.x);
+    const y0 = v.sy(0);
+    const rx = v.px(spec.r);
+    const end = spec.active;
+    g.save();
+    if (u < 0) {
+      // The seal under the spot, and a thread of light finding it from above
+      const k = 1 + u / Math.max(1, spec.delay);
+      g.strokeStyle = hexA(look.color, 0.35 + 0.55 * k);
+      g.lineWidth = 3;
+      g.shadowColor = look.color;
+      g.shadowBlur = 12;
+      g.beginPath();
+      g.ellipse(x, y0, rx * (0.4 + 0.6 * k), rx * 0.18 * (0.4 + 0.6 * k), 0, 0, TAU);
+      g.stroke();
+      g.fillStyle = hexA(look.color, 0.12 + 0.18 * k);
+      g.fill();
+      g.shadowBlur = 0;
+      g.fillStyle = hexA(look.glow, 0.15 + 0.45 * k);
+      const w = Math.max(2, rx * 0.06 * k);
+      g.fillRect(x - w / 2, 0, w, y0);
+      g.restore();
+      return;
+    }
+    const alpha = Math.max(0, 1 - Math.max(0, u - end) / BEAM_FADE);
+    if (fx && fx.count('Crimson_Beam')) {
+      // Down (frames 0–2) while it can hit, then the burst at its foot and the fade
+      const f = keyed(u, [
+        [0, 0],
+        [end, 2.99],
+        [end + 4, 3],
+        [end + BEAM_FADE, 4.99],
+      ]);
+      fx.draw(g, v, 'Crimson_Beam', f, x, y0, { size: spec.r / 900 });
+    } else {
+      const w = rx * (u < end ? 0.9 : 0.9 * alpha);
+      const gr = g.createLinearGradient(x - w, 0, x + w, 0);
+      gr.addColorStop(0, hexA(look.color, 0));
+      gr.addColorStop(0.3, hexA(look.color, 0.85 * alpha));
+      gr.addColorStop(0.5, hexA('#ffffff', 0.95 * alpha));
+      gr.addColorStop(0.7, hexA(look.color, 0.85 * alpha));
+      gr.addColorStop(1, hexA(look.color, 0));
+      g.fillStyle = gr;
+      g.fillRect(x - w, 0, w * 2, y0);
+      g.fillStyle = hexA(look.color, 0.5 * alpha);
+      g.beginPath();
+      g.ellipse(x, y0, rx, rx * 0.2, 0, 0, TAU);
+      g.fill();
+    }
+    if (u < end) starBurst(g, x, y0 - v.px(200), rx * 1.2, Math.min(1, u / end), look.color, '#ffffff', a.action);
+    embers(g, x, y0, rx * 1.4, v.px(2600), this.time, 12, look.glow, a.action + a.spec);
+    g.restore();
+  }
+
   private seraphArea(
     g: CanvasRenderingContext2D,
     v: View2D,
