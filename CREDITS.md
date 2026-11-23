@@ -4,7 +4,7 @@ Game design, code, stages, effects and hero names/skill names in IRON ARENA are 
 
 ## Character sprites and art — elie automata
 
-Every hero but Kamakiri and Shirogane is drawn with free character packs by **elie automata** ([itch.io](https://elie-automata.itch.io/)):
+Every hero but Kamakiri, Shirogane and Kokuyō is drawn with free character packs by **elie automata** ([itch.io](https://elie-automata.itch.io/)):
 
 | Hero | Pack |
 |---|---|
@@ -30,6 +30,8 @@ Every hero but Kamakiri and Shirogane is drawn with free character packs by **el
 | Mitsume | Quadrupedal Recon Drone (free complete pack, with its VFX clips) |
 | Jūki | Quadrupedal Combat Walker (free complete pack; jump, guard, flinch and quick stomps built from its frames) |
 | Shinku | Demonic Gothic Seraph (free complete pack; camera-facing only, its beam of light reused for the skills' pillars) |
+| Tekkan | Ironclad Inquisitor (free complete pack; the fall built from its kneeling death) |
+| Kuon | Abyssal Hierophant (from the free *Weekly Free Full Pack — Arcane Duo*) |
 | Training dummy | Wasteland Juggernaut (free pack) |
 
 Licence (from the packs): *Commercial and non-commercial use and modifications allowed. Credit "elie automata". Distribution within finished projects allowed. No standalone resale, sharing or redistribution of original or modified assets.*
@@ -47,6 +49,13 @@ Shirogane is drawn with the free **Female Hero Pixel Art (v1.1)** pack and its f
 update (Basic Holy Spell Cast, Dawnpiercer Judgment); their readmes name no author. Their licence is the same as
 Void Mantis's: *Free for personal and commercial projects. Do not resell or redistribute as a game asset. Credit is
 appreciated but not required. Modify as needed. No NFT use.* The raw zips stay out of git.
+
+## Kokuyō — Obsidian Crab Pixel Art
+
+Kokuyō is drawn with the free **Obsidian Crab Pixel Art (v1.0)** monster pack (its obsidian colour); its readme
+names no author. Its licence is the same as Void Mantis's: *Free for personal and commercial projects. Do not
+resell or redistribute as a game asset. Credit is appreciated but not required. Modify as needed. No NFT use.*
+Everything but its idle, crawl, pincer snap and collapse is built from those frames. The raw zip stays out of git.
 
 ## Code & libraries
 

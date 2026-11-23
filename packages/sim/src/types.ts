@@ -123,7 +123,10 @@ export type AreaKind =
   | 'scan'
   | 'signal'
   | 'array'
-  | 'beam';
+  | 'beam'
+  | 'sanctuary'
+  | 'gate'
+  | 'umbra';
 
 /** A ground circle that hits everyone inside after a telegraph. */
 export interface AreaSpec {

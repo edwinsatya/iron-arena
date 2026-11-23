@@ -1524,6 +1524,33 @@ export class Effects2D {
         g.globalAlpha = 1;
         this.crimsonBeam(g, v, a, spec, a.age - spec.delay);
         break;
+      case 'sanctuary':
+        g.globalAlpha = 1;
+        this.sanctuary(g, v, x, y0, rx, a.age - spec.delay, spec.active, look.color, look.glow);
+        break;
+      case 'gate':
+        g.globalAlpha = 1;
+        this.voidGate(g, v, x, y0, rx, k, a.age, look.color, look.glow);
+        break;
+      case 'umbra': {
+        // Umbral Triad: a ring of the dark under the circling orbs, motes drifting up
+        g.globalAlpha = Math.max(0, fade);
+        const glow = g.createRadialGradient(x, y0, 0, x, y0, rx);
+        glow.addColorStop(0, hexA('#1a0b26', 0.7));
+        glow.addColorStop(0.7, hexA(look.color, 0.25));
+        glow.addColorStop(1, hexA(look.color, 0));
+        g.fillStyle = glow;
+        g.beginPath();
+        g.ellipse(x, y0, rx, rx * 0.2, 0, 0, TAU);
+        g.fill();
+        g.strokeStyle = hexA(look.color, 0.85);
+        g.lineWidth = 2;
+        g.beginPath();
+        g.ellipse(x, y0, rx * 0.85, rx * 0.17, 0, a.age * 0.12, a.age * 0.12 + 4.6);
+        g.stroke();
+        embers(g, x, y0, rx * 1.4, v.px(1800), this.time, 14, look.glow, a.age);
+        break;
+      }
       case 'smoke': {
         g.fillStyle = hexA('#2b2340', 0.6);
         for (let n = 0; n < 7; n++) {
@@ -1582,6 +1609,148 @@ export class Effects2D {
       }
     }
     g.restore();
+  }
+
+  /**
+   * Tekkan's Iron Sanctuary: a dome of golden light over the floor (`u` frames since it rose, out
+   * of `life`), bands of light climbing it and motes drifting inside.
+   */
+  private sanctuary(
+    g: CanvasRenderingContext2D,
+    v: View2D,
+    x: number,
+    y0: number,
+    rx: number,
+    u: number,
+    life: number,
+    color: string,
+    glow: string,
+  ) {
+    const grow = 1 - (1 - Math.min(1, u / 10)) ** 3;
+    const alpha = Math.min(1, (life - u) / 20);
+    if (alpha <= 0) return;
+    const R = rx * grow;
+    const H = R * 1.05;
+    g.save();
+    g.globalAlpha = alpha;
+    // The dome
+    const body = g.createLinearGradient(0, y0 - H, 0, y0);
+    body.addColorStop(0, hexA(glow, 0.32));
+    body.addColorStop(0.6, hexA(color, 0.14));
+    body.addColorStop(1, hexA(color, 0.3));
+    g.fillStyle = body;
+    g.beginPath();
+    g.ellipse(x, y0, R, H, 0, Math.PI, TAU);
+    g.ellipse(x, y0, R, R * 0.18, 0, 0, Math.PI);
+    g.fill();
+    g.strokeStyle = hexA(glow, 0.85);
+    g.lineWidth = Math.max(2, v.px(40));
+    g.beginPath();
+    g.ellipse(x, y0, R, H, 0, Math.PI, TAU);
+    g.stroke();
+    // A shine down the left of the dome
+    g.strokeStyle = hexA('#ffffff', 0.35);
+    g.lineWidth = Math.max(2, v.px(70));
+    g.beginPath();
+    g.ellipse(x, y0, R * 0.8, H * 0.86, 0, Math.PI * 1.15, Math.PI * 1.4);
+    g.stroke();
+    // Bands of light climbing the dome
+    for (let n = 0; n < 3; n++) {
+      const h = (((u / 70 + n / 3) % 1) * 0.9 + 0.05) * H;
+      const w = R * Math.sqrt(Math.max(0, 1 - (h / H) ** 2));
+      g.strokeStyle = hexA(color, 0.75 * (1 - h / H));
+      g.lineWidth = Math.max(1.5, v.px(30));
+      g.beginPath();
+      g.ellipse(x, y0 - h, w, w * 0.18, 0, 0, TAU);
+      g.stroke();
+    }
+    // The floor ring
+    g.strokeStyle = hexA(color, 0.9);
+    g.lineWidth = Math.max(2, v.px(45));
+    g.beginPath();
+    g.ellipse(x, y0, R, R * 0.18, 0, 0, TAU);
+    g.stroke();
+    embers(g, x, y0, R * 1.6, H, this.time, 16, glow, Math.floor(u / 40));
+    g.restore();
+  }
+
+  /**
+   * Kuon's void gate: an upright ring of violet fire around a whirling dark, opening fast and
+   * breaking into shards as it closes (k = 0 → 1 over its active frames).
+   */
+  private voidGate(
+    g: CanvasRenderingContext2D,
+    v: View2D,
+    x: number,
+    y0: number,
+    rx: number,
+    k: number,
+    age: number,
+    color: string,
+    glow: string,
+  ) {
+    const open = 1 - (1 - Math.min(1, k * 4)) ** 3;
+    const close = Math.max(0, (k - 0.55) / 0.45);
+    const w = rx * 0.42 * open * (1 - close * 0.7);
+    const h = rx * 1.05 * open;
+    const cy = y0 - rx * 1.1;
+    g.save();
+    g.globalAlpha = 1 - close;
+    // The dark inside, whirling
+    const dark = g.createRadialGradient(x, cy, 0, x, cy, Math.max(1, h));
+    dark.addColorStop(0, hexA('#05010a', 0.95));
+    dark.addColorStop(0.7, hexA('#1a0b26', 0.9));
+    dark.addColorStop(1, hexA(color, 0.5));
+    g.fillStyle = dark;
+    g.beginPath();
+    g.ellipse(x, cy, Math.max(1, w), Math.max(1, h), 0, 0, TAU);
+    g.fill();
+    g.strokeStyle = hexA(color, 0.7);
+    g.lineWidth = Math.max(1.5, v.px(30));
+    for (let n = 0; n < 3; n++) {
+      const t0 = age * 0.25 + n * 2.1;
+      g.beginPath();
+      g.ellipse(x, cy, Math.max(1, w * (0.35 + n * 0.2)), Math.max(1, h * (0.35 + n * 0.2)), 0, t0, t0 + 2.4);
+      g.stroke();
+    }
+    // The burning rim
+    g.shadowColor = color;
+    g.shadowBlur = 18;
+    g.strokeStyle = glow;
+    g.lineWidth = Math.max(2, v.px(60));
+    g.beginPath();
+    g.ellipse(x, cy, Math.max(1, w), Math.max(1, h), 0, 0, TAU);
+    g.stroke();
+    g.shadowBlur = 0;
+    g.strokeStyle = hexA(color, 0.9);
+    g.lineWidth = Math.max(2, v.px(110));
+    g.globalAlpha *= 0.5;
+    g.stroke();
+    g.restore();
+    // Breaking apart: shards flung out of the rim
+    if (close > 0) {
+      g.save();
+      for (let n = 0; n < 14; n++) {
+        const ang = hash(n * 2.7) * TAU;
+        const d = rx * (0.4 + close * 1.1) * (0.6 + hash(n * 5.1) * 0.6);
+        g.globalAlpha = 1 - close;
+        g.fillStyle = n % 2 ? color : '#1a0b26';
+        g.save();
+        g.translate(x + Math.cos(ang) * d * 0.6, cy + Math.sin(ang) * d);
+        g.rotate(ang + close * 4);
+        g.fillRect(-v.px(60), -v.px(25), v.px(120), v.px(50));
+        g.restore();
+      }
+      g.restore();
+    }
+    g.save();
+    g.globalAlpha = 1 - close;
+    g.fillStyle = hexA(color, 0.3);
+    g.beginPath();
+    g.ellipse(x, y0, rx * 0.6 * open, rx * 0.11 * open, 0, 0, TAU);
+    g.fill();
+    g.restore();
+    embers(g, x, cy + h, w * 2.5, h * 2, this.time, 12, glow, age);
   }
 
   /** Hibana Brand taking aim: brackets close on the enemy's chest around a four-pointed star. */

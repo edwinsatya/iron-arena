@@ -768,3 +768,116 @@ describe('Shinku', () => {
     expect(s.fighters[1].hp).toBeLessThan(820);
   });
 });
+
+describe('Tekkan', () => {
+  it('Judgment Slam splits the ground in a line and the last burst launches', () => {
+    const s = setup('tekkan', 'dummy', -2000, 2000);
+    tap(s, 0, BTN.SKILL1);
+    let launched = false;
+    run(s, 70, 0, () => {
+      if (s.fighters[1].y > 0) launched = true;
+      return 0;
+    });
+    expect(s.fighters[1].hp).toBeLessThan(960);
+    expect(launched).toBe(true);
+  });
+
+  it("Zealot's Blessing throws foes off and strengthens Tekkan", () => {
+    const s = setup('tekkan', 'dummy', 0, 800);
+    tap(s, 0, BTN.SKILL2);
+    run(s, 30);
+    expect(s.fighters[1].hp).toBeLessThan(1000);
+    expect(s.fighters[1].x).toBeGreaterThan(1000);
+    expect(s.fighters[0].buffDamagePct).toBe(20);
+  });
+
+  it('Iron Sanctuary mends Tekkan and shrugs off blows', () => {
+    const s = setup('tekkan', 'dummy', 0, 3000);
+    s.fighters[0].hp = 500;
+    tap(s, 0, BTN.SKILL3);
+    run(s, 40);
+    expect(s.fighters[0].hp).toBe(590);
+    expect(s.fighters[0].buffArmor).toBeGreaterThan(0);
+  });
+
+  it('Final Inquisition charges a far enemy down and launches them', () => {
+    const s = setup('tekkan', 'dummy', -4000, 4000);
+    s.fighters[0].ult = ULT_MAX;
+    tap(s, 0, BTN.ULT);
+    run(s, 260);
+    expect(s.fighters[0].x).toBeGreaterThan(2000);
+    expect(s.fighters[1].hp).toBeLessThan(780);
+  });
+});
+
+describe('Kuon', () => {
+  it('Abyssal Bolt pierces across the stage', () => {
+    const s = setup('kuon', 'dummy', -3000, 3000);
+    tap(s, 0, BTN.SKILL1);
+    run(s, 80);
+    expect(s.fighters[1].hp).toBeLessThan(920);
+  });
+
+  it('Void Gate steps out behind the enemy and stuns them', () => {
+    const s = setup('kuon', 'dummy', -4000, 4000);
+    tap(s, 0, BTN.SKILL2);
+    run(s, 40);
+    expect(s.fighters[0].x).toBeGreaterThan(4000);
+    expect(s.fighters[1].hp).toBeLessThan(950);
+  });
+
+  it('Umbral Triad burns anyone close and the orbs hunt a far enemy', () => {
+    const near = setup('kuon', 'dummy', 0, 700);
+    tap(near, 0, BTN.SKILL3);
+    run(near, 20);
+    expect(near.fighters[1].hp).toBeLessThan(1000);
+
+    const far = setup('kuon', 'dummy', -3000, 3000);
+    tap(far, 0, BTN.SKILL3);
+    run(far, 120);
+    expect(far.fighters[1].hp).toBeLessThan(940);
+  });
+
+  it('Forbidden Revelation holds a far enemy, then the page burns', () => {
+    const s = setup('kuon', 'dummy', -4000, 4000);
+    s.fighters[0].ult = ULT_MAX;
+    tap(s, 0, BTN.ULT);
+    run(s, 260);
+    expect(s.fighters[1].hp).toBeLessThan(820);
+  });
+});
+
+describe('Kokuyō', () => {
+  it('Iron Grip catches through guard, squeezes and tosses', () => {
+    const s = setup('kokuyo', 'dummy', 0, 1400);
+    s.fighters[1].fx = -1024;
+    tap(s, 0, BTN.SKILL1);
+    run(s, 90, 0, BTN.GUARD);
+    expect(s.fighters[1].hp).toBeLessThan(920);
+  });
+
+  it('Crosscurrent scuttles across the stage through the enemy', () => {
+    const s = setup('kokuyo', 'dummy', -3000, 0);
+    tap(s, 0, BTN.SKILL2);
+    run(s, 60);
+    expect(s.fighters[0].x).toBeGreaterThan(-1000);
+    expect(s.fighters[1].hp).toBeLessThan(960);
+  });
+
+  it('Obsidian Shell mends and armours it', () => {
+    const s = setup('kokuyo', 'dummy', 0, 3000);
+    s.fighters[0].hp = 500;
+    tap(s, 0, BTN.SKILL3);
+    run(s, 30);
+    expect(s.fighters[0].hp).toBe(570);
+    expect(s.fighters[0].buffArmor).toBeGreaterThan(0);
+  });
+
+  it('Riptide Maw surfaces under a far enemy and slams them down', () => {
+    const s = setup('kokuyo', 'dummy', -4000, 4000);
+    s.fighters[0].ult = ULT_MAX;
+    tap(s, 0, BTN.ULT);
+    run(s, 260);
+    expect(s.fighters[1].hp).toBeLessThan(800);
+  });
+});

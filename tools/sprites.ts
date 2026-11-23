@@ -73,6 +73,8 @@ interface HeroCfg {
   pack: string;
   /** Hero height in metres (the idle frame's height maps to this). */
   height: number;
+  /** Subfolder of the pack holding this character's Animations/ and Art/ (packs of two). */
+  root?: string;
   /** Folder holding the animations (default Animations). */
   animDir?: string;
   /** Facing folder every animation reads by default (default east = side view). Packs drawn
@@ -90,6 +92,8 @@ interface HeroCfg {
   face?: { src: string; dir: string; frame: number };
   /** Packs with full art but no portrait board: square crop of Fullart_01 for the portrait. */
   faceFromArt?: { left: number; top: number; size: number };
+  /** Portrait crop of the `face` frame (source px) when head-and-shoulders is wrong (a crab). */
+  faceBox?: { left: number; top: number; size: number };
   /** Bust crop of the 3/4 frame (source px) when the automatic one misses the head. */
   bust?: { left: number; top: number; size: number };
   /** Floats this many source pixels above the floor (every animation without `noHover`). */
@@ -1082,6 +1086,181 @@ const HEROES: HeroCfg[] = [
     },
   },
   {
+    // Ironclad Inquisitor (free complete pack): spiked plate, a crowned helm and gauntlets; two
+    // punches, Judgment Slam, Zealot's Blessing and Iron Sanctuary, each with its golden light
+    // drawn into the frames. The side-view death only kneels: the fall is tilted from it.
+    id: 'tekkan',
+    pack: 'ironclad-inquisitor-COMPLETE-FREE',
+    height: 1.8,
+    art: '4d8a6c20-3b9c-4eb4-95ac-4c18f76a8d60__',
+    actionCards: {
+      file: 'dual_skills.png',
+      rects: [
+        [80, 290, 326],
+        [496, 290, 326],
+        [912, 290, 326],
+        [496, 712, 326],
+      ],
+    },
+    anims: {
+      idle: { src: 'Idle', fps: 10, loop: true },
+      walk: { src: 'Walk', fps: 12, loop: true },
+      run: { src: 'Sprint', fps: 14, loop: true },
+      jump: { src: 'Jump', pick: [2, 5, 7, 9, 11] },
+      land: { src: 'Jump', pick: [12, 13, 14, 15, 16] },
+      // Fists brought together in front of the chest
+      guard: { src: 'Zealots_Blessing', pick: [2, 3] },
+      hurt: { src: 'Death', pick: [1, 2, 3, 2, 1] },
+      // Down on one knee, then over onto his back (getting up = the fall reversed)
+      death: {
+        src: 'Death',
+        pick: [0, 2, 4, 6, 8, 8, 8, 8],
+        xf: [
+          {},
+          { rot: 3 },
+          { rot: 8, dx: -2 },
+          { rot: 20, dx: -4, ground: true },
+          { rot: 40, dx: -8, ground: true },
+          { rot: 62, dx: -12, ground: true },
+          { rot: 80, dx: -15, ground: true },
+          { rot: 88, dx: -16, ground: true },
+        ],
+      },
+      punch: { src: 'Basic_Attack', hit: 7 },
+      // The straight punch without the ring of light it winds up with
+      straight: { src: 'Basic_Attack_2', pick: [5, 6, 7, 8, 9, 10, 12, 14, 15], hit: 3 },
+      smite: { src: 'Basic_Attack_2', hit: 9 },
+      // Charging fist-first, leaning into it
+      rush: { src: 'Basic_Attack_2', pick: [6, 7, 8, 9, 10, 11, 12], xf: () => ({ rot: -9 }), hit: 2 },
+      // Coming down fist-first (the slam's swing)
+      dive: { src: 'Judgment_Slam', pick: [5, 6, 7, 8, 9, 10, 11], hit: 3 },
+      slam: { src: 'Judgment_Slam', hit: 9 },
+      blessing: { src: 'Zealots_Blessing', hit: 7 },
+      sanctuary: { src: 'Iron_Sanctuary', hit: 10 },
+      // The ultimate: the blessing's burst, a sprint, a straight punch on arrival (contact), a
+      // hook, another straight, then the Judgment Slam
+      inquisition: {
+        src: 'Zealots_Blessing',
+        pick: [
+          0, 2, 4, 5, 6, 7, 8, 9, 10, 11,
+          ['Sprint', 0], ['Sprint', 2], ['Sprint', 4], ['Sprint', 6],
+          ['Basic_Attack_2', 7], ['Basic_Attack_2', 8], ['Basic_Attack_2', 9], ['Basic_Attack_2', 11],
+          ['Basic_Attack', 5], ['Basic_Attack', 6], ['Basic_Attack', 7], ['Basic_Attack', 9],
+          ['Basic_Attack_2', 7], ['Basic_Attack_2', 8], ['Basic_Attack_2', 9], ['Basic_Attack_2', 11],
+          ...Array.from({ length: 13 }, (_, k): [string, number] => ['Judgment_Slam', k + 3]),
+        ],
+        hit: 15,
+      },
+      front: { src: 'Idle', dir: 'south', fps: 10, loop: true },
+      // Facing out, fists together, the blessing blazing
+      win: { src: 'Zealots_Blessing', dir: 'south', pick: [0, 2, 3, 4, 5, 6, 7, 8, 9] },
+    },
+  },
+  {
+    // Abyssal Hierophant (the arcane duo weekly pack, beside the magister): a hooded skull with a
+    // jewelled staff and tentacles; Abyssal Bolt, Void Gate (it closes into a dark sphere and
+    // shatters away), Umbral Triad (three orbs circling it) and Forbidden Revelation (a grimoire
+    // breathing violet fire).
+    id: 'kuon',
+    pack: 'weekly-free-full-pack-arcane-duo-COMPLETE-FREE',
+    root: 'abyssal-hierophant',
+    height: 1.85,
+    art: 'ffc533c1-2ea4-47f3-88a1-c803617b8684__',
+    actionCards: {
+      file: 'dual_skills.png',
+      rects: [
+        [58, 222, 296],
+        [432, 222, 296],
+        [806, 222, 296],
+        [1180, 222, 296],
+      ],
+    },
+    anims: {
+      idle: { src: 'Idle', fps: 8, loop: true },
+      walk: { src: 'Walk', fps: 12, loop: true },
+      run: { src: 'Run', fps: 12, loop: true },
+      jump: { src: 'Jump', pick: [2, 4, 6, 8, 10] },
+      land: { src: 'Jump', pick: [11, 12, 13, 14] },
+      // Staff held upright in front
+      guard: { src: 'Abyssal_Bolt', pick: [3, 4] },
+      hurt: { src: 'Death', pick: [1, 2, 3, 2, 1] },
+      death: { src: 'Death' },
+      // The staff's thrust and its bolt, without the charge
+      thrust: { src: 'Abyssal_Bolt', pick: [3, 5, 10, 11, 12, 13, 15], hit: 3 },
+      // The charged ring flaring at the staff's head
+      flare: { src: 'Abyssal_Bolt', pick: [2, 4, 5, 6, 7, 8, 9, 15], hit: 4 },
+      bolt: { src: 'Abyssal_Bolt', hit: 11 },
+      triad: { src: 'Umbral_Triad', hit: 10 },
+      gate: { src: 'Void_Gate', hit: 11 },
+      revelation: { src: 'Forbidden_Revelation', hit: 20 },
+      // The grimoire held open, violet fire pouring out
+      tome: { src: 'Forbidden_Revelation', pick: [6, 7, 8, 9, 10, 11, 12, 13], fps: 10, loop: true },
+      front: { src: 'Idle', dir: 'south', fps: 8, loop: true },
+      win: { src: 'Umbral_Triad', dir: 'south', pick: [0, 1, 2, 3, 4, 5, 6, 7, 8] },
+    },
+  },
+  {
+    // Obsidian Crab (a free monster pack, 96 px canvases, five colours; the obsidian one is used):
+    // idle, a crawl, one claw raise and pincer snap, and a collapse, in 8 directions. Everything
+    // else is built from those frames.
+    id: 'kokuyo',
+    pack: 'Obsidian_Crab_Pixel_Art_v1.0_AllColors',
+    animDir: 'Obsidian_Crab_Pixel_Art_v1.0_AllColors/Purple',
+    height: 1.0,
+    credit: 'Obsidian Crab Pixel Art v1.0',
+    face: { src: 'Idle', dir: 'south', frame: 0 },
+    // The whole crab, eyes and claws
+    faceBox: { left: 16, top: 28, size: 64 },
+    bust: { left: 18, top: 30, size: 60 },
+    anims: {
+      idle: { src: 'Idle', fps: 8, loop: true },
+      walk: { src: 'Walk', fps: 10, loop: true },
+      run: { src: 'Walk', fps: 16, loop: true, xf: () => ({ rot: -4 }) },
+      // Springing up shell first, claws tucked, nose down on the way down
+      jump: {
+        src: 'Walk',
+        pick: [2, 2, 6, 6],
+        xf: [{ rot: 6, dy: -1 }, { rot: 0 }, { rot: -8 }, { rot: -14 }],
+      },
+      // Claws raised in front of the face
+      guard: { src: 'Attack', pick: [1, 2] },
+      hurt: {
+        src: 'Idle',
+        pick: [0, 0, 0, 0, 0],
+        xf: (k) => ({ rot: [8, 16, 12, 6, 2][k], dx: [-2, -4, -3, -1, 0][k], ground: true }),
+      },
+      death: { src: 'Death' },
+      snap: { src: 'Attack', hit: 3 },
+      // A quick snap without the raise
+      nip: { src: 'Attack', pick: [2, 3, 4, 6, 8], hit: 1 },
+      // Rearing up on the back legs, then the claws come down
+      crush: {
+        src: 'Attack',
+        hit: 5,
+        xf: (k) => ({ rot: [0, 6, 12, 16, 8, -8, -6, -3, 0][k] ?? 0, ground: true }),
+      },
+      // Scuttling sideways at full tilt, claws first
+      scuttle: { src: 'Walk', fps: 20, loop: true, xf: () => ({ rot: -10 }) },
+      // Hunkered down in the shell, claws drawn in
+      shell: { src: 'Idle', pick: [0, 0, 0, 0], xf: [{ dy: 1 }, { dy: 2 }, { dy: 3 }, { dy: 3 }] },
+      // The ultimate: scuttling into the surf (contact: surfacing under the enemy), holding them
+      // in the whirlpool, the grip, then rearing up and slamming them down
+      maw: {
+        src: 'Walk',
+        pick: [
+          0, 2, 4, 6, 8, 1,
+          ...Array.from({ length: 12 }, (_, k): [string, number] => ['Idle', k % 8]),
+          ...Array.from({ length: 9 }, (_, k): [string, number] => ['Attack', k]),
+          ...Array.from({ length: 9 }, (_, k): [string, number] => ['Attack', k]),
+        ],
+        hit: 5,
+        xf: (k) => ({ rot: k >= 27 ? ([0, 6, 12, 16, 8, -8, -6, -3, 0][k - 27] ?? 0) : 0, ground: true }),
+      },
+      front: { src: 'Idle', dir: 'south', fps: 8, loop: true },
+      win: { src: 'Attack', dir: 'south', pick: [0, 1, 2, 3, 2, 3, 2, 3] },
+    },
+  },
+  {
     id: 'dummy',
     pack: 'wasteland-juggernaut-FREE',
     height: 1.85,
@@ -1395,7 +1574,7 @@ function list(folder: string): string[] {
 }
 
 async function hero(cfg: HeroCfg) {
-  const dir = unzip(cfg.pack);
+  const dir = join(unzip(cfg.pack), cfg.root ?? '');
   const out = join(OUT, cfg.id);
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
@@ -1604,12 +1783,12 @@ async function hero(cfg: HeroCfg) {
     let src = idle0;
     if (cfg.face) src = await load(anim(cfg.face.src, cfg.face.dir)[cfg.face.frame]!);
     const fb = bbox(src)!;
-    const size = Math.round((fb[3] - fb[1]) * 0.55);
+    const size = cfg.faceBox?.size ?? Math.round((fb[3] - fb[1]) * 0.55);
     const cx = Math.round((fb[0] + fb[2]) / 2);
     await sharp(src.data, { raw: { width: src.w, height: src.h, channels: 4 } })
       .extract({
-        left: Math.max(0, cx - Math.round(size / 2)),
-        top: Math.max(0, fb[1] - 4),
+        left: cfg.faceBox?.left ?? Math.max(0, cx - Math.round(size / 2)),
+        top: cfg.faceBox?.top ?? Math.max(0, fb[1] - 4),
         width: size,
         height: size,
       })
