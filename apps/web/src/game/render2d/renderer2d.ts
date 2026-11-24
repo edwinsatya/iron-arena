@@ -630,7 +630,7 @@ export class GameRenderer {
     const o = s.fighters[1 - i]!;
     const dir = (f.fx >= 0 ? 1 : -1) * v.flip;
     if (id.startsWith('kg_')) this.rogueVfx(g, f, o, id, t);
-    if (id === 'hs_ult') this.groundFx(g, s, i, 'front');
+    if (id === 'hs_ult' || id === 'am_s2' || id === 'am_s3') this.groundFx(g, s, i, 'front');
     if (id === 'hy_s3') {
       // Rime Bastion: ice crystals burst up around him
       const k = Math.min(1, Math.max(0, (t - 8) / 6));
@@ -987,11 +987,17 @@ export class GameRenderer {
    * ('back'), the near one over them ('front'). Absolute Zero: the Glacial Heart VFX update's
    * vortex opens on the floor under Hyōshin, churns while it drags the enemy in, flashes white on
    * the last blow and shatters away. Wolfblood Oath: the wolf spirit rises behind Rōga and howls.
+   * Amane's wingbeat and oath: the Sanctuary Seraph VFX update's clips, drawn at her feet on the
+   * pack's own canvas (so they sit on her as drawn), the far side behind her, the near in front.
    */
   private groundFx(g: CanvasRenderingContext2D, s: GameState, i: number, part: 'back' | 'front') {
     const f = s.fighters[i]!;
     if (f.state !== FS.ACTION) return;
     const a = actionOf(f);
+    if (a?.id === 'am_s2' || a?.id === 'am_s3') {
+      this.seraphFx(g, f, a.id, part);
+      return;
+    }
     if (a?.id === 'rg_s3' && part === 'back' && f.actionFrame >= 6 && f.actionFrame <= 40) {
       const v = this.v;
       this.vfx.get('roga')?.draw(
@@ -1038,6 +1044,53 @@ export class GameRenderer {
       part,
       alpha: part === 'front' ? 0.8 : 1,
     });
+  }
+
+  /**
+   * Habataki Wingbeat: golden wings rise behind her, sweep down and burst into a ring of light
+   * as the feathers fly (frame 14), the ring spreading out with blades of light. Hane Featherbound
+   * Oath: wings of feathers close around her, the sun sigil lights over her head and the halo
+   * flashes round her as the oath takes (frame 12), then the feathers pale and drift away.
+   */
+  private seraphFx(
+    g: CanvasRenderingContext2D,
+    f: GameState['fighters'][number],
+    id: string,
+    part: 'back' | 'front',
+  ) {
+    const fx = this.vfx.get('amane');
+    if (!fx) return;
+    const v = this.v;
+    const t = f.actionFrame;
+    let clip: string;
+    let fr: number;
+    if (id === 'am_s2') {
+      if (t < 2 || t >= 40) return;
+      clip = 'Golden_Wing_Burst';
+      fr = keyed(t, [
+        [2, 0],
+        [9, 1.99],
+        [13, 4.99],
+        [14, 5],
+        [17, 7],
+        [30, 10.99],
+        [40, 13.99],
+      ]);
+    } else {
+      if (t >= 40) return;
+      clip = 'Featherbound_Halo';
+      fr = keyed(t, [
+        [0, 0],
+        [6, 3.99],
+        [11, 6.99],
+        [12, 7],
+        [16, 8.99],
+        [30, 12.99],
+        [40, 15.99],
+      ]);
+    }
+    // Opaque on both sides: the clips are mostly white light, where any step shows as a seam
+    fx.draw(g, v, clip, fr, v.sx(f.x), v.sy(f.y), { part });
   }
 
   /** A green lantern light (Karasu): a soft halo with a white-hot core. */

@@ -68,6 +68,10 @@ The free VFX updates replace the biggest effects with the packs' own pixel art (
 | Kage | Veil of the Forgotten | Utsusemi Decoy: the violet shroud closes round him while the decoy waits, falls away after; when the counter fires, the empty shroud collapses where he stood |
 | Kage | Umbral Gravebind | Senjin Thousand Cuts: runes ring the target, hooked chains rise and hold them through the cuts, sinking away before the burst |
 | Hyōshin | Absolute Zero — Frozen Abyss Vortex (Glacial Heart VFX update; flattened onto the floor, far half behind the fighters) | Absolute Zero: the vortex opens under him, churns while it drags the enemy in, flashes white on the last blow and shatters away (`groundFx` in `renderer2d.ts`; the code-drawn ice spikes of that last blow are skipped while it plays) |
+| Amane | Solar Judgment Sigil (Sanctuary Seraph VFX update) | Nichirin Sunspoke Verdict: the sun sigil forms over the enemy and flares as each spoke comes down (in place of the code-drawn wheel; the spears of light stay) |
+| Amane | Golden Wing Burst (drawn on her own canvas, anchored at her feet; far half behind her) | Habataki Wingbeat: golden wings rise behind her, sweep down and burst into a ring of light as the feathers fly (`seraphFx` in `renderer2d.ts`) |
+| Amane | Featherbound Halo (same) | Hane Featherbound Oath: wings of feathers close round her, the sun sigil lights over her head and the halo flashes as the oath takes |
+| Amane | Radiant Halo Pulse | Tenrin Unbroken Halo: the drawn halo gives way to the clip's at the end of the burn, which closes to a point on the enemy and bursts on the last blow |
 
 Painted art (portraits, full art, skill boards) is in every complete pack but the game doesn't use
 it: since the tournament redesign every portrait, skill icon and cut-in is made from the sprites so
@@ -133,7 +137,9 @@ One more, from a pack with a separate animation update:
 |---|---|---|
 | Shirogane, Silver Paladin | Female Hero Pixel Art v1.1: idle, walk, run, jump, guard, a diagonal slash, hurt and death in 8 directions, two more slashes facing the camera only; its New Animations update adds Basic Holy Spell Cast and Dawnpiercer Judgment (256 px canvas instead of 320, same size, read with `pack`) | The quick cut (the slash without its wind-up), the return cut (the slash from three quarters), the overhead coil and the sweep (the camera-facing slashes, mirrored with `flip` so they swing forward), knockdown (the death kneels; its last frames tip her onto her back), the blessing (the spell cast seen from the front), the victory pose (the judgment from the front, the dawn coming down on her hand) |
 
-Amane's verdict, halo and feathers are drawn in code (`seraphArea`, the `feather` projectile).
+Amane's feathers are drawn in code (the `feather` projectile); her verdict and halo use the
+Sanctuary Seraph VFX update (`seraphArea`, with the code-drawn versions as the fallback; see the
+VFX table above).
 
 Two more complete packs with their own VFX clips:
 
@@ -201,7 +207,7 @@ catch the enemy through guard, hold them, cut and kick them away.
 - **Kemuri, Smoke Gauntlet** (Cyberpunk Street Assassin, free complete pack): Hibana Brand, Shimyaku Priming, Kurenai Smokescreen; ultimate Imawa Last Breath
 - **Raika, Plasma Huntress** (Cyberpunk Sword Huntress, free complete pack): Shisen Seam Ripper, Jiryoku Polarity Lock, Gen'ei Mantle Decoy; ultimate Shūen Last Circuit
 - **Ikazuchi, Amber Magister** (Lightning Academy Magister, free complete pack, with its VFX clips): Kohaku Charge Imprint, Kairo Circuit Relay, Raiun Stormcloak; ultimate Raimei Resonance Theorem
-- **Amane, Sunwing Seraph** (Sanctuary Seraph, free complete pack): Nichirin Sunspoke Verdict, Habataki Wingbeat, Hane Featherbound Oath; ultimate Tenrin Unbroken Halo
+- **Amane, Sunwing Seraph** (Sanctuary Seraph, free complete pack, plus its VFX update for all four skills): Nichirin Sunspoke Verdict, Habataki Wingbeat, Hane Featherbound Oath; ultimate Tenrin Unbroken Halo
 - **Tsuno, Northern Packgoat** (Northern Pack Goat, free complete pack: idles, walks and a stride; every attack is built from those frames): Gakemichi Surefoot Leap, Kemonomichi Trail Charge, Fuyugomori Winter Coat; ultimate Ōnadare Mountain Stampede
 - **Shirogane, Silver Paladin** (Female Hero Pixel Art v1.1 and its holy-spell update, free packs): Hōkō Holy Bolt, Tenchū Dawn Pillar, Kago Dawn Blessing; ultimate Shinpan Dawnpiercer Judgment
 - **Rōga, Winter Chieftain** (Northern Gothic War Chieftain, free complete pack, with its VFX clips): Tōga Glacierfang Cleave, Fuyubure Frostfall Decree, Ōkami Wolfblood Oath; ultimate Tōkan Crown of Endless Winter

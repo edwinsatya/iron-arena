@@ -672,6 +672,18 @@ const HEROES: HeroCfg[] = [
     id: 'amane',
     pack: 'sanctuary-seraph-COMPLETE-FREE',
     height: 1.78,
+    // Its VFX update, drawn on the same canvas as her frames: the sun sigil of the verdict, the
+    // wingbeat's golden burst, the oath's wings and halo (anchored at her feet) and the
+    // ultimate's halo that closes to a point and bursts
+    vfx: {
+      pack: 'sanctuary-seraph-VFX-FREE',
+      clips: {
+        Solar_Judgment_Sigil: [128, 128],
+        Golden_Wing_Burst: [128, 189],
+        Featherbound_Halo: [128, 189],
+        Radiant_Halo_Pulse: [128, 128],
+      },
+    },
     anims: {
       idle: { src: 'Idle', fps: 10, loop: true },
       walk: { src: 'Walk', fps: 12, loop: true },

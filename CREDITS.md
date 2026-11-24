@@ -24,7 +24,7 @@ Every hero but Kamakiri, Shirogane and Kokuyō is drawn with free character pack
 | Kemuri | Cyberpunk Street Assassin (free complete pack) |
 | Raika | Cyberpunk Sword Huntress (free complete pack) |
 | Ikazuchi | Lightning Academy Magister (free complete pack, with its VFX clips) |
-| Amane | Sanctuary Seraph (free complete pack) |
+| Amane | Sanctuary Seraph (free complete pack) and its free VFX update |
 | Tsuno | Northern Pack Goat (free complete pack; every attack built from its frames) |
 | Rōga | Northern Gothic War Chieftain (free complete pack, with its VFX clips) |
 | Mitsume | Quadrupedal Recon Drone (free complete pack, with its VFX clips) |

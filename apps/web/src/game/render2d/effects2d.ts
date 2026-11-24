@@ -1511,6 +1511,7 @@ export class Effects2D {
         break;
       case 'verdict':
       case 'halo':
+        g.globalAlpha = 1;
         this.seraphArea(g, v, a, spec, a.age - spec.delay);
         break;
       case 'crown':
@@ -2056,7 +2057,10 @@ export class Effects2D {
               ? spec.active + 12
               : (spec.kind === 'brand' || spec.kind === 'burst') && this.kemuriFx(a)
                 ? spec.active + 10
-                : MAGISTER_KINDS.has(spec.kind) || NORTH_KINDS.has(spec.kind) || spec.kind === 'halo'
+                : MAGISTER_KINDS.has(spec.kind) ||
+                    NORTH_KINDS.has(spec.kind) ||
+                    spec.kind === 'halo' ||
+                    spec.kind === 'verdict'
                   ? spec.active + 12
                   : spec.kind === 'beam'
                     ? spec.active + BEAM_FADE
@@ -2079,7 +2083,7 @@ export class Effects2D {
           }
         } else if (spec.kind === 'firering') this.flameRing(g, v, a.x, spec.r, u, 'all', seed);
         else if (MAGISTER_KINDS.has(spec.kind)) this.magisterArea(g, v, a, spec, u);
-        else if (spec.kind === 'halo') this.seraphArea(g, v, a, spec, u);
+        else if (spec.kind === 'halo' || spec.kind === 'verdict') this.seraphArea(g, v, a, spec, u);
         else if (NORTH_KINDS.has(spec.kind)) this.northArea(g, v, a, spec, u);
         else if (spec.kind === 'beam') this.crimsonBeam(g, v, a, spec, u);
         else this.meteorBlast(g, v, a.x, spec.r, u, seed);
@@ -2597,29 +2601,52 @@ export class Effects2D {
     const y0 = v.sy(0);
     const rx = v.px(spec.r);
     const end = spec.active;
+    // The Sanctuary Seraph VFX update: the sun sigil, and the halo that closes and bursts
+    const fx = this.vfx.get(ROSTER[a.char]!.id);
     g.save();
     if (spec.kind === 'verdict') {
       const wy = v.sy(3000);
       const k = u < 0 ? 1 + u / Math.max(1, spec.delay) : 1;
-      // The wheel overhead, its spokes lighting one by one
-      const W = rx * 0.55;
-      g.globalAlpha = u < 0 ? 0.4 + 0.6 * k : Math.max(0, 1 - u / (end + 4));
-      g.translate(x, wy);
-      g.rotate(this.time * 1.5 + a.spec);
-      g.strokeStyle = look.color;
-      g.lineWidth = 3;
-      g.shadowColor = look.color;
-      g.shadowBlur = 14;
-      g.beginPath();
-      g.arc(0, 0, W, 0, TAU);
-      g.stroke();
-      for (let n = 0; n < 8; n++) {
-        if (n / 8 > k) break;
-        const ang = (n / 8) * TAU;
+      if (fx) {
+        // The sigil rises over the enemy, flares as its spoke comes down, holds, and fades; the
+        // later spokes' sigils start formed, on top of the first, so it reads as one flaring again
+        fx.draw(
+          g,
+          v,
+          'Solar_Judgment_Sigil',
+          keyed(u, [
+            [-spec.delay, a.spec === 0 ? 0 : 3],
+            [-2, 3.99],
+            [0, 4],
+            [6, 10.99],
+            [end + 12, 13.99],
+          ]),
+          x,
+          wy,
+          { size: (0.5 * spec.r) / 620 },
+        );
+      }
+      else {
+        // Drawn without it: the wheel overhead, its spokes lighting one by one
+        const W = rx * 0.55;
+        g.globalAlpha = u < 0 ? 0.4 + 0.6 * k : Math.max(0, 1 - u / (end + 4));
+        g.translate(x, wy);
+        g.rotate(this.time * 1.5 + a.spec);
+        g.strokeStyle = look.color;
+        g.lineWidth = 3;
+        g.shadowColor = look.color;
+        g.shadowBlur = 14;
         g.beginPath();
-        g.moveTo(Math.cos(ang) * W * 0.25, Math.sin(ang) * W * 0.25);
-        g.lineTo(Math.cos(ang) * W * 1.45, Math.sin(ang) * W * 1.45);
+        g.arc(0, 0, W, 0, TAU);
         g.stroke();
+        for (let n = 0; n < 8; n++) {
+          if (n / 8 > k) break;
+          const ang = (n / 8) * TAU;
+          g.beginPath();
+          g.moveTo(Math.cos(ang) * W * 0.25, Math.sin(ang) * W * 0.25);
+          g.lineTo(Math.cos(ang) * W * 1.45, Math.sin(ang) * W * 1.45);
+          g.stroke();
+        }
       }
       g.restore();
       g.save();
@@ -2651,7 +2678,33 @@ export class Effects2D {
       const sink = u < 0 ? -u / Math.max(1, spec.delay) : 0;
       const R = rx * (last && u >= 0 ? 0.85 + u / 10 : 0.85);
       const fade = u < end ? 1 : Math.max(0, 1 - (u - end) / 12);
-      g.globalAlpha = fade * (u < 0 ? 1 - sink * 0.7 : 1);
+      // With the clips: the drawn ring gives way to the clip's at the end of the burn, which
+      // closes to a point; the last blow is the clip's burst alone
+      const close = fx ? (last ? 1 : Math.min(1, Math.max(0, (u - (end - 10)) / 6))) : 0;
+      if (fx && (last ? u >= -spec.delay : u >= end - 10 && u < end + 2)) {
+        fx.draw(
+          g,
+          v,
+          'Radiant_Halo_Pulse',
+          last
+            ? // The solid sun only flashes: the blow's hitstop holds the open ring, not the disc
+              keyed(u, [
+                [-2, 6],
+                [-1, 7],
+                [0, 8],
+                [3, 8.99],
+                [end + 12, 13.99],
+              ])
+            : keyed(u, [
+                [end - 10, 0],
+                [end + 2, 5.99],
+              ]),
+          x,
+          cy,
+          { size: spec.r / 1750 },
+        );
+      }
+      g.globalAlpha = fade * (u < 0 ? 1 - sink * 0.7 : 1) * (1 - close);
       g.translate(x, cy - v.px(2600) * sink);
       // Burning light inside
       if (u >= 0 && !last) {
@@ -2693,7 +2746,7 @@ export class Effects2D {
       g.save();
       g.globalAlpha = fade;
       if (u >= 0 && last && u < end) {
-        starBurst(g, x, cy, rx * 1.6, u / end, look.color, '#ffffff', a.action);
+        if (!fx) starBurst(g, x, cy, rx * 1.6, u / end, look.color, '#ffffff', a.action);
         rays(g, x, cy, rx * 2.4, 12, this.time, look.glow);
       }
       if (u >= 0) embers(g, x, cy, rx * 1.5, v.px(2400), this.time, 16, '#fff6c8', a.action + a.spec);
