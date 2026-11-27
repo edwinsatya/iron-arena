@@ -86,8 +86,9 @@ interface HeroCfg {
   /** Skill card index (0–3 on the board) for skill 1, 2, 3 and the ultimate. */
   cards?: [number, number, number, number];
   /** Packs with an "actions" board instead of a skills board: file suffix and the card crops
-   * [left, top, size] for skill 1, 2, 3 and the ultimate. */
-  actionCards?: { file: string; rects: [number, number, number][] };
+   * [left, top, size] for skill 1, 2, 3 and the ultimate; a fourth entry takes that card from
+   * another board (packs whose cards are spread over several). */
+  actionCards?: { file: string; rects: ([number, number, number] | [number, number, number, string])[] };
   /** Packs without art: the sprite frame to crop a portrait from. */
   face?: { src: string; dir: string; frame: number };
   /** Packs with full art but no portrait board: square crop of Fullart_01 for the portrait. */
@@ -1169,6 +1170,75 @@ const HEROES: HeroCfg[] = [
     },
   },
   {
+    // Sanctuary Guardian (free complete pack): gilded armour and a crystal-headed staff; Azure
+    // Bolt, Sanctum Beam, Crystal Nova, Hexagon Ward (the dome is drawn into the frames),
+    // Sanctuary Blessing and Crystal Mending. Its VFX folder holds the bolt and its burst, the
+    // beam in pieces (origin, a body tile, impact), and three floor clips: Crystal Spear, Crystal
+    // Rain and the Sanctum Seal (chains round a crystal that shatters).
+    id: 'ruri',
+    pack: 'sanctuary-guardian-COMPLETE-FREE',
+    animDir: 'Animations/no-shadow',
+    height: 1.72,
+    art: '9d3f8dfc-3350-4e39-bc6e-6278bea61df1__',
+    actionCards: {
+      file: 'dual_skills_1.png',
+      // Sanctum Beam, Crystal Spear and Crystal Rain from the first board, Hexagon Ward from the
+      // second
+      rects: [
+        [538, 186, 262],
+        [973, 186, 262],
+        [953, 204, 262, 'dual_skills_2.png'],
+        [1398, 186, 262],
+      ],
+    },
+    vfx: {
+      pack: 'sanctuary-guardian-COMPLETE-FREE',
+      clips: {
+        Azure_Bolt: { src: 'azure-bolt/projectile/east', at: [56, 48] },
+        Azure_Impact: { src: 'azure-bolt/impact', at: [44, 44] },
+        Beam_Origin: { src: 'sanctum-beam/origin', at: [18, 18] },
+        Beam_Body: { src: 'sanctum-beam/body', at: [0, 13] },
+        Beam_Impact: { src: 'sanctum-beam/impact', at: [26, 29] },
+        Crystal_Spear: { src: 'crystal-spear', at: [128, 181] },
+        Crystal_Rain: { src: 'crystal-rain', at: [128, 183] },
+        Sanctum_Seal: { src: 'sanctum-seal', at: [128, 176] },
+      },
+    },
+    anims: {
+      idle: { src: 'Idle', fps: 10, loop: true },
+      walk: { src: 'Walk', fps: 12, loop: true },
+      run: { src: 'Sprint', fps: 14, loop: true },
+      jump: { src: 'Jump', pick: [6, 7, 8, 9, 10] },
+      land: { src: 'Jump', pick: [11, 12, 13, 14, 15] },
+      // The staff planted, the first sparks of the ward
+      guard: { src: 'Hexagon_Ward', pick: [1, 2] },
+      // Thrown back without the hit flash drawn into the first frames
+      hurt: { src: 'Hit_Reaction', pick: [4, 5, 6, 7, 6] },
+      death: { src: 'Death' },
+      // The quick bolt from the staff's head (the start of Azure Bolt)
+      flick: { src: 'Azure_Bolt', pick: [0, 1, 2, 3, 3], hit: 1 },
+      // The staff swept round and thrust out (Azure Bolt's ending)
+      thrust: { src: 'Azure_Bolt', pick: [9, 10, 11, 12, 13, 14, 15], hit: 2 },
+      bolt: { src: 'Azure_Bolt', hit: 11 },
+      // Staff raised, the star flaring at its head
+      invoke: { src: 'Azure_Bolt', pick: [3, 4, 5, 6, 7, 8, 8, 14, 15], hit: 5 },
+      nova: { src: 'Crystal_Nova', hit: 5 },
+      beam: { src: 'Sanctum_Beam', hit: 5 },
+      ward: { src: 'Hexagon_Ward', hit: 8 },
+      mending: { src: 'Crystal_Mending', hit: 6 },
+      blessing: { src: 'Sanctuary_Blessing', hit: 5 },
+      // Lit from within, holding the sanctuary (the blessing's glow, looped)
+      channel: {
+        src: 'Sanctuary_Blessing',
+        pick: [6, 7, 8, 9, 10, 11, 12, 11, 10, 9, 8, 7],
+        fps: 12,
+        loop: true,
+      },
+      front: { src: 'Idle', dir: 'south', fps: 10, loop: true },
+      win: { src: 'Sanctuary_Blessing', dir: 'south', pick: [0, 2, 4, 5, 6, 8, 10, 12, 14] },
+    },
+  },
+  {
     // Abyssal Hierophant (the arcane duo weekly pack, beside the magister): a hooded skull with a
     // jewelled staff and tentacles; Abyssal Bolt, Void Gate (it closes into a dark sphere and
     // shatters away), Umbral Triad (three orbs circling it) and Forbidden Revelation (a grimoire
@@ -1779,9 +1849,9 @@ async function hero(cfg: HeroCfg) {
       // Some packs name the board without the art prefix
       files.find((f) => f === cfg.actionCards!.file || (f.startsWith(cfg.art!) && f.endsWith(cfg.actionCards!.file)));
     if (actions && cfg.actionCards) {
-      for (const [k, [left, top, size]] of cfg.actionCards.rects.entries()) {
+      for (const [k, [left, top, size, board]] of cfg.actionCards.rects.entries()) {
         const name = k === 3 ? 'card-ult.webp' : `card-s${k + 1}.webp`;
-        await sharp(join(artDir, actions))
+        await sharp(join(artDir, board ?? actions))
           .extract({ left, top, width: size, height: size })
           .resize(240, 240)
           .webp({ quality: 88 })

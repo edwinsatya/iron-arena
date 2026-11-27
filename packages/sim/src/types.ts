@@ -56,7 +56,9 @@ export type ProjectileKind =
   | 'fireball'
   | 'flamewall'
   | 'feather'
-  | 'laser';
+  | 'laser'
+  | 'azure'
+  | 'ray';
 
 export interface ProjectileSpec {
   frame: number;
@@ -126,7 +128,12 @@ export type AreaKind =
   | 'beam'
   | 'sanctuary'
   | 'gate'
-  | 'umbra';
+  | 'umbra'
+  | 'nova'
+  | 'spear'
+  | 'ward'
+  | 'seal'
+  | 'rain';
 
 /** A ground circle that hits everyone inside after a telegraph. */
 export interface AreaSpec {

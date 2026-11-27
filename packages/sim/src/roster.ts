@@ -19,6 +19,7 @@ import { mitsume } from '../data/heroes/mitsume';
 import { raika } from '../data/heroes/raika';
 import { reo } from '../data/heroes/reo';
 import { roga } from '../data/heroes/roga';
+import { ruri } from '../data/heroes/ruri';
 import { kokuyo } from '../data/heroes/kokuyo';
 import { kuon } from '../data/heroes/kuon';
 import { shinku } from '../data/heroes/shinku';
@@ -91,6 +92,7 @@ export const ROSTER: readonly CompiledHero[] = [
   tekkan,
   kuon,
   kokuyo,
+  ruri,
   dummy,
 ].map((h, i) => compileHero(h, i));
 

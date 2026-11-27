@@ -32,6 +32,7 @@ Every hero but Kamakiri, Shirogane and Kokuyō is drawn with free character pack
 | Shinku | Demonic Gothic Seraph (free complete pack; camera-facing only, its beam of light reused for the skills' pillars) |
 | Tekkan | Ironclad Inquisitor (free complete pack; the fall built from its kneeling death) |
 | Kuon | Abyssal Hierophant (from the free *Weekly Free Full Pack — Arcane Duo*) |
+| Ruri | Sanctuary Guardian (free complete pack, with its VFX clips) |
 | Training dummy | Wasteland Juggernaut (free pack) |
 
 Licence (from the packs): *Commercial and non-commercial use and modifications allowed. Credit "elie automata". Distribution within finished projects allowed. No standalone resale, sharing or redistribution of original or modified assets.*

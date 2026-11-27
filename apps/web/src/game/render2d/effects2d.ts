@@ -34,6 +34,8 @@ import { keyed, type VfxSet } from './vfx';
 const MAGISTER_KINDS = new Set<string>(['arc', 'imprint', 'circuit', 'reversal', 'theorem']);
 /** Rōga's crown and Mitsume's scan, signal and array (their packs' clips, or code without them). */
 const NORTH_KINDS = new Set<string>(['crown', 'scan', 'signal', 'array']);
+/** Ruri's Crystal Spear, Sanctum Seal and Crystal Rain (her pack's clips, or code without them). */
+const WARDEN_KINDS = new Set<string>(['spear', 'seal', 'rain']);
 import { hexA, type View2D } from './view';
 
 export interface EffectCallbacks {
@@ -53,6 +55,10 @@ type Fx = {
 const TAU = Math.PI * 2;
 /** Frames Shinku's crimson beam takes to burst and fray away after it stops hitting. */
 const BEAM_FADE = 14;
+/** Frames Ruri's spear, rain and shattered seal take to fade after they stop hitting. */
+const WARDEN_FADE = 12;
+/** Ruri's seal areas this wide or wider are the shatter (the last blow), not the hold. */
+const WARDEN_SHATTER_R = 1200;
 
 /* Clip timing from the packs' VFX updates: [frames since the effect landed, clip frame]. */
 const PILLAR_KEYS = [
@@ -144,6 +150,7 @@ export class Effects2D {
     switch (e.type) {
       case EV.HIT: {
         const big = e.value >= 60;
+        this.azureImpact(e, s, big);
         this.burst(e.x, e.y, big ? 28 : 16, atk, big ? 9000 : 6000, 0.35);
         this.burst(e.x, e.y, 8, '#ffffff', 5000, 0.2);
         this.impact(e.x, e.y, big ? 900 : 600, atk);
@@ -468,7 +475,7 @@ export class Effects2D {
   /** In front of the heroes: slashes, projectiles, active areas, one-shots. */
   drawFront(g: CanvasRenderingContext2D, s: GameState, v: View2D, dt: number): void {
     this.time += dt;
-    for (const p of s.projectiles) this.projectile(g, v, p);
+    for (const p of s.projectiles) this.projectile(g, v, p, s);
     for (const a of s.areas) this.area(g, v, a);
     this.dizzy(g, s, v);
     g.save();
@@ -483,7 +490,12 @@ export class Effects2D {
     this.flash = Math.max(0, this.flash - dt * 2.2);
   }
 
-  private projectile(g: CanvasRenderingContext2D, v: View2D, p: GameState['projectiles'][number]) {
+  private projectile(
+    g: CanvasRenderingContext2D,
+    v: View2D,
+    p: GameState['projectiles'][number],
+    s: GameState,
+  ) {
     const spec = projectileSpec(p.char, p.action, p.spec);
     const id = ROSTER[p.char]!.id;
     const look = LOOKS[id]!;
@@ -828,6 +840,58 @@ export class Effects2D {
         g.fill();
         break;
       }
+      case 'azure': {
+        // Ruri's bolts: the pack's azure bolt (a crystal flame with a sparking tail)
+        g.rotate(ang);
+        const fx = this.vfx.get(id);
+        if (fx && fx.count('Azure_Bolt')) {
+          fx.draw(g, v, 'Azure_Bolt', Math.floor(p.age / 3) % fx.count('Azure_Bolt'), 0, 0, {
+            size: spec.r / 230,
+          });
+        } else {
+          const len = r * 3;
+          const tail = g.createLinearGradient(-len, 0, 0, 0);
+          tail.addColorStop(0, hexA(look.color, 0));
+          tail.addColorStop(1, hexA(look.color, 0.8));
+          g.fillStyle = tail;
+          g.beginPath();
+          g.ellipse(-len / 2, 0, len / 2, r * 0.45, 0, 0, TAU);
+          g.fill();
+          g.fillStyle = look.glow;
+          g.beginPath();
+          g.ellipse(0, 0, r * 0.8, r * 0.4, 0, 0, TAU);
+          g.fill();
+        }
+        break;
+      }
+      case 'ray': {
+        // Sanctum Beam: a seal of light at the staff, the beam poured from it to the head
+        g.rotate(ang);
+        const L = Math.abs(v.px(p.vx * p.age));
+        const fx = this.vfx.get(id);
+        const size = spec.r / 200;
+        if (fx && fx.count('Beam_Body')) {
+          const f = Math.floor(p.age / 2);
+          const tile = ((v.scale * 1000) / fx.atlas.pxPerM) * size * 48;
+          for (let bx = -L; bx < 0; bx += tile) fx.draw(g, v, 'Beam_Body', f % 4, bx, 0, { size });
+          fx.draw(g, v, 'Beam_Origin', f % 4, -L, 0, { size: size * 1.6 });
+          // The pulses overlap into one beam: only the leading one flares at its head
+          const lead = !s.projectiles.some(
+            (q) => q !== p && q.owner === p.owner && q.action === p.action && q.age > p.age,
+          );
+          if (lead) fx.draw(g, v, 'Beam_Impact', f % 6, 0, 0, { size });
+        } else {
+          const W = Math.max(4, r * 0.5);
+          const gr = g.createLinearGradient(0, -W, 0, W);
+          gr.addColorStop(0, hexA(look.color, 0));
+          gr.addColorStop(0.5, hexA('#ffffff', 0.95));
+          gr.addColorStop(1, hexA(look.color, 0));
+          g.fillStyle = gr;
+          g.fillRect(-L, -W, L, W * 2);
+          starBurst(g, 0, 0, W * 2.5, (p.age % 8) / 8, look.color, '#ffffff', p.spec);
+        }
+        break;
+      }
       case 'feather': {
         // Amane's feathers: white plumes with a gold quill, a streak of light behind them
         g.rotate(ang);
@@ -924,6 +988,7 @@ export class Effects2D {
       else if (spec.kind === 'verdict' || spec.kind === 'halo') this.seraphArea(g, v, a, spec, a.age - spec.delay);
       else if (NORTH_KINDS.has(spec.kind)) this.northArea(g, v, a, spec, a.age - spec.delay);
       else if (spec.kind === 'beam') this.crimsonBeam(g, v, a, spec, a.age - spec.delay);
+      else if (WARDEN_KINDS.has(spec.kind)) this.wardenArea(g, v, a, spec, a.age - spec.delay);
       return;
     }
     const k = (a.age - spec.delay) / Math.max(1, spec.active);
@@ -1533,6 +1598,55 @@ export class Effects2D {
         g.globalAlpha = 1;
         this.voidGate(g, v, x, y0, rx, k, a.age, look.color, look.glow);
         break;
+      case 'spear':
+      case 'seal':
+      case 'rain':
+        g.globalAlpha = 1;
+        this.wardenArea(g, v, a, spec, a.age - spec.delay);
+        break;
+      case 'nova': {
+        // Crystal Nova: the ring of ice is in her frames; frost light spreads out under it
+        const R = rx * (0.5 + 0.5 * Math.min(1, k * 2));
+        const glow = g.createRadialGradient(x, y0, 0, x, y0, R);
+        glow.addColorStop(0, hexA(look.glow, 0.55));
+        glow.addColorStop(0.7, hexA(look.color, 0.25));
+        glow.addColorStop(1, hexA(look.color, 0));
+        g.fillStyle = glow;
+        g.beginPath();
+        g.ellipse(x, y0, R, R * 0.2, 0, 0, TAU);
+        g.fill();
+        embers(g, x, y0, rx * 1.6, v.px(1600), this.time, 14, look.glow, a.age);
+        break;
+      }
+      case 'ward': {
+        // Hexagon Ward bursting: its cells fly out as a ring of hexagons
+        g.globalAlpha = Math.max(0, 1 - k);
+        const R = rx * (0.6 + 0.6 * k);
+        g.strokeStyle = look.glow;
+        g.shadowColor = look.color;
+        g.shadowBlur = 12;
+        g.lineWidth = Math.max(1.5, v.px(28));
+        const cy = y0 - v.px(900);
+        for (let n = 0; n < 14; n++) {
+          const ang = (n / 14) * TAU + 0.2;
+          const hx = x + Math.cos(ang) * R;
+          const hy = cy + Math.sin(ang) * R * 0.75;
+          const hs = v.px(130) * (1 - k * 0.5);
+          g.beginPath();
+          for (let c = 0; c <= 6; c++) {
+            const q = (c / 6) * TAU + ang;
+            g[c ? 'lineTo' : 'moveTo'](hx + Math.cos(q) * hs, hy + Math.sin(q) * hs);
+          }
+          g.stroke();
+        }
+        g.shadowBlur = 0;
+        g.strokeStyle = hexA(look.color, 0.8);
+        g.lineWidth = Math.max(2, v.px(40));
+        g.beginPath();
+        g.ellipse(x, y0, R, R * 0.18, 0, 0, TAU);
+        g.stroke();
+        break;
+      }
       case 'umbra': {
         // Umbral Triad: a ring of the dark under the circling orbs, motes drifting up
         g.globalAlpha = Math.max(0, fade);
@@ -2064,7 +2178,9 @@ export class Effects2D {
                   ? spec.active + 12
                   : spec.kind === 'beam'
                     ? spec.active + BEAM_FADE
-                    : 0;
+                    : WARDEN_KINDS.has(spec.kind) && !(spec.kind === 'seal' && spec.r < WARDEN_SHATTER_R)
+                      ? spec.active + WARDEN_FADE
+                      : 0;
     if (to <= from) return;
     this.fx.push({
       age: 0,
@@ -2086,6 +2202,7 @@ export class Effects2D {
         else if (spec.kind === 'halo' || spec.kind === 'verdict') this.seraphArea(g, v, a, spec, u);
         else if (NORTH_KINDS.has(spec.kind)) this.northArea(g, v, a, spec, u);
         else if (spec.kind === 'beam') this.crimsonBeam(g, v, a, spec, u);
+        else if (WARDEN_KINDS.has(spec.kind)) this.wardenArea(g, v, a, spec, u);
         else this.meteorBlast(g, v, a.x, spec.r, u, seed);
       },
     });
@@ -2586,6 +2703,146 @@ export class Effects2D {
     }
     if (u < end) starBurst(g, x, y0 - v.px(200), rx * 1.2, Math.min(1, u / end), look.color, '#ffffff', a.action);
     embers(g, x, y0, rx * 1.4, v.px(2600), this.time, 12, look.glow, a.action + a.spec);
+    g.restore();
+  }
+
+  /** Ruri's blows land with the pack's azure burst. */
+  private azureImpact(e: SimEvent, s: GameState, big: boolean) {
+    const atk = s.fighters[1 - e.fighter];
+    const id = atk ? ROSTER[atk.char]?.id : undefined;
+    const fx = id ? this.vfx.get(id) : undefined;
+    const n = fx?.count('Azure_Impact') ?? 0;
+    if (!fx || !n) return;
+    this.add(0.3, (g, v, k) =>
+      fx.draw(g, v, 'Azure_Impact', k * (n - 0.01), v.sx(e.x), v.sy(e.y), { size: big ? 1.6 : 1.1 }),
+    );
+  }
+
+  /**
+   * Ruri's floor spells (`u` frames since the area went live; negative while it gathers), from
+   * the Sanctuary Guardian's VFX:
+   * Crystal Spear: the seal is drawn under the enemy, the spear drops through it and the ground
+   * bursts into crystal, then it splinters away. Sanctum Seal: the seal turns, chains close round
+   * the enemy and hold a crystal on them; the last blow (the wider area) shatters it. Crystal
+   * Rain: a halo opens over the seal and pours crystals until it fades.
+   */
+  private wardenArea(
+    g: CanvasRenderingContext2D,
+    v: View2D,
+    a: GameState['areas'][number],
+    spec: ReturnType<typeof areaSpec>,
+    u: number,
+  ) {
+    const look = LOOKS[ROSTER[a.char]!.id]!;
+    const fx = this.vfx.get(ROSTER[a.char]!.id);
+    const x = v.sx(a.x);
+    const y0 = v.sy(0);
+    const rx = v.px(spec.r);
+    const end = spec.active;
+    const d = Math.max(1, spec.delay);
+    if (spec.kind === 'spear') {
+      if (fx && fx.count('Crystal_Spear')) {
+        const f = keyed(u, [
+          [-d, 0],
+          [-2, 6.99],
+          [-1, 7],
+          [0, 8],
+          [end, 12.99],
+          [end + WARDEN_FADE, 18.99],
+        ]);
+        fx.draw(g, v, 'Crystal_Spear', f, x, y0, { size: spec.r / 900 });
+        return;
+      }
+      g.save();
+      const k = u < 0 ? 1 + u / d : 1;
+      g.globalAlpha = u > end ? Math.max(0, 1 - (u - end) / WARDEN_FADE) : 1;
+      g.strokeStyle = hexA(look.color, 0.4 + 0.5 * k);
+      g.lineWidth = 3;
+      g.beginPath();
+      g.ellipse(x, y0, rx, rx * 0.18, 0, 0, TAU);
+      g.stroke();
+      if (u >= -1) {
+        g.translate(x, y0);
+        g.rotate(-Math.PI / 2);
+        crystalLance(g, v.px(2200), Math.max(6, rx * 0.18), look.color, look.glow);
+      }
+      g.restore();
+      return;
+    }
+    if (spec.kind === 'seal') {
+      const shatter = spec.r >= WARDEN_SHATTER_R;
+      if (fx && fx.count('Sanctum_Seal')) {
+        const f = shatter
+          ? keyed(u, [
+              [-d, 20],
+              [end + WARDEN_FADE, 23.99],
+            ])
+          : u < 0
+            ? keyed(u, [
+                [-d, 0],
+                [0, 4.99],
+              ])
+            : u < 9
+              ? 5 + u / 3
+              : 8 + (Math.floor((u - 9) / 3) % 12);
+        fx.draw(g, v, 'Sanctum_Seal', f, x, y0, { size: 1.4 });
+        return;
+      }
+      g.save();
+      g.strokeStyle = look.color;
+      g.shadowColor = look.color;
+      g.shadowBlur = 12;
+      g.lineWidth = 3;
+      g.beginPath();
+      g.ellipse(x, y0, rx, rx * 0.2, 0, 0, TAU);
+      g.stroke();
+      if (u >= 0 && !shatter) {
+        g.fillStyle = hexA(look.glow, 0.35);
+        g.fillRect(x - rx * 0.25, v.sy(2000), rx * 0.5, y0 - v.sy(2000));
+      } else if (shatter)
+        starBurst(
+          g,
+          x,
+          v.sy(1000),
+          rx * 1.4,
+          Math.min(1, Math.max(0, u / (end + WARDEN_FADE))),
+          look.color,
+          '#ffffff',
+          a.action,
+        );
+      g.restore();
+      return;
+    }
+    // Crystal Rain
+    if (fx && fx.count('Crystal_Rain')) {
+      const f =
+        u < 0
+          ? keyed(u, [
+              [-d, 0],
+              [0, 4.99],
+            ])
+          : u < end
+            ? 5 + (Math.floor(u / 2) % 9)
+            : keyed(u, [
+                [end, 14],
+                [end + WARDEN_FADE, 21.99],
+              ]);
+      fx.draw(g, v, 'Crystal_Rain', f, x, y0, { size: spec.r / 1000 });
+      return;
+    }
+    if (u < 0 || u > end) return;
+    g.save();
+    g.fillStyle = look.glow;
+    for (let n = 0; n < 10; n++) {
+      const cx = x + (hash(n + a.age) - 0.5) * rx * 1.6;
+      const cy = v.sy(2400) + (((u * 12 + n * 37) % 100) / 100) * (y0 - v.sy(2400));
+      g.beginPath();
+      g.moveTo(cx, cy - v.px(140));
+      g.lineTo(cx + v.px(40), cy);
+      g.lineTo(cx, cy + v.px(60));
+      g.lineTo(cx - v.px(40), cy);
+      g.fill();
+    }
     g.restore();
   }
 

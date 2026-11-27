@@ -669,6 +669,26 @@ export const LOOKS: Record<string, Look> = {
       kk_ult: { anim: 'maw', puppet: 'vanish', still: 'crush' },
     },
   },
+  ruri: {
+    color: '#4fb4ff',
+    glow: '#e2f6ff',
+    weapon: 'staff',
+    altHue: 300,
+    win: { anim: 'win', hold: 8 },
+    actions: {
+      ru_b1: 'flick',
+      ru_b2: 'flick',
+      ru_b3: 'nova',
+      ru_dash: { anim: 'thrust', puppet: 'lunge' },
+      ru_air: 'flick',
+      ru_charge: 'bolt',
+      ru_s1: 'beam',
+      ru_s2: 'invoke',
+      ru_s3: 'ward',
+      // The orb raised, then lit from within while the seal holds and the crystals fall
+      ru_ult: { anim: 'blessing', end: 34, swap: [34, 'channel'], still: 'blessing' },
+    },
+  },
   dummy: {
     color: '#b8b2c8',
     glow: '#ffffff',

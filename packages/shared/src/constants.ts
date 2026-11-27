@@ -65,6 +65,7 @@ export const SELECTABLE_FIGHTERS = [
   'tekkan',
   'kuon',
   'kokuyo',
+  'ruri',
 ] as const;
 export type FighterId = (typeof SELECTABLE_FIGHTERS)[number];
 

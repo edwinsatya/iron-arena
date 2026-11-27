@@ -4,14 +4,15 @@ A fantasy 2D side-view brawler that runs in the browser. Pick a hero, send your 
 on a stage walled in at both ends: empty their health first. Online play uses
 GGPO-style **rollback netcode**, so it feels like you're in the same room.
 
-- **Heroes (27):** Benika (war axe), Lysa (bow), Hyōga (ice hammer), Hyōshin (ice heart),
+- **Heroes (28):** Benika (war axe), Lysa (bow), Hyōga (ice hammer), Hyōshin (ice heart),
   Akari (sword), Reo (sword and shield), Kage (daggers), Homura (fire magic), Gōkai (anchor and tides),
   Yomi (void scythe), Kuma (bear claws), Karasu (plague lantern), Kamakiri (mantis scythes),
   Kurage (stinging tentacles), Kemuri (smoke gauntlets), Raika (plasma sword), Ikazuchi (lightning rod),
   Amane (seraph's staff and wings), Tsuno (pack goat's horns),
   Shirogane (longsword and holy light), Rōga (crystal war-axe), Mitsume (recon drone's optic beams), Jūki (combat walker's hydraulic legs),
   Shinku (fallen seraph's blade and beams of crimson light), Tekkan (inquisitor's gauntlets and golden light),
-  Kuon (abyssal staff and forbidden grimoire), Kokuyō (obsidian crab's pincers), each with a combo, dash, air and charged attacks, **3 skills and an ultimate** with a cut-in
+  Kuon (abyssal staff and forbidden grimoire), Kokuyō (obsidian crab's pincers),
+  Ruri (crystal staff and sanctum seals), each with a combo, dash, air and charged attacks, **3 skills and an ultimate** with a cut-in
 - **Modes:** online room, versus CPU (3 levels), local versus (one keyboard or two gamepads),
   training with a sparring partner
 - **Stages:** Lantern Harbor (sunset) and Neon Rooftop (midnight), painted parallax backdrops

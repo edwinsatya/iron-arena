@@ -92,6 +92,7 @@ locks the screen sideways where the browser allows it (Android).
 | **Tekkan** "Ironclad Inquisitor" | Guardian (gauntlets; slow, takes 5% less damage) | 1000 | **Shinpan Judgment Slam**: armoured; a fist into the ground splits it open in a line of light, the last burst launches | **Kyōshin Zealot's Blessing**: a burst of holy light throws foes off, then 6 s of +20% damage and +15% speed | **Tetsujō Iron Sanctuary**: a dome of light for 4 s: armour, a 90 heal, and it shoves foes out | **Danzai Final Inquisition**: charges the enemy down, beats them senseless, then a pillar of light launches them |
 | **Kuon** "Abyssal Hierophant" | Mage (abyssal staff and grimoire) | 940 | **Shin-en Abyssal Bolt**: a piercing lance of the abyss across the stage | **Kūmon Void Gate**: closes into a gate of the void and steps out behind the enemy; the gate bursts and stuns | **Sanrin Umbral Triad**: three orbs circle it and burn anyone close, then each hunts the enemy | **Kinsho Forbidden Revelation**: hands of the deep rise around the enemy and hold them, then the page burns and launches them |
 | **Kokuyō** "Obsidian Carapace" | Berserker (pincers; low and quick) | 960 | **Hasami Iron Grip**: a lunge and the pincer closes — a grab through guard, a squeeze and a toss | **Yokobashiri Crosscurrent**: armoured; scuttles sideways across the stage through anyone in the way, ending in a splash | **Kōra Obsidian Shell**: shoves foes off, then 5 s of armour, a 70 heal and +10% damage | **Ōshio Riptide Maw**: sinks into the surf, surfaces under the enemy in a whirlpool, grips them and slams them down |
+| **Ruri** "Crystal Warden" | Mage (crystal staff) | 960 | **Seikō Sanctum Beam**: a seal opens at the staff and a beam pours through everything in front, four hits, the last knocks down | **Hyōsō Crystal Spear**: a seal is drawn under the enemy and a spear of crystal comes down through it and launches them | **Rokkaku Hexagon Ward**: a dome of hexagons makes her untouchable, mends 80 and bursts outward, then 4 s of armour | **Seiiki Sanctum Seal**: the seal chains the enemy inside a crystal while crystals rain down on it, then shatters and launches them |
 | **Shinku** "Fallen Seraph" | Knight (blade of red glass and wings) | 1000 | **Chishio Crimson Impale**: armoured; the blade is driven into the ground and a lance of crimson light comes down on the enemy, launching them | **Jōka Infernal Consecration**: armoured; a seal of hellfire burns around it for 4 s and draws foes in, +15% damage meanwhile | **Tenraku Fallen Descent**: rises into a beam of light, comes down as one in front of the enemy and knocks them flat | **Daraku Fallen Heaven**: comes down on the enemy as a beam and stuns, holds them in the burning seal, then a lance of crimson launches them |
 
 Every hero also has a dash attack, an air attack and a charged attack. The in-game *Heroes &
@@ -116,9 +117,9 @@ controls* page is generated from the data.
 
 `pnpm balance [matches] [--detail]` plays CPU-vs-CPU for every pair and prints win rates, round
 endings, a win matrix and each hero's damage by move. Last run (20 matches per pair, hard CPU, with
-wake-up protection): Hyōshin 77%, Lysa 66%, Kage 64%, Tekkan 59%, Karasu 56%, Jūki 56%,
-Homura 56%, Kuon 56%, Kokuyō 56%, Amane 54%, Shinku 52%, Rōga 52%, Reo 52%, Kemuri 51%, Raika 48%,
-Shirogane 47%, Hyōga 47%, Benika 47%, Mitsume 46%, Kamakiri 44%, Tsuno 43%, Ikazuchi 42%, Gōkai 38%,
-Kurage 37%, Kuma 35%, Yomi 32%, Akari 32%.
+wake-up protection): Hyōshin 77%, Lysa 66%, Kage 64%, Tekkan 58%, Homura 57%, Kokuyō 57%,
+Karasu 56%, Jūki 56%, Kuon 56%, Ruri 55%, Amane 54%, Reo 52%, Rōga 52%, Kemuri 51%, Shinku 51%,
+Raika 48%, Benika 47%, Hyōga 47%, Shirogane 47%, Mitsume 47%, Kamakiri 45%, Tsuno 43%,
+Ikazuchi 41%, Gōkai 38%, Kurage 37%, Kuma 35%, Akari 33%, Yomi 31%.
 Tune with real players.
 The CPU keeps its distance only with heroes whose basic attack is a shot.

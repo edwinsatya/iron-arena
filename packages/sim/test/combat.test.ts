@@ -881,3 +881,50 @@ describe('Kokuyō', () => {
     expect(s.fighters[1].hp).toBeLessThan(800);
   });
 });
+
+describe('Ruri', () => {
+  it('Sanctum Beam pours through a far enemy several times and knocks them down', () => {
+    const s = setup('ruri', 'dummy', -3000, 3000);
+    tap(s, 0, BTN.SKILL1);
+    let hits = 0;
+    let last = s.fighters[1].hp;
+    run(s, 70, 0, () => {
+      if (s.fighters[1].hp < last) hits++;
+      last = s.fighters[1].hp;
+      return 0;
+    });
+    expect(hits).toBeGreaterThanOrEqual(3);
+    expect(s.fighters[1].hp).toBeLessThan(920);
+  });
+
+  it('Crystal Spear comes down on a far enemy and launches them', () => {
+    const s = setup('ruri', 'dummy', -4000, 4000);
+    tap(s, 0, BTN.SKILL2);
+    let launched = false;
+    run(s, 60, 0, () => {
+      if (s.fighters[1].y > 0) launched = true;
+      return 0;
+    });
+    expect(s.fighters[1].hp).toBeLessThan(940);
+    expect(launched).toBe(true);
+  });
+
+  it('Hexagon Ward mends her and bursts foes away', () => {
+    const s = setup('ruri', 'dummy', 0, 900);
+    s.fighters[0].hp = 500;
+    tap(s, 0, BTN.SKILL3);
+    run(s, 40);
+    expect(s.fighters[0].hp).toBe(580);
+    expect(s.fighters[0].buffArmor).toBeGreaterThan(0);
+    expect(s.fighters[1].hp).toBeLessThan(1000);
+    expect(s.fighters[1].x).toBeGreaterThan(1200);
+  });
+
+  it('Sanctum Seal holds a far enemy, rains on them and shatters', () => {
+    const s = setup('ruri', 'dummy', -4000, 4000);
+    s.fighters[0].ult = ULT_MAX;
+    tap(s, 0, BTN.ULT);
+    run(s, 260);
+    expect(s.fighters[1].hp).toBeLessThan(810);
+  });
+});
